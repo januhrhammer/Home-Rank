@@ -26,6 +26,7 @@ Run `just` to list all tasks. The ones you need most:
 | Command | What it does |
 |---|---|
 | `just dev` | Start the database and Django's dev server on <http://localhost:8100> |
+| `just worker` | Run the background job worker, which also starts recurring jobs on schedule |
 | `just test` | Run the tests; extra arguments go to pytest, e.g. `just test -k settings` |
 | `just fmt` | Format all code |
 | `just check` | Formatting, lint, types and tests. **Run it before every commit.** |

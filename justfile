@@ -19,6 +19,11 @@ setup:
 dev port="8100": db-up
     uv run python manage.py runserver {{ port }}
 
+# Run the background job worker; it also starts recurring jobs on schedule
+[working-directory('backend')]
+worker: db-up
+    uv run python manage.py procrastinate worker
+
 # Everything CI checks: formatting, lint, types, tests. Run before every commit.
 check: fmt-check lint test
 
