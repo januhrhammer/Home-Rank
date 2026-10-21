@@ -5,6 +5,14 @@
 .env.*
 !.env.example
 
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+
 # Editors and OS
 .idea/
 .vscode/*

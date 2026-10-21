@@ -1,0 +1,75 @@
+[project]
+name = "home-rank"
+version = "0.0.0"
+description = "Self-hosted chess database and training app"
+license = "AGPL-3.0-or-later"
+requires-python = ">=3.12"
+dependencies = [
+    "django>=6.1,<6.2",
+    "django-environ>=0.14.0",
+    "psycopg[binary]>=3.3.6",
+]
+
+[tool.uv]
+# This is a Django application, not a library: nothing gets built or published as a package.
+# uv only manages the virtualenv and the lockfile; code runs from this directory.
+package = false
+
+[dependency-groups]
+dev = [
+    "django-stubs[compatible-mypy]>=6.1.2",
+    "pytest>=9.1.1",
+    "pytest-django>=4.14.0",
+    "ruff>=0.17.1",
+]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E", "W", # pycodestyle: basic style errors and warnings
+    "F",      # pyflakes: unused imports, undefined names
+    "I",      # import sorting
+    "N",      # PEP 8 naming
+    "UP",     # use modern Python syntax
+    "B",      # bugbear: likely bugs
+    "A",      # don't shadow builtins
+    "C4",     # cleaner comprehensions
+    "SIM",    # simplifications
+    "RUF",    # ruff's own rules
+    "S",      # bandit: security problems
+    "PT",     # pytest style
+    "PL",     # pylint
+    "TRY",    # exception handling
+    "DTZ",    # no timezone-naive datetimes
+    "T20",    # no print()
+    "ERA",    # no commented-out code
+    "DJ",     # Django
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Settings modules inherit from base.py with `from .base import *`, Django's usual pattern.
+"config/settings/*.py" = ["F403"]
+# The dev and test settings use fixed, throwaway secret keys on purpose.
+"config/settings/{dev,test}.py" = ["S105"]
+# pytest works with plain assert statements, and tests compare against fake secrets.
+"**/tests/**" = ["S101", "S105"]
+
+[tool.mypy]
+strict = true
+files = ["."]
+plugins = ["mypy_django_plugin.main"]
+
+[[tool.mypy.overrides]]
+# django-environ ships no type information.
+module = ["environ"]
+ignore_missing_imports = true
+
+[tool.django-stubs]
+django_settings_module = "config.settings.test"
+
+[tool.pytest]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+# Fail on typos in config, unknown markers and xfail tests that unexpectedly pass.
+strict = true
