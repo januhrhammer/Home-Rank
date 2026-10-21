@@ -44,6 +44,12 @@ def test_debug_is_off(monkeypatch: pytest.MonkeyPatch) -> None:
     assert settings.DEBUG is False
 
 
+def test_logs_are_json(monkeypatch: pytest.MonkeyPatch) -> None:
+    settings = import_prod_settings(monkeypatch, REQUIRED_VARIABLES)
+
+    assert settings.LOGGING["formatters"]["structlog"]["json"] is True
+
+
 @pytest.mark.parametrize("missing", REQUIRED_VARIABLES)
 def test_refuses_to_start_without(monkeypatch: pytest.MonkeyPatch, missing: str) -> None:
     variables = {name: value for name, value in REQUIRED_VARIABLES.items() if name != missing}

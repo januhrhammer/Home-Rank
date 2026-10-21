@@ -12,6 +12,7 @@ dependencies = [
     "django-ninja>=1.7.1",
     "procrastinate[django]>=3.10.0",
     "psycopg[binary]>=3.3.6",
+    "structlog>=26.1.0",
 ]
 
 [tool.uv]

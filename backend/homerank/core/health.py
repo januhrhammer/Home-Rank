@@ -3,14 +3,14 @@
 /healthz tells whether the process is alive, /readyz whether it can serve requests.
 """
 
-import logging
 from http import HTTPStatus
 
+import structlog
 from django.db import DatabaseError, connection
 from django.http import HttpRequest, JsonResponse
 from django.views.decorators.http import require_safe
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 @require_safe

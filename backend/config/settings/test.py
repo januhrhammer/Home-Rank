@@ -3,10 +3,14 @@
 Built on base.py, not dev.py, so development-only tools never leak into tests.
 """
 
+from config.logging_config import build_logging
+
 from .base import *
 from .base import env
 
 SECRET_KEY = "django-insecure-tests-only"
+
+LOGGING = build_logging(json=False)
 
 # Argon2 is deliberately expensive and tests create many users. Test passwords are fake,
 # so a fast, insecure hasher is fine here.

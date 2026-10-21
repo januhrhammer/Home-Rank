@@ -10,6 +10,8 @@ from pathlib import Path
 
 import environ
 
+from config.logging_config import build_logging
+
 # backend/, the directory that contains manage.py.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -112,3 +114,6 @@ USE_I18N = True
 # Store and process all timestamps in UTC; the frontend converts to the user's local time.
 TIME_ZONE = "UTC"
 USE_TZ = True
+
+# One JSON object per log line, for log tools; dev.py and test.py switch to readable lines.
+LOGGING = build_logging(json=True)

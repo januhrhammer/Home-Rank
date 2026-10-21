@@ -12,16 +12,16 @@ plain-text 405 (with the standard Allow header). django-ninja builds it before a
 handler runs, and only a programming error can cause it.
 """
 
-import logging
 from http import HTTPStatus
 from typing import Any
 
+import structlog
 from django.http import Http404, HttpRequest, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from ninja import NinjaAPI
 from ninja.errors import HttpError, ValidationError
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class DomainError(Exception):

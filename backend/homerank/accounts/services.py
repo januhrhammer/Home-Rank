@@ -1,6 +1,6 @@
-import logging
 from http import HTTPStatus
 
+import structlog
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.sessions.models import Session
 from django.http import HttpRequest
@@ -9,7 +9,7 @@ from django.utils import timezone
 from homerank.accounts.models import User
 from homerank.core.errors import DomainError
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class InvalidCredentialsError(DomainError):
@@ -39,4 +39,4 @@ def log_out(*, request: HttpRequest) -> None:
 def clear_expired_sessions() -> None:
     """Delete expired sessions. Django keeps them in the database forever otherwise."""
     deleted, _ = Session.objects.filter(expire_date__lt=timezone.now()).delete()
-    logger.info("Deleted %d expired sessions", deleted)
+    logger.info("Deleted expired sessions", count=deleted)
