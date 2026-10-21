@@ -24,6 +24,16 @@ from ninja.errors import HttpError, ValidationError
 logger = logging.getLogger(__name__)
 
 
+class DomainError(Exception):
+    """Base for errors that the API reports to clients as problem details.
+
+    Subclasses set the HTTP status and a detail message that is safe to show to users.
+    """
+
+    status: HTTPStatus = HTTPStatus.BAD_REQUEST
+    detail: str = "The request could not be processed."
+
+
 def problem_response(status: HTTPStatus, detail: str, **extensions: Any) -> JsonResponse:
     body = {
         "type": "about:blank",
@@ -33,6 +43,10 @@ def problem_response(status: HTTPStatus, detail: str, **extensions: Any) -> Json
         **extensions,
     }
     return JsonResponse(body, status=status, content_type="application/problem+json")
+
+
+def handle_domain_error(request: HttpRequest, exc: DomainError) -> JsonResponse:
+    return problem_response(exc.status, exc.detail)
 
 
 def handle_validation_error(request: HttpRequest, exc: ValidationError) -> JsonResponse:
@@ -66,6 +80,7 @@ def register_problem_handlers(api: NinjaAPI) -> None:
     """Replace django-ninja's default error responses with problem details."""
     # django-ninja's type hints claim a handler may also receive an exception *class*. It never
     # does: every caller passes an exception instance. Hence the ignores.
+    api.add_exception_handler(DomainError, handle_domain_error)  # type: ignore[arg-type]
     api.add_exception_handler(ValidationError, handle_validation_error)  # type: ignore[arg-type]
     api.add_exception_handler(HttpError, handle_http_error)  # type: ignore[arg-type]
     api.add_exception_handler(Http404, handle_not_found)  # type: ignore[arg-type]
