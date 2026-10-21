@@ -1,0 +1,4 @@
+# Build output and pnpm's generated lockfile. (Prettier skips node_modules by itself, but it
+# only reads a .gitignore in this folder, not the repository root's.)
+dist
+pnpm-lock.yaml
