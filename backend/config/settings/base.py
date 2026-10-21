@@ -31,6 +31,8 @@ INSTALLED_APPS = [
     # Serves the API docs' JavaScript ourselves; without it the docs page loads it from a CDN.
     "ninja",
     "axes",
+    # Job queue in PostgreSQL; finds tasks in each app's tasks.py. See docs/adr/0004-job-queue.md.
+    "procrastinate.contrib.django",
     "homerank.accounts",
 ]
 
