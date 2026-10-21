@@ -58,3 +58,29 @@ that is created and removed automatically.
   `docker compose -f docker/compose.dev.yaml down --volumes`.
 - If port 5432 is already taken on your machine, change the port in `docker/compose.dev.yaml`
   and set a matching `DATABASE_URL` in `.env`.
+
+## Trying the API
+
+The API lives under <http://localhost:8100/api/v1/>, with interactive docs generated from the
+code at <http://localhost:8100/api/v1/docs>. Create an account with
+`just manage createsuperuser` first.
+
+Most endpoints require login. On the docs page:
+
+1. Run `POST /api/v1/auth/login` with your username and password.
+2. **Reload the page.** Logging in issues a new CSRF token, which the page picks up only on
+   reload; until then, state-changing requests fail with 403.
+
+Other clients log in the way the frontend does:
+
+1. `GET /api/v1/auth/csrf` sets the `csrftoken` cookie.
+2. `POST /api/v1/auth/login` with `{"username": "...", "password": "..."}`, sending the cookie's
+   value in an `X-CSRFToken` header. This sets the `sessionid` cookie and a new `csrftoken`.
+3. Every further `POST`, `PUT`, `PATCH` or `DELETE` sends the current `csrftoken` value as
+   `X-CSRFToken`.
+
+After 10 failed logins from one IP address, logins from it are blocked for 15 minutes. To lift
+a block early: `just manage axes_reset`.
+
+Errors are JSON "problem details" (RFC 9457), for example
+`{"type": "about:blank", "title": "Unauthorized", "status": 401, "detail": "Unauthorized"}`.
