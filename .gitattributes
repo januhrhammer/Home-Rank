@@ -1,0 +1,6 @@
+# Store text files with LF line endings and check them out with LF on every OS.
+* text=auto eol=lf
+
+# PGN fixtures must stay byte-for-byte as committed: some will deliberately use CRLF,
+# and import tests check byte offsets. So no line-ending conversion for them.
+*.pgn -text

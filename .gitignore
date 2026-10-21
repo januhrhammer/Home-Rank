@@ -1,0 +1,14 @@
+# Entries for Python, Node etc. are added in the step that introduces each tool.
+
+# Local configuration and secrets: .env.example is committed, real .env files never.
+.env
+.env.*
+!.env.example
+
+# Editors and OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+.DS_Store
+Thumbs.db
