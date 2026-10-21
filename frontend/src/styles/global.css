@@ -1,0 +1,59 @@
+/* Global styles: design tokens as CSS custom properties, plus a few base rules.
+   Components style themselves with CSS Modules (Component.module.css) and use these tokens,
+   so colours and spacing stay consistent. See docs/adr/0005-styling.md. */
+
+:root {
+  /* Colours, light theme. Text colours meet WCAG AA contrast on both backgrounds. */
+  --color-bg: #ffffff;
+  --color-surface: #f4f4f5;
+  --color-text: #18181b;
+  --color-text-muted: #52525b;
+  --color-border: #d4d4d8;
+  --color-accent: #2563eb;
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  --radius: 6px;
+  /* The system's own fonts: nothing to download, so the app works offline. */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Lets the browser draw its own controls (scrollbars, inputs) in the matching theme. */
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #18181b;
+    --color-surface: #27272a;
+    --color-text: #f4f4f5;
+    --color-text-muted: #a1a1aa;
+    --color-border: #3f3f46;
+    --color-accent: #60a5fa;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+/* A clearly visible focus ring for keyboard users; mouse clicks don't show it. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}

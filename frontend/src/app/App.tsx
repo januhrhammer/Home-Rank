@@ -1,3 +1,9 @@
+import styles from "./App.module.css";
+
 export function App() {
-  return <h1>Home-Rank</h1>;
+  return (
+    <main className={styles.page}>
+      <h1>Home-Rank</h1>
+    </main>
+  );
 }
