@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    // What the code may use, and how Vite (not tsc) bundles it: tsc only type-checks.
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "types": ["vite/client"],
+    "noEmit": true,
+    "skipLibCheck": true,
+
+    // Strictness. noUncheckedIndexedAccess: array[i] and record[key] may be undefined.
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    // Type-only imports must say so (import type ...), so bundlers can drop them safely.
+    "verbatimModuleSyntax": true
+  },
+  "include": ["src", "vite.config.ts"]
+}

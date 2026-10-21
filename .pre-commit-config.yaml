@@ -16,8 +16,12 @@ repos:
         args: [--fix=lf]
         exclude: \.pgn$
       - id: check-yaml
+        # pnpm's lockfile holds several YAML documents (separated by ---).
+        args: [--allow-multiple-documents]
       - id: check-toml
       - id: check-json
+        # TypeScript's config files are "JSON with comments", which strict JSON rejects.
+        exclude: (^|/)tsconfig.*\.json$
       - id: check-merge-conflict
       - id: check-added-large-files
         args: [--maxkb=500]
