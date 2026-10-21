@@ -1,0 +1,12 @@
+"""The Home-Rank API: one NinjaAPI instance, mounted at /api/v1/ in config/urls.py.
+
+Each Django app contributes its endpoints as a Router, added here with api.add_router().
+"""
+
+from ninja import NinjaAPI
+from ninja.security import django_auth
+
+# Every endpoint requires a logged-in session unless it opts out with auth=None.
+# Session auth is also what enforces CSRF: django-ninja exempts all API views from Django's
+# CSRF middleware and checks the token only in cookie-based auth such as django_auth.
+api = NinjaAPI(title="Home-Rank API", version="1", auth=django_auth)

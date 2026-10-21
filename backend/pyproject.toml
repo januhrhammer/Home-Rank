@@ -8,6 +8,7 @@ dependencies = [
     "argon2-cffi>=25.1.0",
     "django>=6.1,<6.2",
     "django-environ>=0.14.0",
+    "django-ninja>=1.7.1",
     "psycopg[binary]>=3.3.6",
 ]
 
@@ -63,7 +64,7 @@ select = [
 [tool.mypy]
 strict = true
 files = ["."]
-plugins = ["mypy_django_plugin.main"]
+plugins = ["mypy_django_plugin.main", "pydantic.mypy"]
 
 [[tool.mypy.overrides]]
 # django-environ ships no type information.

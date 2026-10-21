@@ -27,6 +27,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # Serves the API docs' JavaScript ourselves; without it the docs page loads it from a CDN.
+    "ninja",
     "homerank.accounts",
 ]
 
