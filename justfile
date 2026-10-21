@@ -54,6 +54,7 @@ migrate: db-up
 [working-directory('backend')]
 migration app name:
     uv run python manage.py makemigrations {{ app }} --name {{ name }}
+    uv run ruff format homerank/{{ app }}/migrations
 
 # Run any manage.py command, e.g. `just manage shell`
 [working-directory('backend')]

@@ -53,8 +53,11 @@ select = [
 "config/settings/*.py" = ["F403"]
 # The dev and test settings use fixed, throwaway secret keys on purpose.
 "config/settings/{dev,test}.py" = ["S105"]
-# pytest works with plain assert statements, and tests compare against fake secrets.
-"**/tests/**" = ["S101", "S105"]
+# Generated migrations: Django writes help texts as long strings that can't be wrapped, and its
+# Migration class declares dependencies/operations as plain class-level lists by design.
+"**/migrations/*.py" = ["E501", "RUF012"]
+# pytest works with plain assert statements, and tests use fake secrets and passwords.
+"**/tests/**" = ["S101", "S105", "S106"]
 
 [tool.mypy]
 strict = true

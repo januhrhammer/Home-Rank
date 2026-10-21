@@ -20,7 +20,13 @@ env.read_env(BASE_DIR.parent / ".env")
 
 DEBUG = False
 
-INSTALLED_APPS: list[str] = []
+INSTALLED_APPS = [
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "homerank.accounts",
+]
+
+AUTH_USER_MODEL = "accounts.User"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
