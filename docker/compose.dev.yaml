@@ -1,0 +1,26 @@
+# Services for local development. Django itself runs on the host (`just dev`);
+# only what it depends on runs in containers.
+name: home-rank-dev
+
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: homerank
+      POSTGRES_PASSWORD: homerank
+      POSTGRES_DB: homerank
+    ports:
+      # Bound to 127.0.0.1, so the database is reachable only from this machine.
+      - "127.0.0.1:5432:5432"
+    volumes:
+      # Since Postgres 18 the image keeps its data under /var/lib/postgresql/<major>/,
+      # so the volume is mounted one level higher than the usual .../data.
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD", "pg_isready", "--username=homerank", "--dbname=homerank"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+volumes:
+  db-data:
