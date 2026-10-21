@@ -13,11 +13,22 @@ How to set up Home-Rank on your machine and work on it.
 ## First-time setup
 
 ```sh
-just setup   # install the backend dependencies into backend/.venv
+just setup   # install the backend dependencies into backend/.venv, and the git hooks
 just check   # start the database and run every check
 ```
 
 If `just check` passes, your setup works.
+
+## Git hooks
+
+Every `git commit` first runs quick checks (`.pre-commit-config.yaml`): file hygiene, a scan for
+accidentally committed secrets (gitleaks), ruff, mypy and import-linter. The commit message must
+follow [Conventional Commits](https://www.conventionalcommits.org/), e.g.
+`feat(import): resume interrupted imports`. Fix what they report instead of skipping them with
+`--no-verify`; `just fmt` fixes formatting.
+
+The first commit takes about a minute: pre-commit downloads Go once to build gitleaks. To run all
+hooks on all files, e.g. after changing their configuration: `just pre-commit`.
 
 ## Everyday commands
 

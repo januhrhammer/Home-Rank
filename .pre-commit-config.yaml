@@ -1,0 +1,69 @@
+# Checks that run automatically on `git commit`. `just setup` installs them; run them on all
+# files with `just pre-commit`. Slow checks (tests) belong in `just check` instead.
+default_install_hook_types: [pre-commit, commit-msg]
+
+repos:
+  # File hygiene. PGN files are excluded: they are test data and must stay byte-for-byte as
+  # committed (see .gitattributes).
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: \.pgn$
+      - id: end-of-file-fixer
+        exclude: \.pgn$
+      - id: mixed-line-ending
+        args: [--fix=lf]
+        exclude: \.pgn$
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=500]
+
+  # Secret scanning. pre-commit builds gitleaks from source on first use (it downloads Go).
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+
+  # Commit messages follow Conventional Commits, with exactly these types.
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.4.0
+    hooks:
+      - id: conventional-pre-commit
+        args: [feat, fix, perf, refactor, docs, test, build, ci, chore, revert]
+
+  # Backend tools run in the project's own environment, so their versions come from uv.lock,
+  # exactly as in `just check`. They only check; `just fmt` fixes formatting.
+  - repo: local
+    hooks:
+      - id: ruff-format
+        name: ruff format
+        entry: uv run --project backend ruff format --check
+        language: system
+        types: [python]
+      - id: ruff-check
+        name: ruff check
+        entry: uv run --project backend ruff check
+        language: system
+        types: [python]
+      - id: mypy
+        name: mypy
+        entry: uv run --directory backend mypy
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: import-linter
+        name: import-linter
+        entry: uv run --directory backend lint-imports
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: uv-lock
+        name: uv.lock matches pyproject.toml
+        entry: uv lock --check --project backend
+        language: system
+        files: ^backend/(pyproject\.toml|uv\.lock)$
+        pass_filenames: false

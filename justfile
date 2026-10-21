@@ -9,10 +9,15 @@ compose_dev := "docker compose -f docker/compose.dev.yaml"
 default:
     @just --list --unsorted
 
-# Install all dependencies
+# Install all dependencies and the git hooks
 [working-directory('backend')]
 setup:
     uv sync
+    uv run pre-commit install
+
+# Run the git commit checks on all files, not just the changed ones
+pre-commit:
+    uv run --project backend pre-commit run --all-files
 
 # Start the dev database and Django's dev server on http://localhost:8100 (or another port)
 [working-directory('backend')]
