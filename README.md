@@ -10,6 +10,10 @@ explorer.
 
 > **Status:** early development. Nothing runs yet.
 
+## Development
+
+See [docs/development.md](docs/development.md).
+
 ## Licence
 
 [AGPL-3.0-or-later](LICENSE). [ADR 0002](docs/adr/0002-license.md) explains why.
