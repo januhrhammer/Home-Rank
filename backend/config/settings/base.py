@@ -12,8 +12,7 @@ import environ
 # backend/, the directory that contains manage.py.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-# Every variable can also be given as NAME_FILE=/path/to/file (e.g. Docker secrets).
-env = environ.FileAwareEnv()
+env = environ.Env()
 
 # For local development, variables can live in a .env file at the repository root.
 # In Docker there is no such file and the variables come from the container environment.
