@@ -7,6 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "argon2-cffi>=25.1.0",
     "django>=6.1,<6.2",
+    "django-axes>=8.3.1",
     "django-environ>=0.14.0",
     "django-ninja>=1.7.1",
     "psycopg[binary]>=3.3.6",
@@ -67,8 +68,8 @@ files = ["."]
 plugins = ["mypy_django_plugin.main", "pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-# django-environ ships no type information.
-module = ["environ"]
+# django-environ and django-axes ship no type information.
+module = ["environ", "axes.*"]
 ignore_missing_imports = true
 
 [tool.django-stubs]

@@ -5,6 +5,7 @@ debug mode, the secret key, allowed hosts and the database. Environment variable
 here and in those modules only; the rest of the code uses django.conf.settings.
 """
 
+from datetime import timedelta
 from pathlib import Path
 
 import environ
@@ -29,6 +30,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Serves the API docs' JavaScript ourselves; without it the docs page loads it from a CDN.
     "ninja",
+    "axes",
     "homerank.accounts",
 ]
 
@@ -49,6 +51,24 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+AUTHENTICATION_BACKENDS = [
+    # First, so blocked attempts are rejected before any password hash is computed.
+    "axes.backends.AxesStandaloneBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+
+# Login rate limiting with django-axes; covers both the API login and the admin login.
+# Count failures per IP address, so trying one password on many usernames is caught too.
+# The limit is generous because a household shares one IP address.
+AXES_LOCKOUT_PARAMETERS = ["ip_address"]
+AXES_FAILURE_LIMIT = 10
+# Axes' default (None) keeps a block until an admin lifts it.
+AXES_COOLOFF_TIME = timedelta(minutes=15)
+AXES_RESET_ON_SUCCESS = True
+# Don't keep a permanent record, with IP addresses, of every successful login.
+AXES_DISABLE_ACCESS_LOG = True
+AXES_LOCKOUT_CALLABLE = "homerank.accounts.lockout.lockout_response"
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -57,6 +77,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Last: replaces the response of a blocked login attempt (see AXES_* below).
+    "axes.middleware.AxesMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
