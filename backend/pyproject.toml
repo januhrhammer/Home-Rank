@@ -1,0 +1,16 @@
+[project]
+name = "home-rank"
+version = "0.0.0"
+description = "Self-hosted chess database and training app"
+license = "AGPL-3.0-or-later"
+requires-python = ">=3.12"
+dependencies = [
+    "django>=6.1,<6.2",
+    "django-environ>=0.14.0",
+    "psycopg[binary]>=3.3.6",
+]
+
+[tool.uv]
+# This is a Django application, not a library: nothing gets built or published as a package.
+# uv only manages the virtualenv and the lockfile; code runs from this directory.
+package = false
