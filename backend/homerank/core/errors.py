@@ -6,6 +6,10 @@ Every error the API returns has the same JSON shape, served as application/probl
 
 "about:blank" means the HTTP status says it all; we have no custom problem types yet.
 Validation errors add an "errors" list that describes each invalid field.
+
+One exception: calling an existing endpoint with the wrong HTTP method gets django-ninja's
+plain-text 405 (with the standard Allow header). django-ninja builds it before any error
+handler runs, and only a programming error can cause it.
 """
 
 import logging

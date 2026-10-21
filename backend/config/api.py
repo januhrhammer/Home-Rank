@@ -6,6 +6,7 @@ Each Django app contributes its endpoints as a Router, added here with api.add_r
 from ninja import NinjaAPI
 from ninja.security import django_auth
 
+from homerank.accounts.api import router as accounts_router
 from homerank.core.errors import register_problem_handlers
 
 # Every endpoint requires a logged-in session unless it opts out with auth=None.
@@ -13,3 +14,5 @@ from homerank.core.errors import register_problem_handlers
 # CSRF middleware and checks the token only in cookie-based auth such as django_auth.
 api = NinjaAPI(title="Home-Rank API", version="1", auth=django_auth)
 register_problem_handlers(api)
+
+api.add_router("/auth/", accounts_router)

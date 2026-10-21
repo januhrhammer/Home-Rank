@@ -78,3 +78,6 @@ django_settings_module = "config.settings.test"
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 # Fail on typos in config, unknown markers and xfail tests that unexpectedly pass.
 strict = true
+# Turn warnings into errors, so deprecations in our dependencies surface while they're easy to
+# fix. A warning we can't fix gets a specific "ignore:..." entry here, with the reason.
+filterwarnings = ["error"]
