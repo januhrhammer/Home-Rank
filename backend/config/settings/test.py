@@ -8,6 +8,10 @@ from .base import env
 
 SECRET_KEY = "django-insecure-tests-only"
 
+# Argon2 is deliberately expensive and tests create many users. Test passwords are fake,
+# so a fast, insecure hasher is fine here.
+PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
 # Same local Postgres as development; CI points DATABASE_URL at its own database service.
 # Tests run in a separate, throwaway test_* database, so development data is never touched.
 DATABASES = {
