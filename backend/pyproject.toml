@@ -23,6 +23,7 @@ package = false
 [dependency-groups]
 dev = [
     "django-stubs[compatible-mypy]>=6.1.2",
+    "import-linter>=2.15",
     "pytest>=9.1.1",
     "pytest-django>=4.14.0",
     "ruff>=0.17.1",
@@ -76,6 +77,23 @@ ignore_missing_imports = true
 
 [tool.django-stubs]
 django_settings_module = "config.settings.test"
+
+[tool.importlinter]
+root_packages = ["homerank"]
+# Lets contracts name third-party packages such as django.
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "chesslib and engine are pure Python, without Django"
+type = "forbidden"
+source_modules = ["homerank.chesslib", "homerank.engine"]
+# import-linter sees third-party packages as single boxes and can't tell that ninja imports
+# django, so Django's ecosystem is listed explicitly ("config" is our Django settings package).
+# Imports of our own Django-using modules (e.g. homerank.core) are caught via the import chain.
+forbidden_modules = ["django", "ninja", "procrastinate", "axes", "environ", "config"]
+broken_contract_guidance = """
+chesslib and engine must work without Django. Keep the Django part (models, settings, tasks)
+in a Django app and pass plain Python data into chesslib/engine instead."""
 
 [tool.pytest]
 DJANGO_SETTINGS_MODULE = "config.settings.test"

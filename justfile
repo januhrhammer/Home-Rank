@@ -43,6 +43,7 @@ lint:
     uv lock --check
     uv run ruff check .
     uv run mypy
+    uv run lint-imports
     uv run python manage.py makemigrations --check --dry-run
 
 # Run the tests; extra arguments go to pytest, e.g. `just test -k settings`
