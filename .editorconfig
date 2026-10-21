@@ -1,0 +1,24 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.py]
+indent_size = 4
+max_line_length = 100
+
+[justfile]
+indent_size = 4
+
+# PGN files are test data. Real-world PGNs come in Latin-1, with CRLF line endings and
+# trailing spaces, and the importer must cope with all of that, so editors must not "fix" them.
+[*.pgn]
+charset = unset
+end_of_line = unset
+insert_final_newline = unset
+trim_trailing_whitespace = unset
