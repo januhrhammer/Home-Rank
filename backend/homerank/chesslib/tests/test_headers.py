@@ -44,7 +44,7 @@ def test_unknown_values_are_empty() -> None:
 [Black ""]
 [Result "?"]
 [WhiteElo "0"]
-[BlackElo "-"]
+[BlackElo "99999"]
 [ECO "X99"]
 [Date "????.??.??"]
 

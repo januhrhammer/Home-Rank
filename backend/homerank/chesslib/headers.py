@@ -16,6 +16,8 @@ RESULTS = ("1-0", "0-1", "1/2-1/2")
 _ECO = re.compile(r"[A-E]\d\d")
 _DATE = re.compile(r"(\d{4}|\?{4})[.\-/](\d\d|\?\?)[.\-/](\d\d|\?\?)")
 _MONTHS = range(1, 13)
+# Ratings beyond any platform's record (a typo, or another number in the Elo header) are unknown.
+_RATINGS = range(1, 4001)
 # Lichess's limits for the estimated duration of a game, in seconds (see time_class).
 _BULLET_UNDER = 3 * 60
 _BLITZ_UNDER = 8 * 60
@@ -145,7 +147,7 @@ def _text(value: str | None) -> str:
 
 def _rating(value: str | None) -> int | None:
     value = _text(value)
-    return int(value) if value.isdigit() and int(value) > 0 else None
+    return int(value) if value.isdigit() and int(value) in _RATINGS else None
 
 
 def _result(value: str | None) -> str:
