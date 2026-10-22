@@ -52,8 +52,22 @@ Most tasks also exist for one half of the project: `just test-backend -k setting
 arguments to pytest, `just test-frontend App` to Vitest, and there are `lint-backend`,
 `fmt-frontend` and so on.
 
+`just test-backend --cov` also reports which backend lines the tests don't reach.
+
 Django uses port 8100 rather than its usual 8000, which other local projects often occupy. If
 8100 is taken on your machine, change it in the `dev` recipe of the `justfile`.
+
+## Continuous integration
+
+GitHub Actions (`.github/workflows/`) runs on every pull request and every push to `main`:
+
+- `ci.yml`: the same `just` recipes as `just check`, Django's deployment checks with the
+  production settings, the file checks of the git hooks, a secret scan of new commits, and the
+  Docker image built for amd64 and arm64.
+- `pr-title.yml`: a pull request's title must be a Conventional Commit, because squash-merging
+  turns it into the commit message on `main`.
+
+If `just check` passes locally, CI should too.
 
 ## Settings and configuration
 

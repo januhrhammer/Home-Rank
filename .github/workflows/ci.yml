@@ -1,0 +1,181 @@
+# Everything `just check` runs, plus what only makes sense here: Django's deployment checks, a
+# secret scan of new commits, and the Docker image for both CPU architectures.
+#
+# Jobs call the same `just` recipes as a developer does, so a green `just check` locally means a
+# green CI. Actions are pinned to a commit (tags can be moved); Renovate keeps the pins current.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A new push to a pull request cancels the older run; runs on main always finish.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  JUST_VERSION: "1.59.0"
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - name: Install just
+        run: uv tool install "rust-just==$JUST_VERSION"
+      - name: Install dependencies
+        working-directory: backend
+        run: uv sync --locked
+      - name: Formatting
+        run: just fmt-check-backend
+      # Before linting: `makemigrations --check` also checks the database's migration history.
+      - name: Start the test database
+        run: just db-up
+      - name: Lint, types, import rules, migrations
+        run: just lint-backend
+      - name: Deployment checks with the production settings
+        working-directory: backend
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.prod
+          ALLOWED_HOSTS: chess.example.org
+          HTTPS: "true"
+          DATABASE_URL: postgres://homerank:homerank@localhost:5432/homerank
+        run: SECRET_KEY="$(openssl rand -hex 32)" uv run python manage.py check --deploy --fail-level WARNING
+      - name: Tests with coverage
+        run: just test-backend --cov
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          package_json_file: frontend/package.json
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+      - name: Install just
+        run: uv tool install "rust-just==$JUST_VERSION"
+      - name: Install dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+      - name: Formatting
+        run: just fmt-check-frontend
+      - name: Lint and types
+        run: just lint-frontend
+      - name: Tests
+        run: just test-frontend
+
+  api-types:
+    name: API types up to date
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          package_json_file: frontend/package.json
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - name: Install just
+        run: uv tool install "rust-just==$JUST_VERSION"
+      - name: Install dependencies
+        run: |
+          (cd backend && uv sync --locked)
+          (cd frontend && pnpm install --frozen-lockfile)
+      - name: Compare frontend/src/api/schema.d.ts with the backend's API
+        run: just check-api
+
+  hygiene:
+    name: File hygiene
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      # The git hooks' file checks (whitespace, line endings, YAML/TOML/JSON, large files), for
+      # commits made without them. The tools they also run are covered by the jobs above, and
+      # gitleaks by the next job: its hook only looks at staged changes.
+      - name: Commit hooks on all files
+        env:
+          SKIP: gitleaks,ruff-format,ruff-check,mypy,import-linter,uv-lock,prettier,eslint,tsc
+        run: uv run --project backend pre-commit run --all-files --show-diff-on-failure
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # gitleaks scans the new commits, not just the last one
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_VERSION: "8.30.1" # as in .pre-commit-config.yaml
+          GITLEAKS_ENABLE_COMMENTS: "false" # would need write access to pull requests
+
+  docker:
+    name: Docker image (${{ matrix.platform }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-24.04
+          # GitHub's arm64 runners build natively, much faster than emulating arm64.
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: docker/Dockerfile
+          platforms: ${{ matrix.platform }}
+          tags: home-rank:ci
+          load: true
+          cache-from: type=gha,scope=${{ matrix.platform }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.platform }}
+      # The image starts with production settings and passes Django's deployment checks.
+      - name: Smoke test
+        run: >-
+          docker run --rm
+          --env SECRET_KEY="$(openssl rand -hex 32)" --env ALLOWED_HOSTS=chess.example.org
+          --env HTTPS=true --env DATABASE_URL=postgres://homerank@db/homerank
+          home-rank:ci python manage.py check --deploy --fail-level WARNING
