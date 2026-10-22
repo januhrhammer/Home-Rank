@@ -10,6 +10,11 @@
   --color-text-muted: #52525b;
   --color-border: #d4d4d8;
   --color-accent: #2563eb;
+  --color-on-accent: #ffffff; /* text on accent-coloured buttons */
+  --color-danger: #b91c1c;
+  /* Borders of form controls need 3:1 against the background (WCAG 1.4.11), more than
+     --color-border, which is only for dividing lines. */
+  --color-input-border: #71717a;
 
   /* Spacing scale */
   --space-1: 0.25rem;
@@ -35,6 +40,8 @@
     --color-text-muted: #a1a1aa;
     --color-border: #3f3f46;
     --color-accent: #60a5fa;
+    --color-on-accent: #18181b;
+    --color-danger: #f87171;
   }
 }
 

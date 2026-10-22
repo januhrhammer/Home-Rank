@@ -1,0 +1,58 @@
+.page {
+  max-width: 24rem;
+  margin: var(--space-8) auto 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Label above its input, error message below. */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.input {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+/* React Aria marks a field it has found invalid, e.g. left empty although required. */
+.input[data-invalid] {
+  border-color: var(--color-danger);
+}
+
+.error {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-danger);
+}
+
+.button {
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  border-radius: var(--radius);
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-on-accent);
+  background: var(--color-accent);
+  cursor: pointer;
+}
+
+.button[data-pressed] {
+  filter: brightness(0.9);
+}
+
+/* While the login request is running. */
+.button[data-pending] {
+  opacity: 0.7;
+  cursor: progress;
+}

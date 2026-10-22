@@ -1,5 +1,6 @@
 import { Route, Routes } from "react-router";
 
+import { LoginPage } from "../features/auth";
 import { HomePage } from "../features/home";
 import { Layout } from "./Layout";
 import { NotFoundPage } from "./NotFoundPage";
@@ -13,6 +14,7 @@ export function AppRoutes() {
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<HomePage />} />
+        <Route path="login" element={<LoginPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
