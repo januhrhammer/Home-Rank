@@ -1,0 +1,16 @@
+name: Feature request
+description: An idea for something Home-Rank could do.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to do?
+      description: The situation or problem, rather than a solution. "When I review my games, I want to …"
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How could Home-Rank help?
+      description: Your idea of a solution, if you have one. Other tools that do it well are useful too.
