@@ -1,9 +1,14 @@
-/* Filters side by side, wrapping onto more lines on narrow screens. */
+/* The ten filters in two even rows of five on a wide screen; fewer to a row as the screen
+   narrows, but never narrower than 10rem each. */
 .filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3) var(--space-4);
-  align-items: flex-end;
+  --columns: 5;
+  --gap: var(--space-4);
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(max(10rem, (100% - (var(--columns) - 1) * var(--gap)) / var(--columns)), 1fr)
+  );
+  gap: var(--space-3) var(--gap);
   margin-bottom: var(--space-6);
 }
 
@@ -18,8 +23,10 @@
   color: var(--color-text-muted);
 }
 
+/* Text and date fields as high as the selects (components/Select), so the row lines up. */
 .input {
-  width: 10rem;
+  width: 100%;
+  height: var(--control-height);
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--color-input-border);
   border-radius: var(--radius);

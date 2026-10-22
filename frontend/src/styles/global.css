@@ -31,6 +31,8 @@
   --space-8: 2rem;
 
   --radius: 3px;
+  /* Form fields and selects that sit side by side share one height. */
+  --control-height: 2.5rem;
   /* Buttons, forms and tables in the system's own sans-serif; headings and moves in a serif
      that ships with the app (main.tsx imports it). */
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
