@@ -7,6 +7,7 @@ from ninja import NinjaAPI
 from ninja.security import django_auth
 
 from homerank.accounts.api import router as accounts_router
+from homerank.accounts.api import settings_router
 from homerank.core.errors import register_problem_handlers
 from homerank.games.api import collections_router, tags_router
 from homerank.games.api import router as games_router
@@ -18,6 +19,7 @@ api = NinjaAPI(title="Home-Rank API", version="1", auth=django_auth)
 register_problem_handlers(api)
 
 api.add_router("/auth/", accounts_router)
+api.add_router("/settings", settings_router)
 api.add_router("/games", games_router)
 api.add_router("/collections", collections_router)
 api.add_router("/tags", tags_router)

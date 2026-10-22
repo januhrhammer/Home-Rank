@@ -288,6 +288,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Settings
+         * @description The logged-in user's settings.
+         */
+        get: operations["homerank_accounts_api_get_settings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Settings
+         * @description Change settings. New player names also update the user's side in all their games, in
+         *     the background.
+         */
+        patch: operations["homerank_accounts_api_update_settings"];
+        trace?: never;
+    };
     "/api/v1/tags": {
         parameters: {
             query?: never;
@@ -663,6 +688,25 @@ export interface components {
             items: components["schemas"]["TagOut"][];
             /** Total */
             total: number;
+        };
+        /**
+         * SettingsOut
+         * @description The logged-in user's settings.
+         */
+        SettingsOut: {
+            /**
+             * Player Names
+             * @description The names the user plays under, to find their side in each game
+             */
+            player_names: string[];
+        };
+        /**
+         * SettingsPatch
+         * @description Changes to the settings; what is left out stays as it is.
+         */
+        SettingsPatch: {
+            /** Player Names */
+            player_names?: string[] | null;
         };
         /**
          * Side
@@ -1173,6 +1217,50 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    homerank_accounts_api_get_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsOut"];
+                };
+            };
+        };
+    };
+    homerank_accounts_api_update_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SettingsPatch"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsOut"];
+                };
             };
         };
     };
