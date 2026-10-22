@@ -87,6 +87,79 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/collections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Collections
+         * @description Your collections, by name.
+         */
+        get: operations["homerank_games_api_list_collections"];
+        put?: never;
+        /**
+         * Create Collection
+         * @description Create a collection; 409 if you already have one with that name.
+         */
+        post: operations["homerank_games_api_create_collection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/collections/{collection_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Collection */
+        get: operations["homerank_games_api_get_collection"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Collection
+         * @description Delete a collection. Its games stay in your database.
+         */
+        delete: operations["homerank_games_api_delete_collection"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Collection
+         * @description Rename a collection or change its description.
+         */
+        patch: operations["homerank_games_api_update_collection"];
+        trace?: never;
+    };
+    "/api/v1/collections/{collection_id}/games": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add To Collection
+         * @description Add games; 404 without adding any if one of them isn't yours.
+         */
+        post: operations["homerank_games_api_add_to_collection"];
+        /**
+         * Remove From Collection
+         * @description Take games out of the collection, e.g. ?game_ids=1&game_ids=5.
+         */
+        delete: operations["homerank_games_api_remove_from_collection"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/games": {
         parameters: {
             query?: never;
@@ -215,10 +288,115 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Tags
+         * @description Your tags, by name.
+         */
+        get: operations["homerank_games_api_list_tags"];
+        put?: never;
+        /**
+         * Create Tag
+         * @description Create a tag; 409 if you already have one with that name.
+         */
+        post: operations["homerank_games_api_create_tag"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tags/{tag_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Tag
+         * @description Delete a tag. Its games stay in your database.
+         */
+        delete: operations["homerank_games_api_delete_tag"];
+        options?: never;
+        head?: never;
+        /** Rename Tag */
+        patch: operations["homerank_games_api_rename_tag"];
+        trace?: never;
+    };
+    "/api/v1/tags/{tag_id}/games": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Tag Games
+         * @description Tag games; 404 without tagging any if one of them isn't yours.
+         */
+        post: operations["homerank_games_api_tag_games"];
+        /**
+         * Untag Games
+         * @description Remove the tag from games, e.g. ?game_ids=1&game_ids=5.
+         */
+        delete: operations["homerank_games_api_untag_games"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** CollectionIn */
+        CollectionIn: {
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /** Name */
+            name: string;
+        };
+        /** CollectionOut */
+        CollectionOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Description */
+            description: string;
+            /** Game Count */
+            game_count: number;
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+        };
+        /**
+         * CollectionPatch
+         * @description The fields to change; those left out stay as they are.
+         */
+        CollectionPatch: {
+            /** Description */
+            description?: string | null;
+            /** Name */
+            name?: string | null;
+        };
         /**
          * GameFilters
          * @description Filters for the game list; all optional, and combined with AND.
@@ -282,9 +460,14 @@ export interface components {
             tag?: number | null;
             time_class?: components["schemas"]["TimeClass"] | null;
         };
+        /** GameIdsIn */
+        GameIdsIn: {
+            /** Game Ids */
+            game_ids: number[];
+        };
         /**
          * GameListItem
-         * @description A game in the list: its headers, without the moves.
+         * @description A game in the list: its headers and tags, without the moves.
          */
         GameListItem: {
             /** Black */
@@ -315,6 +498,8 @@ export interface components {
             /** Site */
             site: string;
             source: components["schemas"]["Source"];
+            /** Tags */
+            tags: components["schemas"]["NamedRef"][];
             time_class: components["schemas"]["TimeClass"];
             /** Time Control */
             time_control: string;
@@ -337,6 +522,8 @@ export interface components {
             black: string;
             /** Black Elo */
             black_elo: number | null;
+            /** Collections */
+            collections: components["schemas"]["NamedRef"][];
             /** Date */
             date: string | null;
             /** Date Pgn */
@@ -365,6 +552,8 @@ export interface components {
             /** Site */
             site: string;
             source: components["schemas"]["Source"];
+            /** Tags */
+            tags: components["schemas"]["NamedRef"][];
             time_class: components["schemas"]["TimeClass"];
             /** Time Control */
             time_control: string;
@@ -437,6 +626,23 @@ export interface components {
             /** Username */
             username: string;
         };
+        /**
+         * NamedRef
+         * @description A collection or tag as other objects mention it.
+         */
+        NamedRef: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+        };
+        /** PagedCollectionOut */
+        PagedCollectionOut: {
+            /** Items */
+            items: components["schemas"]["CollectionOut"][];
+            /** Total */
+            total: number;
+        };
         /** PagedGameListItem */
         PagedGameListItem: {
             /** Items */
@@ -448,6 +654,13 @@ export interface components {
         PagedImportOut: {
             /** Items */
             items: components["schemas"]["ImportOut"][];
+            /** Total */
+            total: number;
+        };
+        /** PagedTagOut */
+        PagedTagOut: {
+            /** Items */
+            items: components["schemas"]["TagOut"][];
             /** Total */
             total: number;
         };
@@ -466,6 +679,20 @@ export interface components {
          * @enum {string}
          */
         Status: "queued" | "running" | "done" | "failed";
+        /** TagIn */
+        TagIn: {
+            /** Name */
+            name: string;
+        };
+        /** TagOut */
+        TagOut: {
+            /** Game Count */
+            game_count: number;
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+        };
         /**
          * TimeClass
          * @enum {string}
@@ -571,6 +798,171 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserOut"];
+                };
+            };
+        };
+    };
+    homerank_games_api_list_collections: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedCollectionOut"];
+                };
+            };
+        };
+    };
+    homerank_games_api_create_collection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CollectionIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CollectionOut"];
+                };
+            };
+        };
+    };
+    homerank_games_api_get_collection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collection_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CollectionOut"];
+                };
+            };
+        };
+    };
+    homerank_games_api_delete_collection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collection_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    homerank_games_api_update_collection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collection_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CollectionPatch"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CollectionOut"];
+                };
+            };
+        };
+    };
+    homerank_games_api_add_to_collection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collection_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GameIdsIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CollectionOut"];
+                };
+            };
+        };
+    };
+    homerank_games_api_remove_from_collection: {
+        parameters: {
+            query: {
+                game_ids: number[];
+            };
+            header?: never;
+            path: {
+                collection_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CollectionOut"];
                 };
             };
         };
@@ -781,6 +1173,149 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    homerank_games_api_list_tags: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedTagOut"];
+                };
+            };
+        };
+    };
+    homerank_games_api_create_tag: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TagIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagOut"];
+                };
+            };
+        };
+    };
+    homerank_games_api_delete_tag: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tag_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    homerank_games_api_rename_tag: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tag_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TagIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagOut"];
+                };
+            };
+        };
+    };
+    homerank_games_api_tag_games: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tag_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GameIdsIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagOut"];
+                };
+            };
+        };
+    };
+    homerank_games_api_untag_games: {
+        parameters: {
+            query: {
+                game_ids: number[];
+            };
+            header?: never;
+            path: {
+                tag_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagOut"];
+                };
             };
         };
     };

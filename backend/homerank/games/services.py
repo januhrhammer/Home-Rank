@@ -1,4 +1,4 @@
-"""Importing games from PGN files.
+"""Changing a user's games data: importing PGN files, and collections and tags.
 
 start_import saves an uploaded file and queues its import; run_import, which the background job
 calls, reads the file and stores its games, their positions and the progress.
@@ -8,12 +8,12 @@ from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from http import HTTPStatus
 from pathlib import Path
-from typing import BinaryIO
+from typing import Any, BinaryIO
 
 import chess.pgn
 import structlog
 from django.conf import settings
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 from procrastinate.contrib.django import app
 
@@ -24,7 +24,7 @@ from homerank.chesslib.pgn import PgnError, PgnGame, read_pgn
 from homerank.chesslib.players import user_side
 from homerank.chesslib.positions import as_bigint, positions
 from homerank.core.errors import DomainError
-from homerank.games.models import Game, GamePosition, ImportRun
+from homerank.games.models import Collection, Game, GamePosition, Group, ImportRun, Tag
 
 logger = structlog.get_logger(__name__)
 
@@ -238,3 +238,55 @@ class _CountedLines:
         for line in self._file:
             self.bytes_read += len(line)
             yield line
+
+
+# ---------------------------------------------------------------- collections and tags
+
+# Collections and tags work alike (see models.Group); the functions below serve both.
+
+
+class NameTakenError(DomainError):
+    status = HTTPStatus.CONFLICT
+
+    def __init__(self, name: str) -> None:
+        self.detail = f'You already have one called "{name}".'
+        super().__init__(self.detail)
+
+
+class GamesNotFoundError(DomainError):
+    status = HTTPStatus.NOT_FOUND
+    detail = "Some of these games don't exist."
+
+
+def create_group(model: type[Group], *, user: User, name: str, **fields: Any) -> Group:
+    group = model(user=user, name=name, **fields)
+    _save_named(group)
+    return group
+
+
+def update_group(group: Group, **changes: Any) -> Group:
+    """Change the given fields, e.g. update_group(tag, name="won")."""
+    for field, value in changes.items():
+        setattr(group, field, value)
+    _save_named(group)
+    return group
+
+
+def _save_named(group: Collection | Tag) -> None:
+    try:
+        with transaction.atomic():  # a savepoint, so the failed insert doesn't break the request
+            group.save()
+    except IntegrityError as error:  # the name is unique per user
+        raise NameTakenError(group.name) from error
+
+
+def add_games(group: Group, *, game_ids: list[int]) -> None:
+    """Add the games; all or nothing, and only the group owner's own games."""
+    games = list(Game.objects.filter(user=group.user, pk__in=game_ids))
+    if len(games) != len(set(game_ids)):
+        raise GamesNotFoundError
+    group.games.add(*games)  # games already in the group stay as they are
+
+
+def remove_games(group: Group, *, game_ids: list[int]) -> None:
+    group.games.remove(*Game.objects.filter(user=group.user, pk__in=game_ids))

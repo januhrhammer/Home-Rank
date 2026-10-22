@@ -2,12 +2,13 @@
 
 from collections.abc import Iterator
 
-from django.db.models import F, Q, QuerySet
+from django.db.models import Count, F, Prefetch, Q, QuerySet
 from django.db.models.expressions import OrderBy
+from django.db.models.functions import Lower
 from django.shortcuts import get_object_or_404
 
 from homerank.accounts.models import User
-from homerank.games.models import Game, ImportRun
+from homerank.games.models import Collection, Game, Group, ImportRun, Tag
 from homerank.games.schemas import GameFilters
 
 # Filters that compare one field with the given value: the filter's name, and the lookup.
@@ -52,9 +53,22 @@ def games(*, user: User, filters: GameFilters) -> QuerySet[Game]:
     return queryset.order_by(*_ordering(filters.sort))
 
 
+def game_list(*, user: User, filters: GameFilters) -> QuerySet[Game]:
+    """games() with each game's tags, as the game list shows them."""
+    return games(user=user, filters=filters).prefetch_related(_by_name("tags", Tag))
+
+
 def game(*, user: User, game_id: int) -> Game:
-    """One of the user's games; 404 for anyone else's, so its existence isn't revealed."""
-    return get_object_or_404(Game.objects.filter(user=user), pk=game_id)
+    """One of the user's games, with its tags and collections; 404 for anyone else's game."""
+    queryset = Game.objects.filter(user=user).prefetch_related(
+        _by_name("tags", Tag), _by_name("collections", Collection)
+    )
+    return get_object_or_404(queryset, pk=game_id)
+
+
+# Quoted: Prefetch is generic only for mypy and can't be subscripted at runtime.
+def _by_name(lookup: str, model: type[Group]) -> "Prefetch[str, QuerySet[Group], str]":
+    return Prefetch(lookup, queryset=model.objects.only("id", "name").order_by(Lower("name")))
 
 
 def export_pgn(*, user: User, filters: GameFilters) -> Iterator[str]:
@@ -85,3 +99,17 @@ def import_runs(*, user: User) -> QuerySet[ImportRun]:
 def import_run(*, user: User, import_run_id: int) -> ImportRun:
     """One of the user's imports; 404 for anyone else's, so its existence isn't revealed."""
     return get_object_or_404(import_runs(user=user), pk=import_run_id)
+
+
+def groups(model: type[Group], *, user: User) -> QuerySet[Group]:
+    """The user's collections or tags, by name, each with its number of games (game_count)."""
+    return (
+        model.objects.filter(user=user)
+        .annotate(game_count=Count("games"))
+        .order_by(Lower("name"), "id")
+    )
+
+
+def group(model: type[Group], *, user: User, group_id: int) -> Group:
+    """One of the user's collections or tags; 404 for anyone else's."""
+    return get_object_or_404(groups(model, user=user), pk=group_id)
