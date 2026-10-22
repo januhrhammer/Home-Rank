@@ -1,0 +1,117 @@
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.none {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.tag {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-1) 0 var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.tag[data-focus-visible] {
+  outline: 2px solid var(--color-accent);
+}
+
+.remove {
+  padding: 0 var(--space-1);
+  border: none;
+  border-radius: 999px;
+  font: inherit;
+  color: var(--color-text-muted);
+  background: none;
+  cursor: pointer;
+}
+
+.remove:hover {
+  color: var(--color-text);
+}
+
+.add {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* The field's label is for screen readers; the placeholder says it for everyone else. */
+.addLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.input {
+  max-width: 16rem;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+.popover {
+  min-width: var(--trigger-width);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 15%);
+}
+
+.listBox {
+  max-height: 16rem;
+  overflow: auto;
+  padding: var(--space-1);
+  outline: none;
+}
+
+.option {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  cursor: pointer;
+  outline: none;
+}
+
+.option[data-focused] {
+  background: var(--color-surface);
+}
+
+.error {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-danger);
+}
