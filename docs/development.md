@@ -63,10 +63,14 @@ Django's settings live in `backend/config/settings/`:
 |---|---|---|
 | `dev.py` | `manage.py`, `just dev` | Debug mode, fixed throwaway secret key, local database |
 | `test.py` | pytest | Like dev, but without debug mode and development-only tools |
-| `prod.py` | the Docker image | Requires `SECRET_KEY`, `ALLOWED_HOSTS` and `DATABASE_URL` |
+| `prod.py` | the Docker image | Requires `SECRET_KEY`, `ALLOWED_HOSTS`, `DATABASE_URL` and `HTTPS` |
 
 Local development needs no configuration. To override something, copy `.env.example` to `.env` in
-the repository root and uncomment what you need. `.env` is never committed.
+the repository root and uncomment what you need; the required values at its top are for Docker
+Compose and can stay empty. `.env` is never committed.
+
+To try the self-hosting setup locally, follow [self-hosting.md](self-hosting.md) with
+`HOMERANK_PORT` set to a free port.
 
 ## Database
 
