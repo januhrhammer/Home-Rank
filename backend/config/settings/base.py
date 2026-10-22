@@ -2,7 +2,8 @@
 
 dev.py, test.py and prod.py import everything from here and add what differs between them:
 debug mode, the secret key, allowed hosts and the database. Environment variables are read
-here and in those modules only; the rest of the code uses django.conf.settings.
+here and in those modules only, through config/env.py; the rest of the code uses
+django.conf.settings.
 """
 
 from datetime import timedelta
@@ -10,16 +11,15 @@ from pathlib import Path
 
 import environ
 
+from config import env
 from config.logging_config import build_logging
 
 # backend/, the directory that contains manage.py.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-env = environ.Env()
-
-# For local development, variables can live in a .env file at the repository root.
-# In Docker there is no such file and the variables come from the container environment.
-env.read_env(BASE_DIR.parent / ".env")
+# For local development, variables can live in a .env file at the repository root; this copies
+# them into the environment. In Docker there is no such file.
+environ.Env.read_env(BASE_DIR.parent / ".env")
 
 DEBUG = False
 
@@ -106,7 +106,7 @@ TEMPLATES = [
 STATIC_URL = "static/"
 
 # Where the Django admin lives. A less obvious path keeps bots probing /admin/ away.
-ADMIN_URL = env.str("ADMIN_URL", default="admin/")
+ADMIN_URL = env.string("ADMIN_URL", default="admin/")
 
 LANGUAGE_CODE = "en-us"
 USE_I18N = True

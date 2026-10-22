@@ -3,10 +3,10 @@
 Built on base.py, not dev.py, so development-only tools never leak into tests.
 """
 
+from config import env
 from config.logging_config import build_logging
 
 from .base import *
-from .base import env
 
 SECRET_KEY = "django-insecure-tests-only"
 
@@ -19,7 +19,7 @@ PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 # Same local Postgres as development; CI points DATABASE_URL at its own database service.
 # Tests run in a separate, throwaway test_* database, so development data is never touched.
 DATABASES = {
-    "default": env.db(
+    "default": env.database(
         "DATABASE_URL", default="postgres://homerank:homerank@localhost:5432/homerank"
     ),
 }

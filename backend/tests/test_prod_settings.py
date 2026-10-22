@@ -6,6 +6,7 @@ that runs with an insecure or broken fallback.
 
 import importlib
 import sys
+from pathlib import Path
 from types import ModuleType
 
 import pytest
@@ -22,6 +23,7 @@ def import_prod_settings(monkeypatch: pytest.MonkeyPatch, variables: dict[str, s
     """Import config.settings.prod afresh, with exactly the given variables in the environment."""
     for name in REQUIRED_VARIABLES:
         monkeypatch.delenv(name, raising=False)
+        monkeypatch.delenv(f"{name}_FILE", raising=False)
     for name, value in variables.items():
         monkeypatch.setenv(name, value)
     # Python runs a module's code only on its first import. Removing the cached module makes
@@ -56,3 +58,15 @@ def test_refuses_to_start_without(monkeypatch: pytest.MonkeyPatch, missing: str)
 
     with pytest.raises(ImproperlyConfigured, match=missing):
         import_prod_settings(monkeypatch, variables)
+
+
+def test_reads_the_secret_key_from_a_file(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    # Docker secrets: SECRET_KEY_FILE points to a file that holds the key.
+    key_file = tmp_path / "secret_key"
+    key_file.write_text("key-from-a-docker-secret\n")
+    variables = {**REQUIRED_VARIABLES, "SECRET_KEY_FILE": str(key_file)}
+    del variables["SECRET_KEY"]
+
+    settings = import_prod_settings(monkeypatch, variables)
+
+    assert settings.SECRET_KEY == "key-from-a-docker-secret"

@@ -1,9 +1,9 @@
 """Settings for local development (the default for manage.py)."""
 
+from config import env
 from config.logging_config import build_logging
 
 from .base import *
-from .base import env
 
 DEBUG = True
 
@@ -16,7 +16,7 @@ ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 # The local Postgres container. Set DATABASE_URL in .env to use a different database.
 DATABASES = {
-    "default": env.db(
+    "default": env.database(
         "DATABASE_URL", default="postgres://homerank:homerank@localhost:5432/homerank"
     ),
 }
