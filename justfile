@@ -68,6 +68,10 @@ _api-types output:
         --api config.api.api --sorted --output "$schema")
     (cd frontend && pnpm exec openapi-typescript "$schema" --output "{{ output }}")
 
+# Build the Docker image as home-rank:dev
+build:
+    docker build --file docker/Dockerfile --tag home-rank:dev .
+
 # Run the git commit checks on all files, not just the changed ones
 pre-commit:
     uv run --project backend pre-commit run --all-files

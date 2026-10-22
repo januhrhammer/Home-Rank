@@ -1,0 +1,14 @@
+# Files sent to `docker build`: an allow-list, so that nothing else (local .env files, the git
+# history, notes) can end up in the image, now or later.
+*
+!backend
+!frontend
+!docker/entrypoint.sh
+
+# ...but not local environments, build output and caches inside those folders.
+**/node_modules
+**/.venv
+**/__pycache__
+**/.*_cache
+frontend/dist
+backend/staticfiles
