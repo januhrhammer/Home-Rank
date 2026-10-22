@@ -60,8 +60,10 @@
 }
 
 .control {
+  display: inline-grid;
+  place-items: center;
   min-width: 2.75rem; /* a comfortable target for fingers */
-  font-size: 1rem;
+  min-height: 2.25rem;
 }
 
 .hint,
