@@ -86,6 +86,18 @@ def boolean(name: str, default: bool | None = None) -> bool:
     raise InvalidValueError(name, value, "true or false")
 
 
+def integer(name: str, default: int | None = None) -> int:
+    """A whole number of zero or more, e.g. a size or a count."""
+    value = _read(name)
+    if value is None:
+        if default is not None:
+            return default
+        raise MissingVariableError(name)
+    if not value.isdigit():
+        raise InvalidValueError(name, value, "a whole number")
+    return int(value)
+
+
 def choice(name: str, choices: list[str], default: str) -> str:
     """One of a few allowed values, in any case; returned as spelled in `choices`."""
     value = string(name, default)

@@ -122,9 +122,9 @@ FRONTEND_DIR = BASE_DIR.parent / "frontend" / "dist"
 # Files kept outside the database: uploaded PGN files waiting for their import job. The website
 # and the worker must share it, as /data in Docker; locally it is the data/ folder.
 DATA_DIR = Path(env.string("DATA_DIR", default=str(BASE_DIR.parent / "data")))
-# The largest PGN file a user may upload: 200 MB hold 70,000 games with clock comments (as
-# exported by Chess.com and Lichess) or about 350,000 without.
-IMPORT_MAX_BYTES = 200 * 1024 * 1024
+# The largest PGN file a user may upload, in MB: 200 MB hold 70,000 games with clock comments
+# (as exported by Chess.com and Lichess) or about 350,000 without.
+IMPORT_MAX_BYTES = env.integer("IMPORT_MAX_MB", default=200) * 1024 * 1024
 
 # Where the Django admin lives. A less obvious path keeps bots probing /admin/ away.
 ADMIN_URL = env.string("ADMIN_URL", default="admin/")

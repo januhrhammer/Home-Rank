@@ -73,6 +73,11 @@ The containers restart by themselves after a crash, and after a reboot if Docker
 To read the logs: `docker compose logs --follow web worker`. They are JSON by default, for log
 collectors; set `LOG_FORMAT=console` in `.env` for lines that are easier to read.
 
+Uploaded PGN files can be up to 200 MB, about 70,000 games with clock comments. Change the limit
+with `IMPORT_MAX_MB` in `.env`; a reverse proxy in front of Home-Rank must allow uploads that
+large too. Uploads wait in the Docker volume `home-rank_data` until the worker has imported them,
+and are deleted afterwards.
+
 ### Changing the database password
 
 PostgreSQL stores its password when it creates the database, on the very first start. Changing
@@ -139,6 +144,9 @@ server {
     ssl_certificate     /etc/letsencrypt/live/chess.example.org/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/chess.example.org/privkey.pem;
 
+    # nginx accepts uploads of 1 MB by default; allow PGN files up to IMPORT_MAX_MB.
+    client_max_body_size 200m;
+
     location / {
         proxy_pass http://127.0.0.1:8000;
         proxy_set_header Host $host;
@@ -149,7 +157,9 @@ server {
 ```
 
 Without the `Host` line, Home-Rank answers every request with "Bad Request (400)". Without
-`X-Forwarded-Proto`, the browser reports too many redirects.
+`X-Forwarded-Proto`, the browser reports too many redirects. Without `client_max_body_size`,
+uploading a PGN file larger than 1 MB fails with "413 Request Entity Too Large". Caddy and Traefik
+don't limit uploads by default.
 
 ### Traefik
 
@@ -181,7 +191,8 @@ doesn't matter.
 
 ## Backup and restore
 
-All of Home-Rank's data lives in its database. To back it up into one file:
+All of Home-Rank's data lives in its database. (The `home-rank_data` volume only holds uploads
+that haven't been imported yet.) To back it up into one file:
 
 ```sh
 docker compose exec -T db pg_dump --username=homerank --format=custom homerank > home-rank-$(date +%F).dump
@@ -220,6 +231,6 @@ and the worker waits until it has. Each update leaves the previous image behind;
 
 ## Uninstalling
 
-`docker compose down` stops and removes the containers. Your data stays in the Docker volume
-`home-rank_db-data` until you also remove it: `docker compose down --volumes` deletes all of
-Home-Rank's data for good.
+`docker compose down` stops and removes the containers. Your data stays in the Docker volumes
+`home-rank_db-data` and `home-rank_data` until you also remove them: `docker compose down
+--volumes` deletes all of Home-Rank's data for good.
