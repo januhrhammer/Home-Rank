@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import {
   Button,
@@ -13,6 +14,7 @@ import {
 import { Link } from "react-router";
 
 import { t } from "../../lib/i18n";
+import { settingsQuery } from "../settings";
 import styles from "./ImportPage.module.css";
 import { type Import, isActive, uploadErrorMessage, useImports, useUpload } from "./imports";
 
@@ -42,6 +44,7 @@ export function ImportPage() {
     <div className={styles.page}>
       <h1>{t("import.title")}</h1>
       <p className={styles.intro}>{t("import.intro")}</p>
+      <PlayerNamesHint />
       <UploadZone onFile={start} isDisabled={upload.isPending} />
       {upload.isPending && (
         // role="status": screen readers announce it without interrupting.
@@ -55,6 +58,20 @@ export function ImportPage() {
       <h2>{t("import.history")}</h2>
       <ImportList />
     </div>
+  );
+}
+
+/** Asks for the user's player names while there are none: without them, no game is theirs. */
+function PlayerNamesHint() {
+  const settings = useQuery(settingsQuery);
+  if (settings.data?.player_names.length !== 0) {
+    return null; // not known yet, or there are names
+  }
+  return (
+    <p className={styles.hint}>
+      {t("settings.playerNames.missing")}{" "}
+      <Link to="/settings">{t("settings.playerNames.add")}</Link>
+    </p>
   );
 }
 

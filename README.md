@@ -8,7 +8,15 @@ the background, and builds tactics puzzles and opening drills from your own mist
 import large reference databases such as Lumbra's GigaBase for position search and an opening
 explorer.
 
-> **Status:** early development. You can install it and log in, but there is nothing to do yet.
+> **Status:** early development. What works so far:
+>
+> - importing your games from PGN files, with duplicates skipped;
+> - a game list to search and filter by player, your side and result, opening, time control,
+>   date, tags and collections;
+> - a viewer with the moves set like a chess book, figurines, variations and comments;
+> - tags and collections, and PGN export of one game, a selection or a collection.
+>
+> Syncing from Lichess and Chess.com, engine analysis and training come in the next releases.
 
 ## Quick start
 
@@ -22,7 +30,8 @@ docker compose up -d
 docker compose exec web python manage.py createsuperuser
 ```
 
-Then open port 8000 of that machine in your browser and log in.
+Then open port 8000 of that machine in your browser and log in. Enter the names you play under
+in **Settings**, then upload a PGN file of your games under **Import**.
 [docs/self-hosting.md](docs/self-hosting.md) explains each step, configuration and updates.
 
 ## Development

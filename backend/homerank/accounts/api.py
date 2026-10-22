@@ -8,9 +8,10 @@ from ninja.decorators import decorate_view
 from homerank.accounts import services
 from homerank.accounts.auth import AuthenticatedRequest, require_csrf_token
 from homerank.accounts.models import User
-from homerank.accounts.schemas import LoginIn, UserOut
+from homerank.accounts.schemas import LoginIn, SettingsOut, SettingsPatch, UserOut
 
 router = Router(tags=["auth"])
+settings_router = Router(tags=["settings"])
 
 
 @router.get("/csrf", auth=None, response={HTTPStatus.NO_CONTENT: None})
@@ -45,4 +46,19 @@ def logout(request: AuthenticatedRequest) -> Status[None]:
 @router.get("/me", response=UserOut)
 def me(request: AuthenticatedRequest) -> User:
     """The logged-in user."""
+    return request.user
+
+
+@settings_router.get("", response=SettingsOut)
+def get_settings(request: AuthenticatedRequest) -> User:
+    """The logged-in user's settings."""
+    return request.user
+
+
+@settings_router.patch("", response=SettingsOut)
+def update_settings(request: AuthenticatedRequest, changes: SettingsPatch) -> User:
+    """Change settings. New player names also update the user's side in all their games, in
+    the background."""
+    if changes.player_names is not None:
+        services.set_player_names(user=request.user, names=changes.player_names)
     return request.user

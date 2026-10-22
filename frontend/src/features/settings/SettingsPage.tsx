@@ -1,0 +1,84 @@
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import {
+  Button,
+  Form,
+  type FormProps,
+  Label,
+  Text,
+  TextArea,
+  TextField,
+} from "react-aria-components";
+
+import { t } from "../../lib/i18n";
+import { type Settings, settingsQuery, useSaveSettings } from "./settings";
+import styles from "./SettingsPage.module.css";
+
+export function SettingsPage() {
+  const settings = useQuery(settingsQuery);
+
+  return (
+    <div className={styles.page}>
+      <h1>{t("settings.title")}</h1>
+      {settings.isError && <p role="alert">{t("settings.loadFailed")}</p>}
+      {settings.data && <PlayerNames settings={settings.data} />}
+    </div>
+  );
+}
+
+/** One name per line, as the user types them; the server tidies them up when saving. */
+function PlayerNames({ settings }: { settings: Settings }) {
+  const save = useSaveSettings();
+  const [text, setText] = useState(settings.player_names.join("\n"));
+
+  // Typed by React Aria's Form itself: React's types and React Aria's currently disagree on
+  // the name of the submit event type.
+  const handleSubmit: FormProps["onSubmit"] = (event) => {
+    event.preventDefault();
+    save.mutate(
+      { player_names: text.split("\n") },
+      {
+        onSuccess: (saved) => {
+          setText(saved.player_names.join("\n"));
+        },
+      },
+    );
+  };
+
+  return (
+    <section aria-labelledby="player-names-heading">
+      <h2 id="player-names-heading">{t("settings.playerNames.title")}</h2>
+      <p className={styles.intro}>{t("settings.playerNames.intro")}</p>
+      <Form className={styles.form} onSubmit={handleSubmit}>
+        <TextField
+          className={styles.field}
+          value={text}
+          onChange={(value) => {
+            setText(value);
+            save.reset(); // a new change: "Saved" no longer applies
+          }}
+        >
+          <Label>{t("settings.playerNames.label")}</Label>
+          <TextArea className={styles.textArea} rows={5} spellCheck={false} />
+          <Text slot="description" className={styles.hint}>
+            {t("settings.playerNames.hint")}
+          </Text>
+        </TextField>
+        <div className={styles.actions}>
+          <Button className={styles.button} type="submit" isPending={save.isPending}>
+            {t("settings.save")}
+          </Button>
+          {/* role="status": screen readers announce it without interrupting. */}
+          <span role="status" className={styles.status}>
+            {save.isSuccess && t("settings.playerNames.saved")}
+          </span>
+        </div>
+        {save.isError && (
+          <p className={styles.error} role="alert">
+            {t("settings.saveFailed")}
+          </p>
+        )}
+      </Form>
+    </section>
+  );
+}
