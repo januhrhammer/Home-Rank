@@ -5,6 +5,7 @@ import { ApiError } from "../../api/errors";
 import type { components, paths } from "../../api/schema";
 
 export type GameListItem = components["schemas"]["GameListItem"];
+export type Game = components["schemas"]["GameOut"];
 export type NamedRef = components["schemas"]["NamedRef"];
 export type GameListQuery = NonNullable<paths["/api/v1/games"]["get"]["parameters"]["query"]>;
 export type GameSort = NonNullable<GameListQuery["sort"]>;
@@ -107,3 +108,17 @@ export const collectionsQuery = queryOptions({
   queryKey: ["collections"],
   queryFn: () => fetchNamed("/api/v1/collections"),
 });
+
+export async function fetchGame(gameId: number): Promise<Game> {
+  const { data, response } = await api.GET("/api/v1/games/{game_id}", {
+    params: { path: { game_id: gameId } },
+  });
+  if (data === undefined) {
+    throw new ApiError(response.status);
+  }
+  return data;
+}
+
+export function gameQuery(gameId: number) {
+  return queryOptions({ queryKey: ["games", gameId], queryFn: () => fetchGame(gameId) });
+}

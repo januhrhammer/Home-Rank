@@ -6,6 +6,9 @@ import { afterAll, afterEach, beforeAll, vi } from "vitest";
 
 import { server } from "./server";
 
+// jsdom lays nothing out, so it lacks scrolling; components may still ask for it.
+Element.prototype.scrollIntoView = () => undefined;
+
 // A request without a registered answer fails the test instead of going out to the network.
 // (MSW's default only warns and then lets the request through.)
 beforeAll(() => {

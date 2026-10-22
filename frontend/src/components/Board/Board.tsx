@@ -4,7 +4,7 @@ import "@lichess-org/chessground/assets/chessground.cburnett.css";
 
 import { Chessground } from "@lichess-org/chessground";
 import type { Api } from "@lichess-org/chessground/api";
-import type { Color } from "@lichess-org/chessground/types";
+import type { Color, Key } from "@lichess-org/chessground/types";
 import { useEffect, useRef } from "react";
 
 import { t } from "../../lib/i18n";
@@ -15,6 +15,10 @@ export interface BoardProps {
   fen: string;
   /** Which side is shown at the bottom. */
   orientation?: Color;
+  /** The squares the last move went from and to, highlighted on the board. */
+  lastMove?: Key[];
+  /** What the board shows, for screen readers, e.g. "Position after 12. Nf3". */
+  label?: string;
 }
 
 /**
@@ -23,11 +27,11 @@ export interface BoardProps {
  * The only place in the app that uses chessground. chessground changes the page directly
  * instead of going through React, so the board is created once and then updated via its API.
  */
-export function Board({ fen, orientation = "white" }: BoardProps) {
+export function Board({ fen, orientation = "white", lastMove, label }: BoardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<Api | null>(null);
   // The props of the first render; useRef keeps its initial value for good.
-  const initialRef = useRef({ fen, orientation });
+  const initialRef = useRef({ fen, orientation, lastMove });
 
   // Create the board once, already showing the first position: created empty, chessground
   // would show the starting position and then animate to ours. Remove the board, with its
@@ -43,12 +47,17 @@ export function Board({ fen, orientation = "white" }: BoardProps) {
     };
   }, []);
 
-  // Follow later changes of position or orientation; chessground animates the moves.
+  // Follow later changes; chessground animates the moves.
   useEffect(() => {
-    boardRef.current?.set({ fen, orientation });
-  }, [fen, orientation]);
+    boardRef.current?.set({ fen, orientation, lastMove });
+  }, [fen, orientation, lastMove]);
 
   return (
-    <div ref={containerRef} className={styles.board} role="img" aria-label={t("board.label")} />
+    <div
+      ref={containerRef}
+      className={styles.board}
+      role="img"
+      aria-label={label ?? t("board.label")}
+    />
   );
 }
