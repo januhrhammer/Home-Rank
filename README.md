@@ -29,6 +29,11 @@ Then open port 8000 of that machine in your browser and log in.
 
 See [docs/development.md](docs/development.md).
 
+## Contributing
+
+Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). Please report security
+problems privately, as described in [SECURITY.md](SECURITY.md).
+
 ## Licence
 
 [AGPL-3.0-or-later](LICENSE). [ADR 0002](docs/adr/0002-license.md) explains why.
