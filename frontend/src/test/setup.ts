@@ -2,10 +2,24 @@
 import "@testing-library/jest-dom/vitest"; // matchers such as toBeInTheDocument()
 
 import { cleanup } from "@testing-library/react";
-import { afterEach } from "vitest";
+import { afterAll, afterEach, beforeAll } from "vitest";
+
+import { server } from "./server";
+
+// A request without a registered answer fails the test instead of going out to the network.
+// (MSW's default only warns and then lets the request through.)
+beforeAll(() => {
+  server.listen({ onUnhandledFrame: "error" });
+});
 
 // Remove what each test rendered, so tests can't see each other's output. Testing Library does
 // this by itself only when Vitest's global functions are enabled; we import them explicitly.
+// Also forget the answers the test registered.
 afterEach(() => {
   cleanup();
+  server.resetHandlers();
+});
+
+afterAll(() => {
+  server.close();
 });

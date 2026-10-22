@@ -2,6 +2,7 @@
 // Formatting is Prettier's job.
 import js from "@eslint/js";
 import eslintReact from "@eslint-react/eslint-plugin";
+import tanstackQuery from "@tanstack/eslint-plugin-query";
 import prettier from "eslint-config-prettier/flat";
 import jsxA11y from "eslint-plugin-jsx-a11y-x";
 import reactHooks from "eslint-plugin-react-hooks";
@@ -21,6 +22,7 @@ export default defineConfig(
       eslintReact.configs["strict-type-checked"],
       reactHooks.configs.flat.recommended,
       jsxA11y.configs.strict,
+      tanstackQuery.configs["flat/recommended-strict"],
     ],
     languageOptions: {
       globals: globals.browser,

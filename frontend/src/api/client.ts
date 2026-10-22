@@ -24,6 +24,13 @@ export const csrfMiddleware: Middleware = {
 /**
  * The typed API client. Paths, parameters, request bodies and responses are checked against
  * schema.d.ts, which `just gen-api` generates from the backend.
+ *
+ * Requests go to this page's own origin. The URLs must be absolute: browsers would also accept
+ * relative ones, but tests run in Node, whose fetch doesn't. fetch is looked up on every call
+ * rather than once at startup, so the simulated API in tests (MSW) can stand in for it.
  */
-export const api = createClient<paths>();
+export const api = createClient<paths>({
+  baseUrl: window.location.origin,
+  fetch: (request) => fetch(request),
+});
 api.use(csrfMiddleware);
