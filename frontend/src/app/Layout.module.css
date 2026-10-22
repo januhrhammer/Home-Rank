@@ -48,10 +48,12 @@
   text-underline-offset: 0.3em;
 }
 
+/* Wide enough for a large board with the moves beside it, and for the game list's columns.
+   Pages of mostly text keep their own lines shorter. */
 .main {
   flex: 1;
   width: 100%;
-  max-width: 60rem;
+  max-width: 84rem;
   margin: 0 auto;
   padding: var(--space-6) var(--space-4);
 }

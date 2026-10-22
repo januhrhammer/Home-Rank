@@ -1,10 +1,10 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, test } from "vitest";
 
 import { renderApp } from "../../test/render";
 import { simulateAuth } from "../../test/server";
-import type { User } from "./currentUser";
+import { currentUserQuery, type User } from "./currentUser";
 
 const alice: User = { id: 1, username: "alice", email: "", is_staff: false };
 
@@ -54,4 +54,14 @@ test("visitors see a way to log in in the header", async () => {
   renderApp("/no-such-page");
 
   expect(await screen.findByRole("link", { name: "Log in" })).toHaveAttribute("href", "/login");
+});
+
+test("the login page doesn't link to itself", async () => {
+  const { queryClient } = renderApp("/login");
+
+  // Once the app knows nobody is logged in, the header would show the link.
+  await waitFor(() => {
+    expect(queryClient.getQueryData(currentUserQuery.queryKey)).toBeNull();
+  });
+  expect(screen.queryByRole("link", { name: "Log in" })).not.toBeInTheDocument();
 });

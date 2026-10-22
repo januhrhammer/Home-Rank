@@ -4,7 +4,8 @@ Date: 2026-10-21
 
 ## Status
 
-Accepted
+Accepted. Fonts: replaced by [ADR 0010](0010-look-and-bundled-fonts.md), which bundles them
+with the app instead of using the system's own.
 
 ## Context
 

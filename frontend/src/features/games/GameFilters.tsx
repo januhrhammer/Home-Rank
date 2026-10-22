@@ -53,9 +53,18 @@ export function GameFilters({ params, setFilter }: GameFiltersProps) {
 
   return (
     <div className={styles.filters} role="search" aria-label={t("games.filter.label")}>
+      {/* Five to a row on a wide screen: who played and how it ended, the opening; then how
+          fast, when, and the user's own tags and collections. */}
       <TextFilter name="player" label="games.filter.player" params={params} setFilter={setFilter} />
       {select("color", "games.filter.color", COLORS)}
       {select("outcome", "games.filter.outcome", OUTCOMES)}
+      <TextFilter
+        name="opening"
+        label="games.filter.opening"
+        params={params}
+        setFilter={setFilter}
+      />
+      <TextFilter name="eco" label="games.filter.eco" params={params} setFilter={setFilter} />
       {select("time_class", "games.filter.timeClass", TIME_CLASSES)}
       <DateFilter
         name="date_from"
@@ -64,13 +73,6 @@ export function GameFilters({ params, setFilter }: GameFiltersProps) {
         setFilter={setFilter}
       />
       <DateFilter name="date_to" label="games.filter.to" params={params} setFilter={setFilter} />
-      <TextFilter name="eco" label="games.filter.eco" params={params} setFilter={setFilter} />
-      <TextFilter
-        name="opening"
-        label="games.filter.opening"
-        params={params}
-        setFilter={setFilter}
-      />
       {select("tag", "games.filter.tag", named(tags.data))}
       {select("collection", "games.filter.collection", named(collections.data))}
     </div>

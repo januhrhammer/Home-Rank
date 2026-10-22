@@ -1,3 +1,8 @@
+/* Lines of text and lists read best at this width, however wide the window. */
+.page {
+  max-width: 48rem;
+}
+
 .intro {
   color: var(--color-text-muted);
 }

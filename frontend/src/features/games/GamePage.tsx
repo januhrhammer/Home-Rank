@@ -5,6 +5,7 @@ import { useParams } from "react-router";
 
 import { ApiError } from "../../api/errors";
 import { Board } from "../../components/Board";
+import { BackIcon, EndIcon, FlipIcon, ForwardIcon, StartIcon } from "../../components/Icons";
 import { t } from "../../lib/i18n";
 import styles from "./GamePage.module.css";
 import { type Game, gameQuery } from "./games";
@@ -90,20 +91,20 @@ function Viewer({ game, tree }: { game: Game; tree: MoveTree }) {
           />
           <div className={styles.controls}>
             <Button className={styles.control} aria-label={t("viewer.start")} onPress={go.start}>
-              ⏮
+              <StartIcon />
             </Button>
             <Button className={styles.control} aria-label={t("viewer.back")} onPress={go.back}>
-              ◀
+              <BackIcon />
             </Button>
             <Button
               className={styles.control}
               aria-label={t("viewer.forward")}
               onPress={go.forward}
             >
-              ▶
+              <ForwardIcon />
             </Button>
             <Button className={styles.control} aria-label={t("viewer.end")} onPress={go.end}>
-              ⏭
+              <EndIcon />
             </Button>
             <Button
               className={styles.control}
@@ -112,7 +113,7 @@ function Viewer({ game, tree }: { game: Game; tree: MoveTree }) {
                 setFlipped((value) => !value);
               }}
             >
-              ⇅
+              <FlipIcon />
             </Button>
           </div>
           <p className={styles.hint}>{t("viewer.keys")}</p>

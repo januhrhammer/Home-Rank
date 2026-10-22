@@ -13,11 +13,11 @@ export function LabelsPage() {
   const collections = useQuery(collectionsQuery);
   const tags = useQuery(tagsQuery);
   return (
-    <>
+    <div className={styles.page}>
       <h1>{t("labels.title")}</h1>
       <LabelSection kind="collections" items={collections.data} isError={collections.isError} />
       <LabelSection kind="tags" items={tags.data} isError={tags.isError} />
-    </>
+    </div>
   );
 }
 

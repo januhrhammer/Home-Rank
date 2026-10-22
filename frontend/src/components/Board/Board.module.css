@@ -2,6 +2,34 @@
    up to a limit, and always square. */
 .board {
   width: 100%;
-  max-width: 32rem;
+  max-width: 38rem;
   aspect-ratio: 1;
+}
+
+/* The board's colours come from the design tokens (global.css), instead of one of
+   chessground's fixed themes. The squares are one 2×2 tile, light at the top left, repeated
+   over the board. */
+.board :global(cg-board) {
+  background-image: repeating-conic-gradient(var(--board-dark) 0 25%, var(--board-light) 0 50%);
+  background-size: 25% 25%;
+}
+
+.board :global(cg-board square.last-move) {
+  background-color: var(--board-last-move);
+}
+
+/* Coordinates in the colour of the other kind of square, so they show on either. These
+   selectors are chessground's own (its brown theme): they find the labels on light squares. */
+.board :global(.orientation-white .ranks :nth-child(odd)),
+.board :global(.orientation-white .files :nth-child(even)),
+.board :global(.orientation-black .ranks :nth-child(even)),
+.board :global(.orientation-black .files :nth-child(odd)) {
+  color: var(--board-dark);
+}
+
+.board :global(.orientation-white .ranks :nth-child(even)),
+.board :global(.orientation-white .files :nth-child(odd)),
+.board :global(.orientation-black .ranks :nth-child(odd)),
+.board :global(.orientation-black .files :nth-child(even)) {
+  color: var(--board-light);
 }
