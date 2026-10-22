@@ -1,0 +1,10 @@
+{
+  // The end-to-end tests run in Node, not in the browser: Playwright drives the browser from
+  // outside. So they get their own settings, without the app's browser-only types.
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2023"],
+    "types": ["node"]
+  },
+  "include": ["."]
+}

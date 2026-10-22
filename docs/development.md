@@ -46,6 +46,7 @@ Run `just` to list all tasks. The ones you need most:
 | `just fmt` | Format all code |
 | `just gen-api` | Regenerate the frontend's API types after changing the backend API. `just check` fails while they are out of date. |
 | `just build` | Build the Docker image as `home-rank:dev` (`docker/Dockerfile`) |
+| `just e2e` | Test the whole app in a browser, running in Docker ([below](#end-to-end-tests)) |
 | `just check` | Formatting, lint, types and tests. **Run it before every commit.** |
 
 Most tasks also exist for one half of the project: `just test-backend -k settings` passes
@@ -57,13 +58,32 @@ arguments to pytest, `just test-frontend App` to Vitest, and there are `lint-bac
 Django uses port 8100 rather than its usual 8000, which other local projects often occupy. If
 8100 is taken on your machine, change it in the `dev` recipe of the `justfile`.
 
+## End-to-end tests
+
+`just e2e` tests the whole app in a real browser (Chromium, driven by
+[Playwright](https://playwright.dev)): it starts `compose.yaml` as a separate Compose project
+(`home-rank-e2e`, on <http://localhost:8104>), with an empty database and an account of its own,
+runs the tests in `frontend/e2e/`, and removes the containers and their data again. It builds the
+Docker image first, so the first run takes a few minutes; later ones about a minute.
+
+Before the first run, download Playwright's browser once: `pnpm exec playwright install chromium`
+in `frontend/`. Arguments go to Playwright: `just e2e --headed` shows the browser,
+`just e2e --debug` steps through a test. A failed test leaves a recording in
+`frontend/test-results/`; `pnpm exec playwright show-trace <file>` replays it.
+
+The end-to-end tests cover what the unit tests can't: the real server, the background worker and
+files really uploaded by a browser. Keep them to the main journeys; details belong in the unit
+tests.
+
 ## Continuous integration
 
 GitHub Actions (`.github/workflows/`) runs on every pull request and every push to `main`:
 
 - `ci.yml`: the same `just` recipes as `just check`, Django's deployment checks with the
   production settings, the file checks of the git hooks, a secret scan of new commits, and the
-  Docker image built for amd64 and arm64 and scanned for known vulnerabilities.
+  Docker image built for amd64 and arm64 and scanned for known vulnerabilities. On pull
+  requests also `just e2e`; when it fails, the run keeps Playwright's report and recordings as
+  the artifact `e2e-results`.
 - `pr-title.yml`: a pull request's title must be a Conventional Commit, because squash-merging
   turns it into the commit message on `main`.
 - `codeql.yml`: GitHub's CodeQL security analysis of the Python and TypeScript code and of the

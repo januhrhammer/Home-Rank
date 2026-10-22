@@ -157,6 +157,37 @@ lint-frontend:
 test-frontend *args:
     pnpm test "$@"
 
+# ---------------------------------------------------------------- end-to-end tests
+
+# Run the browser tests against a fresh Compose stack on port 8104; extra arguments go to
+# Playwright, e.g. `just e2e --headed`. First run: `pnpm exec playwright install chromium` in
+# frontend/
+[working-directory('frontend')]
+e2e *args:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # compose.yaml, as self-hosters run it, but as its own project with its own containers and
+    # volumes, so it never touches a local installation. Its settings come from a file of its
+    # own instead of .env.
+    env_file=$(mktemp)
+    compose=(docker compose --file ../compose.yaml --project-name home-rank-e2e --env-file "$env_file")
+    trap '"${compose[@]}" down --volumes --remove-orphans; rm -f "$env_file"' EXIT
+    {
+        echo "SECRET_KEY=$(openssl rand -hex 32)"
+        echo "POSTGRES_PASSWORD=$(openssl rand -hex 16)"
+        echo "ALLOWED_HOSTS=localhost"
+        echo "HTTPS=false"
+        echo "HOMERANK_PORT=127.0.0.1:8104"
+    } > "$env_file"
+    # Start from an empty database, even if an earlier run didn't get to clean up.
+    "${compose[@]}" down --volumes --remove-orphans
+    "${compose[@]}" up --detach --wait
+    # The tests' account, with a new password each run.
+    export E2E_USERNAME=e2e E2E_PASSWORD="$(openssl rand -hex 16)"
+    "${compose[@]}" exec -T --env DJANGO_SUPERUSER_PASSWORD="$E2E_PASSWORD" web \
+        python manage.py createsuperuser --noinput --username "$E2E_USERNAME" --email e2e@example.org
+    pnpm e2e "$@"
+
 # ---------------------------------------------------------------- database
 
 # Start the dev database in the background and wait until it accepts connections

@@ -95,3 +95,9 @@ repos:
         language: system
         files: ^frontend/.*\.tsx?$
         pass_filenames: false
+      - id: tsc-e2e
+        name: tsc (end-to-end tests)
+        entry: frontend/node_modules/.bin/tsc --project frontend/e2e
+        language: system
+        files: ^frontend/e2e/.*\.ts$
+        pass_filenames: false

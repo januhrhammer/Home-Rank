@@ -20,6 +20,10 @@ backend/staticfiles/
 # Node (frontend)
 node_modules/
 frontend/dist/
+# Playwright: results, reports and the saved login of the end-to-end tests
+frontend/test-results/
+frontend/playwright-report/
+frontend/e2e/.auth/
 
 # Editors and OS
 .idea/

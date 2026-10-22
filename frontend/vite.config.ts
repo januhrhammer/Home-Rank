@@ -21,6 +21,8 @@ export default defineConfig({
   test: {
     // A simulated browser in Node: fast, and close enough for component tests.
     environment: "jsdom",
+    // Only the unit tests: e2e/ holds Playwright's tests, which `just e2e` runs.
+    include: ["src/**/*.test.{ts,tsx}"],
     setupFiles: ["./src/test/setup.ts"],
   },
 });
