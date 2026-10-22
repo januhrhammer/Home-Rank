@@ -179,7 +179,33 @@ point and certificate resolver from your Traefik configuration: use your names. 
 removes Home-Rank's published port, so it is reachable only through Traefik and `HOMERANK_PORT`
 doesn't matter.
 
+## Backup and restore
+
+All of Home-Rank's data lives in its database. To back it up into one file:
+
+```sh
+docker compose exec -T db pg_dump --username=homerank --format=custom homerank > home-rank-$(date +%F).dump
+```
+
+Keep the backup somewhere other than this machine, together with a copy of `.env`: without the
+same `SECRET_KEY`, everyone has to log in again.
+
+To restore a backup, stop Home-Rank, replace the database's contents, and start it again:
+
+```sh
+docker compose stop web worker
+docker compose exec -T db pg_restore --username=homerank --dbname=homerank --clean --if-exists < home-rank-2026-10-22.dump
+docker compose up -d
+```
+
+This replaces everything, including what was added after the backup. On a new machine, install
+Home-Rank with the saved `.env`, start only the database with `docker compose up -d db`, then run
+the last two commands. Restore with the same version of Home-Rank as the backup, or a newer one:
+the website updates an older database when it starts.
+
 ## Updating
+
+[Back up](#backup-and-restore) first, then:
 
 ```sh
 git pull                      # the new version of Home-Rank
