@@ -83,6 +83,11 @@ body {
   background: var(--color-bg);
 }
 
+/* Links in running text; navigation and buttons that are links style themselves. */
+a {
+  color: var(--color-accent);
+}
+
 h1,
 h2 {
   font-family: var(--font-serif);
