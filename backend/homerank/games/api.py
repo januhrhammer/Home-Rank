@@ -1,16 +1,23 @@
 from http import HTTPStatus
 
 from django.db.models import QuerySet
-from ninja import File, Router, Status, UploadedFile
+from ninja import File, Query, Router, Status, UploadedFile
 from ninja.pagination import paginate
 
 from homerank.accounts.auth import AuthenticatedRequest
 from homerank.core.pagination import LimitOffset
 from homerank.games import selectors, services
-from homerank.games.models import ImportRun
-from homerank.games.schemas import ImportOut
+from homerank.games.models import Game, ImportRun
+from homerank.games.schemas import GameFilters, GameListItem, ImportOut
 
 router = Router(tags=["games"])
+
+
+@router.get("", response=list[GameListItem])
+@paginate(LimitOffset)
+def list_games(request: AuthenticatedRequest, filters: Query[GameFilters]) -> QuerySet[Game]:
+    """Your games, filtered and sorted; the newest first unless sorted otherwise."""
+    return selectors.games(user=request.user, filters=filters)
 
 
 @router.post("/imports", response={HTTPStatus.ACCEPTED: ImportOut})
