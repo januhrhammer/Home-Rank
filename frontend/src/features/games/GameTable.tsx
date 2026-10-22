@@ -1,7 +1,10 @@
 import {
   Cell,
+  CheckboxButton,
+  CheckboxField,
   Column,
   Row,
+  type Selection,
   type SortDescriptor,
   Table,
   TableBody,
@@ -52,9 +55,13 @@ interface GameTableProps {
   games: GameListItem[];
   sort: GameSort;
   onSortChange: (sort: GameSort) => void;
+  /** The ids of the selected games. */
+  selected: Set<number>;
+  onSelectionChange: (selected: Set<number>) => void;
 }
 
-export function GameTable({ games, sort, onSortChange }: GameTableProps) {
+export function GameTable(props: GameTableProps) {
+  const { games, sort, onSortChange, selected, onSelectionChange } = props;
   return (
     <div className={styles.scroll}>
       <Table
@@ -64,8 +71,20 @@ export function GameTable({ games, sort, onSortChange }: GameTableProps) {
         onSortChange={(descriptor) => {
           onSortChange(sortOf(descriptor));
         }}
+        // Checkboxes select games; clicking elsewhere in a row still opens the game.
+        selectionMode="multiple"
+        selectionBehavior="toggle"
+        selectedKeys={selected}
+        onSelectionChange={(keys: Selection) => {
+          onSelectionChange(
+            keys === "all" ? new Set(games.map((game) => game.id)) : new Set([...keys].map(Number)),
+          );
+        }}
       >
         <TableHeader>
+          <Column className={styles.selectColumn}>
+            <SelectionBox />
+          </Column>
           <Column id="date" allowsSorting className={styles.column}>
             {t("games.column.date")}
           </Column>
@@ -84,7 +103,10 @@ export function GameTable({ games, sort, onSortChange }: GameTableProps) {
         </TableHeader>
         <TableBody items={games}>
           {(game) => (
-            <Row className={styles.row} href={`/games/${String(game.id)}`}>
+            <Row className={styles.row} id={game.id} href={`/games/${String(game.id)}`}>
+              <Cell className={styles.cell}>
+                <SelectionBox />
+              </Cell>
               <Cell className={styles.cell}>{formatGameDate(game.date_pgn)}</Cell>
               <Cell className={styles.cell}>
                 <Player
@@ -120,6 +142,21 @@ export function GameTable({ games, sort, onSortChange }: GameTableProps) {
         </TableBody>
       </Table>
     </div>
+  );
+}
+
+/** A row's checkbox, or the header's, which selects or clears the whole page. */
+function SelectionBox() {
+  return (
+    <CheckboxField slot="selection">
+      <CheckboxButton className={styles.checkbox}>
+        {({ isSelected, isIndeterminate }) => (
+          <span className={styles.box} aria-hidden="true">
+            {isIndeterminate ? "–" : isSelected ? "✓" : ""}
+          </span>
+        )}
+      </CheckboxButton>
+    </CheckboxField>
   );
 }
 

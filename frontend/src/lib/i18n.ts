@@ -132,6 +132,11 @@ const messages = {
   "labels.description": "Description",
   "labels.save": "Save",
   "labels.cancel": "Cancel",
+  "selection.label": "Selected games",
+  "selection.count": "{count} selected",
+  "selection.clear": "Clear selection",
+  "selection.done.tags": "Tagged {count} games.",
+  "selection.done.collections": "Added {count} games.",
 } as const;
 
 export type MessageKey = keyof typeof messages;

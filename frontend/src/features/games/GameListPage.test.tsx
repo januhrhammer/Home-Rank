@@ -74,6 +74,7 @@ test("lists the games in a table", async () => {
   // The cells in order; the White column is the row's header.
   const cells = [...row.querySelectorAll('[role="gridcell"], [role="rowheader"]')];
   expect(cells.map((cell) => cell.textContent)).toEqual([
+    "", // the checkbox
     formatGameDate("2024.03.05"),
     "Uhrhammer, Jan 1850",
     "Carlsen, Magnus 2830",
@@ -230,4 +231,69 @@ test("a game opens when its row is clicked", async () => {
   expect(
     await screen.findByRole("heading", { name: "Uhrhammer, Jan (1850) – Carlsen, Magnus (2830)" }),
   ).toBeInTheDocument();
+});
+
+// Selecting games, and acting on the selection.
+
+const TWO_GAMES = [aGame({ id: 1, white: "Anna" }), aGame({ id: 2, white: "Bea" })];
+
+function checkboxes() {
+  return screen.getAllByRole("checkbox");
+}
+
+test("selected games get a toolbar, with an export of just them", async () => {
+  simulateGames(TWO_GAMES);
+  openGames("/games?sort=white");
+  const user = userEvent.setup();
+  await screen.findByRole("grid");
+  expect(screen.queryByRole("toolbar")).not.toBeInTheDocument();
+
+  // [0] is the header's "select all"; then one per row.
+  await user.click(checkboxes()[1] as HTMLElement);
+  await user.click(checkboxes()[2] as HTMLElement);
+
+  const bar = screen.getByRole("toolbar", { name: "Selected games" });
+  expect(bar).toHaveTextContent("2 selected");
+  expect(within(bar).getByRole("link", { name: "Export PGN" })).toHaveAttribute(
+    "href",
+    "/api/v1/games/export?ids=1&ids=2&sort=white",
+  );
+});
+
+test("tags all selected games at once", async () => {
+  simulateGames(TWO_GAMES);
+  let tagged: unknown = null;
+  server.use(
+    http.post("*/api/v1/tags/:tagId/games", async ({ params, request }) => {
+      tagged = { tag: params.tagId, ...((await request.json()) as object) };
+      return HttpResponse.json({ id: 3, name: "Brilliant", game_count: 2 });
+    }),
+  );
+  openGames();
+  const user = userEvent.setup();
+  await screen.findByRole("grid");
+
+  await user.click(checkboxes()[0] as HTMLElement); // the whole page
+  const bar = screen.getByRole("toolbar");
+  await user.type(within(bar).getByRole("combobox", { name: "Add a tag" }), "bril");
+  await user.click(await screen.findByRole("option", { name: "Brilliant" }));
+
+  expect(await within(bar).findByText("Tagged 2 games.")).toBeInTheDocument();
+  expect(tagged).toEqual({ tag: "3", game_ids: [1, 2] });
+});
+
+test("another filter clears the selection", async () => {
+  simulateGames(TWO_GAMES);
+  openGames();
+  const user = userEvent.setup();
+  await screen.findByRole("grid");
+  await user.click(checkboxes()[1] as HTMLElement);
+  expect(screen.getByRole("toolbar")).toHaveTextContent("1 selected");
+
+  await user.click(screen.getByRole("button", { name: /Your side/ }));
+  await user.click(await screen.findByRole("option", { name: "White" }));
+
+  await waitFor(() => {
+    expect(screen.queryByRole("toolbar")).not.toBeInTheDocument();
+  });
 });
