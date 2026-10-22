@@ -2,7 +2,7 @@
 import "@testing-library/jest-dom/vitest"; // matchers such as toBeInTheDocument()
 
 import { cleanup } from "@testing-library/react";
-import { afterAll, afterEach, beforeAll } from "vitest";
+import { afterAll, afterEach, beforeAll, vi } from "vitest";
 
 import { server } from "./server";
 
@@ -18,6 +18,7 @@ beforeAll(() => {
 afterEach(() => {
   cleanup();
   server.resetHandlers();
+  vi.restoreAllMocks(); // e.g. the fetch that answerUploads() replaces
 });
 
 afterAll(() => {

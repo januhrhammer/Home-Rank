@@ -25,6 +25,26 @@
   text-decoration: none;
 }
 
+/* The pages, next to the app name; the account area stays on the right. */
+.nav {
+  display: flex;
+  flex: 1;
+  gap: var(--space-4);
+  margin-left: var(--space-6);
+}
+
+.navLink {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.navLink:hover,
+.navLink[aria-current="page"] {
+  color: var(--color-text);
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+}
+
 .main {
   flex: 1;
   width: 100%;
