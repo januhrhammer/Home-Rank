@@ -1,0 +1,169 @@
+.intro {
+  color: var(--color-text-muted);
+}
+
+/* A dashed box to drop files on; highlighted while a file is dragged over it. */
+.dropZone {
+  padding: var(--space-8) var(--space-4);
+  border: 2px dashed var(--color-input-border);
+  border-radius: var(--radius);
+  text-align: center;
+  background: var(--color-surface);
+}
+
+.dropZone[data-drop-target] {
+  border-color: var(--color-accent);
+  border-style: solid;
+}
+
+.dropZone[data-disabled] {
+  opacity: 0.6;
+}
+
+/* Looks like a link inside the sentence "Drop a PGN file here, or choose a file". */
+.choose {
+  padding: 0;
+  border: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-accent);
+  text-decoration: underline;
+  background: none;
+  cursor: pointer;
+}
+
+.choose[data-disabled] {
+  cursor: progress;
+}
+
+.error {
+  color: var(--color-danger);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.itemHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.fileName {
+  font-weight: 600;
+  overflow-wrap: anywhere; /* long file names wrap instead of widening the page */
+}
+
+.status {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.status[data-status="failed"] {
+  color: var(--color-danger);
+}
+
+.date,
+.counts {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.counts {
+  margin: var(--space-1) 0 0;
+}
+
+.progress {
+  margin-top: var(--space-2);
+}
+
+.track {
+  height: var(--space-2);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--color-surface);
+}
+
+.fill {
+  height: 100%;
+  background: var(--color-accent);
+  transition: width 0.3s;
+}
+
+/* While waiting for the worker: a stripe moving back and forth instead of a percentage. */
+.fill[data-waiting] {
+  width: 30%;
+  animation: waiting 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes waiting {
+  from {
+    margin-left: 0;
+  }
+  to {
+    margin-left: 70%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fill {
+    transition: none;
+  }
+
+  .fill[data-waiting] {
+    animation: none;
+  }
+}
+
+.problems {
+  margin-top: var(--space-2);
+}
+
+.problemsHeading {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.problemsButton {
+  padding: 0;
+  border: none;
+  font: inherit;
+  color: var(--color-danger);
+  background: none;
+  cursor: pointer;
+}
+
+/* Points right while closed, down while open. */
+.chevron {
+  display: inline-block;
+  margin-right: var(--space-1);
+  transition: transform 0.15s;
+}
+
+.problems[data-expanded] .chevron {
+  transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    transition: none;
+  }
+}
+
+.problemList {
+  margin: var(--space-1) 0 0;
+  padding-left: var(--space-6);
+  font-size: 0.875rem;
+}

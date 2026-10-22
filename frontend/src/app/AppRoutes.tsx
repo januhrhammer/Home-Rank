@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router";
 
 import { LoginPage, RequireAuth } from "../features/auth";
 import { HomePage } from "../features/home";
+import { ImportPage } from "../features/imports";
 import { Layout } from "./Layout";
 import { NotFoundPage } from "./NotFoundPage";
 
@@ -17,6 +18,7 @@ export function AppRoutes() {
         {/* Pages for logged-in users only. */}
         <Route element={<RequireAuth />}>
           <Route index element={<HomePage />} />
+          <Route path="import" element={<ImportPage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Route>
