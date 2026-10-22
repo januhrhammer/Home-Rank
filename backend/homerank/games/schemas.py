@@ -67,6 +67,7 @@ class GameFilters(Schema):
     tag: int | None = Field(None, description="Only games with this tag")
     collection: int | None = Field(None, description="Only games in this collection")
     import_run: int | None = Field(None, description="Only games from this import")
+    ids: list[int] | None = Field(None, description="Only these games, e.g. a selection")
     sort: GameSort = Field("-date", description="A field to sort by; a leading - sorts downwards")
 
 
@@ -91,3 +92,10 @@ class GameListItem(Schema):
     ply_count: int
     source: Game.Source
     imported_at: datetime
+
+
+class GameOut(GameListItem):
+    """A game with its moves: the PGN text exactly as imported."""
+
+    pgn: str
+    import_run_id: int | None
