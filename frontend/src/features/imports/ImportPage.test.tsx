@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { expect, test } from "vitest";
@@ -7,6 +7,7 @@ import { renderApp } from "../../test/render";
 import { server, simulateAuth } from "../../test/server";
 import { answerUploads } from "../../test/uploads";
 import type { User } from "../auth";
+import { settingsQuery } from "../settings";
 import type { Import } from "./imports";
 
 const alice: User = { id: 1, username: "alice", email: "", is_staff: false };
@@ -41,9 +42,10 @@ function simulateImports(...pages: Import[][]) {
   );
 }
 
-function openImportPage() {
+function openImportPage({ playerNames = ["Alice"] } = {}) {
   simulateAuth(alice, { loggedIn: true });
-  renderApp("/import");
+  server.use(http.get("*/api/v1/settings", () => HttpResponse.json({ player_names: playerNames })));
+  return renderApp("/import");
 }
 
 async function chooseFile(file: File) {
@@ -164,4 +166,22 @@ test("a finished import links to its games", async () => {
   const links = await screen.findAllByRole("link", { name: "Show these games" });
 
   expect(links.map((link) => link.getAttribute("href"))).toEqual(["/games?import_run=4"]);
+});
+
+test("asks for the player names while there are none", async () => {
+  simulateImports([]);
+  openImportPage({ playerNames: [] });
+
+  const link = await screen.findByRole("link", { name: "Add them in Settings" });
+  expect(link).toHaveAttribute("href", "/settings");
+});
+
+test("says nothing about player names once there are some", async () => {
+  simulateImports([]);
+  const { queryClient } = openImportPage();
+
+  await waitFor(() => {
+    expect(queryClient.getQueryData(settingsQuery.queryKey)).toBeDefined();
+  });
+  expect(screen.queryByRole("link", { name: "Add them in Settings" })).not.toBeInTheDocument();
 });

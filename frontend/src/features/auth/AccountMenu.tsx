@@ -1,12 +1,12 @@
 import { Button } from "react-aria-components";
-import { Link, useLocation } from "react-router";
+import { Link, NavLink, useLocation } from "react-router";
 
 import { t } from "../../lib/i18n";
 import styles from "./AccountMenu.module.css";
 import { useCurrentUser } from "./currentUser";
 import { useLogout } from "./logout";
 
-/** The header's account area: who is logged in and a way out, or a way in. */
+/** The header's account area: who is logged in, their settings and a way out, or a way in. */
 export function AccountMenu() {
   const { data: user } = useCurrentUser();
   const logout = useLogout();
@@ -24,6 +24,9 @@ export function AccountMenu() {
   return (
     <div className={styles.account}>
       <span>{user.username}</span>
+      <NavLink className={styles.link} to="/settings">
+        {t("header.settings")}
+      </NavLink>
       <Button
         className={styles.logout}
         isPending={logout.isPending}

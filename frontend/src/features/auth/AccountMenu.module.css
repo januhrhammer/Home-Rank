@@ -4,6 +4,19 @@
   gap: var(--space-3);
 }
 
+/* Like the navigation's links (app/Layout.module.css). */
+.link {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.link:hover,
+.link[aria-current="page"] {
+  color: var(--color-text);
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+}
+
 /* A quiet button: the header shouldn't compete with the page for attention. */
 .logout {
   padding: var(--space-1) var(--space-3);
