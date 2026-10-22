@@ -179,3 +179,15 @@ jobs:
           --env SECRET_KEY="$(openssl rand -hex 32)" --env ALLOWED_HOSTS=chess.example.org
           --env HTTPS=true --env DATABASE_URL=postgres://homerank@db/homerank
           home-rank:ci python manage.py check --deploy --fail-level WARNING
+      # Known vulnerabilities in the image. Fails only on serious ones that have a fix, which a
+      # rebuild or a dependency update can pick up; the base image's unfixed ones can't be acted
+      # on. Trivy runs as its image pinned by digest, not via trivy-action, whose tags were
+      # hijacked in March 2026 (GHSA-69fq-xp46-6x23); the digest's signature was checked with
+      # cosign. It reads the image from a file, so it needs no access to Docker itself.
+      - name: Vulnerability scan
+        run: |
+          docker save home-rank:ci --output "$RUNNER_TEMP/image.tar"
+          docker run --rm --volume "$RUNNER_TEMP:/scan:ro" \
+            ghcr.io/aquasecurity/trivy:0.76.1@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c \
+            image --input /scan/image.tar --scanners vuln --no-progress \
+            --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1
