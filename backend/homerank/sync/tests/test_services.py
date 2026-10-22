@@ -147,7 +147,9 @@ def test_a_sync_whose_job_is_gone_doesnt_block_the_next(alice: User) -> None:
     stuck.refresh_from_db()
     assert second != stuck
     assert stuck.status == SyncRun.Status.FAILED
-    assert stuck.errors == [{"game": None, "reason": "The sync stopped unexpectedly."}]
+    assert stuck.errors == [
+        {"game": None, "reason": "The background worker stopped during the sync."}
+    ]
 
 
 # ---------------------------------------------------------------- Lichess
@@ -213,9 +215,7 @@ def test_an_unknown_player_fails_the_sync_with_a_reason(alice: User, sites: Fake
     run = synced(account(alice, username="nobody"))  # doesn't raise: nothing to fix in the code
 
     assert run.status == SyncRun.Status.FAILED
-    assert run.errors == [
-        {"game": None, "reason": 'The sync stopped: There is no player called "nobody".'}
-    ]
+    assert run.errors == [{"game": None, "reason": 'There is no player called "nobody".'}]
 
 
 def test_an_unexpected_error_fails_the_sync_and_reaches_the_worker(
