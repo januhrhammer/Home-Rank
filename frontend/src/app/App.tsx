@@ -1,9 +1,11 @@
-import styles from "./App.module.css";
+import { BrowserRouter } from "react-router";
+
+import { AppRoutes } from "./AppRoutes";
 
 export function App() {
   return (
-    <main className={styles.page}>
-      <h1>Home-Rank</h1>
-    </main>
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
   );
 }
