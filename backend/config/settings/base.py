@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "axes",
     # Job queue in PostgreSQL; finds tasks in each app's tasks.py. See docs/adr/0004-job-queue.md.
     "procrastinate.contrib.django",
+    "homerank.core",
     "homerank.accounts",
 ]
 
