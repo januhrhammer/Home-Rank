@@ -28,6 +28,7 @@ dev = [
     "import-linter>=2.15",
     "pre-commit>=4.7.0",
     "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
     "pytest-django>=4.14.0",
     "ruff>=0.17.1",
 ]
@@ -105,3 +106,13 @@ strict = true
 # Turn warnings into errors, so deprecations in our dependencies surface while they're easy to
 # fix. A warning we can't fix gets a specific "ignore:..." entry here, with the reason.
 filterwarnings = ["error"]
+
+[tool.coverage.run]
+# Measured with `just test-backend --cov` (CI does). Tests and migrations aren't code under test.
+source = ["config", "homerank"]
+omit = ["*/tests/*", "*/migrations/*"]
+branch = true
+
+[tool.coverage.report]
+skip_covered = true
+show_missing = true
