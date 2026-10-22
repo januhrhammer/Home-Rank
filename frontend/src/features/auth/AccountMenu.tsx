@@ -1,5 +1,5 @@
 import { Button } from "react-aria-components";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 
 import { t } from "../../lib/i18n";
 import styles from "./AccountMenu.module.css";
@@ -10,9 +10,13 @@ import { useLogout } from "./logout";
 export function AccountMenu() {
   const { data: user } = useCurrentUser();
   const logout = useLogout();
+  const { pathname } = useLocation();
 
   if (user === undefined) {
     return null; // not known yet
+  }
+  if (user === null && pathname === "/login") {
+    return null; // the page itself is the way in
   }
   if (user === null) {
     return <Link to="/login">{t("header.logIn")}</Link>;
