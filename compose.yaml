@@ -1,0 +1,78 @@
+# Home-Rank for self-hosting: the website, the background job worker and PostgreSQL.
+#
+#   1. cp .env.example .env   and fill in the required values
+#   2. docker compose up -d
+#
+# See docs/self-hosting.md for reverse proxies, backups and updates.
+name: home-rank
+
+# Settings for the website and the worker, from .env. Required ones stop `docker compose up`
+# with a message if missing; optional ones arrive empty when unset, which counts as unset.
+x-homerank-environment: &homerank-environment
+  SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env (see .env.example)}
+  ALLOWED_HOSTS: ${ALLOWED_HOSTS:?Set ALLOWED_HOSTS in .env (see .env.example)}
+  HTTPS: ${HTTPS:?Set HTTPS to true or false in .env (see .env.example)}
+  DATABASE_URL: postgres://homerank:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (see .env.example)}@db:5432/homerank
+  TRUST_PROXY_HEADERS: ${TRUST_PROXY_HEADERS:-}
+  CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-}
+  ADMIN_URL: ${ADMIN_URL:-}
+  LOG_FORMAT: ${LOG_FORMAT:-}
+  LOG_LEVEL: ${LOG_LEVEL:-}
+  MIGRATE_ON_START: ${MIGRATE_ON_START:-}
+  WEB_WORKERS: ${WEB_WORKERS:-}
+
+services:
+  db:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: homerank
+      POSTGRES_DB: homerank
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (see .env.example)}
+    volumes:
+      # Since Postgres 18 the data lives in /var/lib/postgresql/<major>/, below this folder.
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD", "pg_isready", "--username=homerank", "--dbname=homerank"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    # Built from this repository for now; published images come with the first release. Every
+    # `docker compose up` rebuilds it, which takes seconds when nothing changed and picks up new
+    # code after a `git pull`. Without pull_policy, Compose would first try Docker Hub and fail.
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: home-rank:local
+    pull_policy: build
+    restart: unless-stopped
+    environment: *homerank-environment
+    ports:
+      # Host port, e.g. 127.0.0.1:8000 to reach it only through a reverse proxy on this machine.
+      - "${HOMERANK_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  worker:
+    # The image the web service builds.
+    image: home-rank:local
+    pull_policy: never
+    command: worker
+    restart: unless-stopped
+    environment: *homerank-environment
+    # The image's own health check asks the website; the worker checks its database instead.
+    healthcheck:
+      test: ["CMD", "python", "manage.py", "procrastinate", "healthchecks"]
+      interval: 60s
+      timeout: 30s
+      start_period: 30s
+    depends_on:
+      # Healthy only after applying migrations, so the worker never sees an outdated schema.
+      web:
+        condition: service_healthy
+
+volumes:
+  db-data:
