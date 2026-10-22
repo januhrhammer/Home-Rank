@@ -1,0 +1,95 @@
+/* Dims the page behind the dialog. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: rgb(0 0 0 / 40%);
+}
+
+.modal {
+  width: 100%;
+  max-width: 26rem;
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  box-shadow: 0 8px 32px rgb(0 0 0 / 30%);
+}
+
+.dialog {
+  padding: var(--space-6);
+  outline: none;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.input {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+.error {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-danger);
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.primary,
+.secondary,
+.danger {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary {
+  color: var(--color-on-accent);
+  background: var(--color-accent);
+}
+
+.danger {
+  color: var(--color-bg);
+  background: var(--color-danger);
+}
+
+.secondary {
+  border-color: var(--color-input-border);
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+.primary[data-pending],
+.danger[data-pending] {
+  opacity: 0.7;
+  cursor: progress;
+}

@@ -1,7 +1,7 @@
 import { Route, Routes } from "react-router";
 
 import { LoginPage, RequireAuth } from "../features/auth";
-import { GameListPage, GamePage } from "../features/games";
+import { GameListPage, GamePage, LabelsPage } from "../features/games";
 import { HomePage } from "../features/home";
 import { ImportPage } from "../features/imports";
 import { Layout } from "./Layout";
@@ -21,6 +21,7 @@ export function AppRoutes() {
           <Route index element={<HomePage />} />
           <Route path="games" element={<GameListPage />} />
           <Route path="games/:gameId" element={<GamePage />} />
+          <Route path="labels" element={<LabelsPage />} />
           <Route path="import" element={<ImportPage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
