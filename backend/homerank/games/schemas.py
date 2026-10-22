@@ -1,7 +1,8 @@
 from datetime import date, datetime
-from typing import Literal
+from typing import Annotated, Literal
 
 from ninja import Field, Schema
+from pydantic import StringConstraints
 
 from homerank.chesslib.headers import TimeClass
 from homerank.chesslib.players import Side
@@ -71,8 +72,15 @@ class GameFilters(Schema):
     sort: GameSort = Field("-date", description="A field to sort by; a leading - sorts downwards")
 
 
+class NamedRef(Schema):
+    """A collection or tag as other objects mention it."""
+
+    id: int
+    name: str
+
+
 class GameListItem(Schema):
-    """A game in the list: its headers, without the moves."""
+    """A game in the list: its headers and tags, without the moves."""
 
     id: int
     white: str
@@ -92,6 +100,7 @@ class GameListItem(Schema):
     ply_count: int
     source: Game.Source
     imported_at: datetime
+    tags: list[NamedRef]
 
 
 class GameOut(GameListItem):
@@ -99,3 +108,45 @@ class GameOut(GameListItem):
 
     pgn: str
     import_run_id: int | None
+    collections: list[NamedRef]
+
+
+# Names are trimmed; an empty one is refused.
+CollectionName = Annotated[
+    str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)
+]
+TagName = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=50)]
+
+
+class CollectionIn(Schema):
+    name: CollectionName
+    description: str = ""
+
+
+class CollectionPatch(Schema):
+    """The fields to change; those left out stay as they are."""
+
+    name: CollectionName | None = None
+    description: str | None = None
+
+
+class CollectionOut(Schema):
+    id: int
+    name: str
+    description: str
+    game_count: int
+    created_at: datetime
+
+
+class TagIn(Schema):
+    name: TagName
+
+
+class TagOut(Schema):
+    id: int
+    name: str
+    game_count: int
+
+
+class GameIdsIn(Schema):
+    game_ids: list[int] = Field(min_length=1, max_length=1000)

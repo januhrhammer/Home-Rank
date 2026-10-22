@@ -4,6 +4,8 @@ Every row belongs to one user. Queries go through the app's selectors and servic
 always filter by user; the models only describe the data and its constraints.
 """
 
+from typing import TypeVar
+
 from django.conf import settings
 from django.db import models
 from django.db.models.functions import Lower
@@ -163,3 +165,8 @@ class Tag(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+
+# Collections and tags work alike: a name, unique per user whatever its case, and a set of the
+# user's games. Services and selectors that serve both are typed with Group, either of them.
+Group = TypeVar("Group", Collection, Tag)
