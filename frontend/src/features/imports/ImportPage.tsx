@@ -39,7 +39,7 @@ export function ImportPage() {
       : null;
 
   return (
-    <>
+    <div className={styles.page}>
       <h1>{t("import.title")}</h1>
       <p className={styles.intro}>{t("import.intro")}</p>
       <UploadZone onFile={start} isDisabled={upload.isPending} />
@@ -54,7 +54,7 @@ export function ImportPage() {
       )}
       <h2>{t("import.history")}</h2>
       <ImportList />
-    </>
+    </div>
   );
 }
 

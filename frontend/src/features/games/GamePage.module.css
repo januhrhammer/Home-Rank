@@ -19,13 +19,15 @@
   gap: var(--space-6);
 }
 
+/* The board takes what it can get, up to its own limit (Board.module.css). */
 .boardColumn {
-  flex: 1 1 22rem;
-  max-width: 32rem;
+  flex: 0 1 38rem;
+  min-width: min(22rem, 100%);
 }
 
 .sideColumn {
-  flex: 1 1 18rem;
+  flex: 1 1 20rem;
+  max-width: 36rem;
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
