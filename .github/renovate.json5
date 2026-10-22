@@ -1,0 +1,97 @@
+// Renovate opens pull requests for dependency updates: https://docs.renovatebot.com
+//
+// Once a week, Monday morning:
+// - "dev tooling patches": patch updates of tools that never reach users. Merged automatically
+//   once CI passes.
+// - "all non-major dependencies": every other minor and patch update, for review.
+// - one pull request per major update.
+// Security fixes come right away, outside the schedule. The "Dependency Dashboard" issue lists
+// everything that is pending.
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: [
+    'config:recommended',
+    // Weekly grouping of minor and patch updates.
+    'group:allNonMajor',
+    // Actions stay pinned to a commit, with the version as a comment.
+    'helpers:pinGitHubActionDigestsToSemver',
+    // Also refresh the lockfiles' indirect dependencies weekly.
+    ':maintainLockFilesWeekly',
+  ],
+  timezone: 'Europe/Berlin',
+  schedule: ['before 6am on monday'],
+  // Releases are three days old before Renovate proposes them: hijacked releases, like Trivy's in
+  // March 2026, are usually found and pulled within hours.
+  minimumReleaseAge: '3 days',
+  // Commit messages and PR titles as Conventional Commits: fix(deps) for what users run, which
+  // makes a release, chore(deps) for the rest.
+  semanticCommits: 'enabled',
+  osvVulnerabilityAlerts: true,
+  'pre-commit': {
+    enabled: true,
+  },
+  // compose.yaml's own image, built locally: nothing to look up.
+  ignoreDeps: ['home-rank'],
+  packageRules: [
+    {
+      description: 'Patch updates of dev tooling: own group, merged once CI passes',
+      matchManagers: ['github-actions', 'pre-commit', 'custom.regex'],
+      matchUpdateTypes: ['patch', 'digest'],
+      groupName: 'dev tooling patches',
+      automerge: true,
+    },
+    {
+      description: 'The same for the development dependencies of backend and frontend',
+      matchDepTypes: ['devDependencies', 'dependency-groups'],
+      matchUpdateTypes: ['patch'],
+      groupName: 'dev tooling patches',
+      automerge: true,
+    },
+    {
+      description: 'A new Python version is a deliberate step: one pull request for all files that name it, never part of another group',
+      matchPackageNames: ['python'],
+      matchUpdateTypes: ['minor', 'major'],
+      groupName: 'Python',
+    },
+    {
+      description: 'The same for Node.js (.nvmrc, package.json, Dockerfile)',
+      matchPackageNames: ['node'],
+      matchUpdateTypes: ['major'],
+      groupName: 'Node.js',
+    },
+    {
+      description: 'PostgreSQL major versions need a dump and restore by every self-hoster: only on request from the dashboard',
+      matchDatasources: ['docker'],
+      matchPackageNames: ['postgres'],
+      matchUpdateTypes: ['major'],
+      dependencyDashboardApproval: true,
+    },
+  ],
+  // Versions in ci.yml that no built-in manager finds.
+  customManagers: [
+    {
+      description: 'just, installed by the CI jobs',
+      customType: 'regex',
+      managerFilePatterns: ['/^\\.github/workflows/ci\\.yml$/'],
+      matchStrings: ['JUST_VERSION: "(?<currentValue>[^"]+)"'],
+      depNameTemplate: 'rust-just',
+      datasourceTemplate: 'pypi',
+    },
+    {
+      description: 'gitleaks in the secret scan (the git hook has its own entry)',
+      customType: 'regex',
+      managerFilePatterns: ['/^\\.github/workflows/ci\\.yml$/'],
+      matchStrings: ['GITLEAKS_VERSION: "(?<currentValue>[^"]+)"'],
+      depNameTemplate: 'gitleaks/gitleaks',
+      datasourceTemplate: 'github-releases',
+      extractVersionTemplate: '^v(?<version>.+)$',
+    },
+    {
+      description: 'Trivy, run as a container pinned by digest in the image scan',
+      customType: 'regex',
+      managerFilePatterns: ['/^\\.github/workflows/ci\\.yml$/'],
+      matchStrings: ['(?<depName>ghcr\\.io/aquasecurity/trivy):(?<currentValue>[^@\\s]+)@(?<currentDigest>sha256:[a-f0-9]+)'],
+      datasourceTemplate: 'docker',
+    },
+  ],
+}

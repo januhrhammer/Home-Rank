@@ -71,6 +71,11 @@ GitHub Actions (`.github/workflows/`) runs on every pull request and every push 
 
 If `just check` passes locally, CI should too.
 
+[Renovate](https://docs.renovatebot.com) proposes dependency updates every Monday
+(`.github/renovate.json5`): patch updates of development tools in one pull request that merges
+itself once CI passes, all other minor and patch updates in one pull request for review, and each
+major update on its own. Security fixes come right away.
+
 ## Settings and configuration
 
 Django's settings live in `backend/config/settings/`:
