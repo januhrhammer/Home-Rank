@@ -35,7 +35,10 @@ LABEL org.opencontainers.image.title="Home-Rank" \
       org.opencontainers.image.source="https://github.com/januhrhammer/Home-Rank" \
       org.opencontainers.image.licenses="AGPL-3.0-or-later"
 
-RUN useradd --system --create-home --uid 10001 homerank
+# uv installed everything in stage 2, so the base image's pip is never used here: without it,
+# its security advisories don't concern this image.
+RUN python -m pip uninstall --yes --no-cache-dir pip \
+ && useradd --system --create-home --uid 10001 homerank
 WORKDIR /app/backend
 COPY --from=backend /app/backend ./
 COPY --from=frontend /app/frontend/dist /app/frontend/dist
