@@ -71,3 +71,25 @@ repos:
         language: system
         files: ^backend/(pyproject\.toml|uv\.lock)$
         pass_filenames: false
+
+  # Frontend tools, run from frontend/node_modules, so their versions come from pnpm-lock.yaml,
+  # exactly as in `just check`. They only check; `just fmt` fixes formatting.
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier
+        entry: frontend/node_modules/.bin/prettier --check --ignore-unknown
+        language: system
+        files: ^frontend/
+        exclude: ^frontend/pnpm-lock\.yaml$
+      - id: eslint
+        name: eslint
+        entry: frontend/node_modules/.bin/eslint --max-warnings=0
+        language: system
+        files: ^frontend/.*\.tsx?$
+      - id: tsc
+        name: tsc (frontend types)
+        entry: frontend/node_modules/.bin/tsc --project frontend
+        language: system
+        files: ^frontend/.*\.tsx?$
+        pass_filenames: false

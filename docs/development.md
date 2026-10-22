@@ -9,11 +9,14 @@ How to set up Home-Rank on your machine and work on it.
 - [just](https://just.systems/) runs all project tasks.
 - [Docker](https://docs.docker.com/engine/install/) with the Compose plugin runs the development
   database.
+- [Node.js](https://nodejs.org/) 24, the version in `.nvmrc`, for the frontend. A version manager
+  such as [fnm](https://github.com/Schniz/fnm) can switch to it automatically in this folder.
+- pnpm, enabled once with `corepack enable pnpm`. `frontend/package.json` pins its version.
 
 ## First-time setup
 
 ```sh
-just setup   # install the backend dependencies into backend/.venv, and the git hooks
+just setup   # install backend and frontend dependencies, and the git hooks
 just check   # start the database and run every check
 ```
 
@@ -22,7 +25,8 @@ If `just check` passes, your setup works.
 ## Git hooks
 
 Every `git commit` first runs quick checks (`.pre-commit-config.yaml`): file hygiene, a scan for
-accidentally committed secrets (gitleaks), ruff, mypy and import-linter. The commit message must
+accidentally committed secrets (gitleaks), ruff, mypy and import-linter for the backend, and
+Prettier, ESLint and tsc for the frontend. The commit message must
 follow [Conventional Commits](https://www.conventionalcommits.org/), e.g.
 `feat(import): resume interrupted imports`. Fix what they report instead of skipping them with
 `--no-verify`; `just fmt` fixes formatting.
@@ -36,14 +40,18 @@ Run `just` to list all tasks. The ones you need most:
 
 | Command | What it does |
 |---|---|
-| `just dev` | Start the database and Django's dev server on <http://localhost:8100> |
+| `just dev` | Start the database, Django on <http://localhost:8100> and the frontend on <http://localhost:5173>. Ctrl+C stops both. |
 | `just worker` | Run the background job worker, which also starts recurring jobs on schedule |
-| `just test` | Run the tests; extra arguments go to pytest, e.g. `just test -k settings` |
+| `just test` | Run all tests |
 | `just fmt` | Format all code |
 | `just check` | Formatting, lint, types and tests. **Run it before every commit.** |
 
-The dev server uses port 8100 rather than Django's usual 8000, which other local projects often
-occupy. To use another port: `just dev 8200`.
+Most tasks also exist for one half of the project: `just test-backend -k settings` passes
+arguments to pytest, `just test-frontend App` to Vitest, and there are `lint-backend`,
+`fmt-frontend` and so on.
+
+Django uses port 8100 rather than its usual 8000, which other local projects often occupy. If
+8100 is taken on your machine, change it in the `dev` recipe of the `justfile`.
 
 ## Settings and configuration
 
