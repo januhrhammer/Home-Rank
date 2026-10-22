@@ -5,6 +5,7 @@ that runs with an insecure or broken fallback.
 """
 
 import importlib
+import re
 import sys
 from pathlib import Path
 from types import ModuleType
@@ -70,3 +71,31 @@ def test_reads_the_secret_key_from_a_file(monkeypatch: pytest.MonkeyPatch, tmp_p
     settings = import_prod_settings(monkeypatch, variables)
 
     assert settings.SECRET_KEY == "key-from-a-docker-secret"
+
+
+def test_whitenoise_directly_follows_the_security_middleware(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    settings = import_prod_settings(monkeypatch, REQUIRED_VARIABLES)
+
+    assert settings.MIDDLEWARE[:2] == [
+        "django.middleware.security.SecurityMiddleware",
+        "whitenoise.middleware.WhiteNoiseMiddleware",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("url", "cached_for_good"),
+    [
+        ("/assets/index-BxkfFJoz.js", True),  # Vite adds a hash
+        ("/static/admin/css/base.3f2a1c9e8b7d.css", True),  # so does Django's manifest storage
+        ("/index.html", False),
+        ("/static/admin/css/base.css", False),
+    ],
+)
+def test_only_files_with_a_hash_are_cached_for_good(
+    monkeypatch: pytest.MonkeyPatch, url: str, *, cached_for_good: bool
+) -> None:
+    settings = import_prod_settings(monkeypatch, REQUIRED_VARIABLES)
+
+    assert bool(re.match(settings.WHITENOISE_IMMUTABLE_FILE_TEST, url)) is cached_for_good

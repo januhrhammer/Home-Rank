@@ -13,6 +13,7 @@ dependencies = [
     "procrastinate[django]>=3.10.0",
     "psycopg[binary]>=3.3.6",
     "structlog>=26.1.0",
+    "whitenoise>=6.12.0",
 ]
 
 [tool.uv]

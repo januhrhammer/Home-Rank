@@ -104,6 +104,11 @@ TEMPLATES = [
 ]
 
 STATIC_URL = "static/"
+# Where `manage.py collectstatic` gathers static files (the admin's CSS and JavaScript).
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# The built frontend (index.html and assets/), which Django serves in production.
+FRONTEND_DIR = BASE_DIR.parent / "frontend" / "dist"
 
 # Where the Django admin lives. A less obvious path keeps bots probing /admin/ away.
 ADMIN_URL = env.string("ADMIN_URL", default="admin/")

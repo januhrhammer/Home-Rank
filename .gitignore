@@ -12,6 +12,7 @@ __pycache__/
 .ruff_cache/
 .mypy_cache/
 .pytest_cache/
+backend/staticfiles/
 
 # Node (frontend)
 node_modules/
