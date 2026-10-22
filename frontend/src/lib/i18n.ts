@@ -101,6 +101,16 @@ const messages = {
   "viewer.copiedFen": "FEN copied.",
   "viewer.copiedPgn": "PGN copied.",
   "viewer.download": "Download PGN",
+  "labels.tags": "Tags",
+  "labels.collections": "Collections",
+  "labels.none": "None yet",
+  "labels.add.tags": "Add a tag",
+  "labels.add.collections": "Add to a collection",
+  "labels.placeholder.tags": "Add a tag…",
+  "labels.placeholder.collections": "Add to a collection…",
+  "labels.create": "Create “{name}”",
+  "labels.remove": "Remove",
+  "labels.failed": "That didn't work. Please try again.",
 } as const;
 
 export type MessageKey = keyof typeof messages;

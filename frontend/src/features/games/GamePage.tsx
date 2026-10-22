@@ -9,6 +9,7 @@ import { t } from "../../lib/i18n";
 import styles from "./GamePage.module.css";
 import { type Game, gameQuery } from "./games";
 import { formatGameDate } from "./GameTable";
+import { LabelPicker } from "./LabelPicker";
 import { MoveList } from "./MoveList";
 import { buildMoveTree, endOfLine, type MoveNode, moveNumber, type MoveTree } from "./moveTree";
 
@@ -118,6 +119,8 @@ function Viewer({ game, tree }: { game: Game; tree: MoveTree }) {
         </div>
         <div className={styles.sideColumn}>
           <MoveList tree={tree} current={current} onSelect={setCurrent} />
+          <LabelPicker kind="tags" gameId={game.id} labels={game.tags} />
+          <LabelPicker kind="collections" gameId={game.id} labels={game.collections} />
           <Actions game={game} fen={current?.fen ?? tree.startFen} />
         </div>
       </div>
@@ -142,15 +145,6 @@ function GameHeader({ game }: { game: Game }) {
         {player(game.white, game.white_elo)} – {player(game.black, game.black_elo)}
       </h1>
       <p className={styles.details}>{details.join(" · ")}</p>
-      {[...game.tags, ...game.collections].length > 0 && (
-        <p className={styles.labels}>
-          {[...game.collections, ...game.tags].map((label) => (
-            <span key={`${String(label.id)}-${label.name}`} className={styles.label}>
-              {label.name}
-            </span>
-          ))}
-        </p>
-      )}
     </header>
   );
 }
@@ -193,12 +187,16 @@ function Actions({ game, fen }: { game: Game; fen: string }) {
   );
 }
 
-/** Keys that step through the game. Combinations with Alt, Ctrl or Cmd stay the browser's. */
+/**
+ * Keys that step through the game. Not while typing in a field, e.g. a tag's name, and not in
+ * combination with Alt, Ctrl or Cmd, which stay the browser's.
+ */
 function useKeyboard(actions: Record<string, () => void>) {
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
+      const typing = event.target instanceof Element && event.target.closest("input, textarea");
       const action = actions[event.key];
-      if (action === undefined || event.altKey || event.ctrlKey || event.metaKey) {
+      if (action === undefined || typing || event.altKey || event.ctrlKey || event.metaKey) {
         return;
       }
       event.preventDefault();

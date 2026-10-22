@@ -10,6 +10,9 @@ export type NamedRef = components["schemas"]["NamedRef"];
 export type GameListQuery = NonNullable<paths["/api/v1/games"]["get"]["parameters"]["query"]>;
 export type GameSort = NonNullable<GameListQuery["sort"]>;
 
+/** The start of every games query's key: invalidating it refreshes all lists and games. */
+export const GAMES_KEY = ["games"] as const;
+
 export const PAGE_SIZE = 50;
 export const DEFAULT_SORT: GameSort = "-date";
 
@@ -80,7 +83,7 @@ export async function fetchGames(query: GameListQuery) {
 
 export function gamesQuery(query: GameListQuery) {
   return queryOptions({
-    queryKey: ["games", query],
+    queryKey: [...GAMES_KEY, query],
     queryFn: () => fetchGames(query),
     // Keep showing the current page while the next one loads, instead of an empty table.
     placeholderData: keepPreviousData,
@@ -120,5 +123,5 @@ export async function fetchGame(gameId: number): Promise<Game> {
 }
 
 export function gameQuery(gameId: number) {
-  return queryOptions({ queryKey: ["games", gameId], queryFn: () => fetchGame(gameId) });
+  return queryOptions({ queryKey: [...GAMES_KEY, gameId], queryFn: () => fetchGame(gameId) });
 }
