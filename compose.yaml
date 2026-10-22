@@ -20,6 +20,7 @@ x-homerank-environment: &homerank-environment
   LOG_LEVEL: ${LOG_LEVEL:-}
   MIGRATE_ON_START: ${MIGRATE_ON_START:-}
   WEB_WORKERS: ${WEB_WORKERS:-}
+  IMPORT_MAX_MB: ${IMPORT_MAX_MB:-}
 
 services:
   db:
@@ -49,6 +50,9 @@ services:
     pull_policy: build
     restart: unless-stopped
     environment: *homerank-environment
+    volumes:
+      # Uploaded PGN files, saved by the website and imported by the worker.
+      - data:/data
     ports:
       # Host port, e.g. 127.0.0.1:8000 to reach it only through a reverse proxy on this machine.
       - "${HOMERANK_PORT:-8000}:8000"
@@ -63,6 +67,8 @@ services:
     command: worker
     restart: unless-stopped
     environment: *homerank-environment
+    volumes:
+      - data:/data
     # The image's own health check asks the website; the worker checks its database instead.
     healthcheck:
       test: ["CMD", "python", "manage.py", "procrastinate", "healthchecks"]
@@ -76,3 +82,4 @@ services:
 
 volumes:
   db-data:
+  data:

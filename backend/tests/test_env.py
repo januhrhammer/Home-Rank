@@ -104,6 +104,27 @@ def test_invalid_boolean_is_an_error(monkeypatch: pytest.MonkeyPatch) -> None:
         env.boolean("HR_TEST")
 
 
+@pytest.mark.parametrize(("value", "expected"), [("200", 200), ("0", 0)])
+def test_integers(monkeypatch: pytest.MonkeyPatch, value: str, expected: int) -> None:
+    monkeypatch.setenv("HR_TEST", value)
+
+    assert env.integer("HR_TEST") == expected
+
+
+def test_integer_default() -> None:
+    default = 7
+
+    assert env.integer("HR_TEST", default=default) == default
+
+
+@pytest.mark.parametrize("value", ["200MB", "-1", "1.5", "two"])
+def test_invalid_integer_is_an_error(monkeypatch: pytest.MonkeyPatch, value: str) -> None:
+    monkeypatch.setenv("HR_TEST", value)
+
+    with pytest.raises(ImproperlyConfigured, match="a whole number"):
+        env.integer("HR_TEST")
+
+
 def test_database_urls_are_parsed(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("HR_TEST", "postgres://homerank:secret@db:5432/homerank")
 

@@ -87,10 +87,108 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/games/imports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Imports
+         * @description Your imports, the newest first.
+         */
+        get: operations["homerank_games_api_list_imports"];
+        put?: never;
+        /**
+         * Create Import
+         * @description Upload a PGN file to import.
+         *
+         *     The import runs in the background: poll GET /games/imports/{id} for its progress.
+         */
+        post: operations["homerank_games_api_create_import"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/games/imports/{import_run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Import
+         * @description One of your imports, with its progress.
+         */
+        get: operations["homerank_games_api_get_import"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ImportErrorOut */
+        ImportErrorOut: {
+            /** Line */
+            line: number | null;
+            /** Reason */
+            reason: string;
+        };
+        /**
+         * ImportOut
+         * @description An import and its progress. The frontend polls it while it is queued or running.
+         */
+        ImportOut: {
+            /** Bytes Read */
+            bytes_read: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Errors */
+            errors: components["schemas"]["ImportErrorOut"][];
+            /** File Name */
+            file_name: string;
+            /** File Size */
+            file_size: number;
+            /** Finished At */
+            finished_at: string | null;
+            /** Games Duplicate */
+            games_duplicate: number;
+            /** Games Failed */
+            games_failed: number;
+            /** Games Imported */
+            games_imported: number;
+            /** Id */
+            id: number;
+            /** Started At */
+            started_at: string | null;
+            status: components["schemas"]["Status"];
+        };
+        /** Input */
+        Input: {
+            /**
+             * Limit
+             * @default 20
+             */
+            limit: number;
+            /**
+             * Offset
+             * @default 0
+             */
+            offset: number;
+        };
         /** LoginIn */
         LoginIn: {
             /** Password */
@@ -98,6 +196,18 @@ export interface components {
             /** Username */
             username: string;
         };
+        /** PagedImportOut */
+        PagedImportOut: {
+            /** Items */
+            items: components["schemas"]["ImportOut"][];
+            /** Total */
+            total: number;
+        };
+        /**
+         * Status
+         * @enum {string}
+         */
+        Status: "queued" | "running" | "done" | "failed";
         /**
          * UserOut
          * @description What the API reveals about a user. Fields are listed explicitly, so a field added to the
@@ -198,6 +308,81 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserOut"];
+                };
+            };
+        };
+    };
+    homerank_games_api_list_imports: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedImportOut"];
+                };
+            };
+        };
+    };
+    homerank_games_api_create_import: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * File
+                     * Format: binary
+                     */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportOut"];
+                };
+            };
+        };
+    };
+    homerank_games_api_get_import: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                import_run_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportOut"];
                 };
             };
         };

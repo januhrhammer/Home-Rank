@@ -41,7 +41,7 @@ Run `just` to list all tasks. The ones you need most:
 | Command | What it does |
 |---|---|
 | `just dev` | Start the database, Django on <http://localhost:8100> and the frontend on <http://localhost:5173>. Ctrl+C stops both. |
-| `just worker` | Run the background job worker, which also starts recurring jobs on schedule |
+| `just worker` | Run the background job worker, which also starts recurring jobs on schedule. PGN imports only run while it does; uploads wait in `data/` until then. |
 | `just test` | Run all tests |
 | `just fmt` | Format all code |
 | `just gen-api` | Regenerate the frontend's API types after changing the backend API. `just check` fails while they are out of date. |

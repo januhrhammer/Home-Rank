@@ -37,14 +37,19 @@ LABEL org.opencontainers.image.title="Home-Rank" \
 
 # uv installed everything in stage 2, so the base image's pip is never used here: without it,
 # its security advisories don't concern this image.
+# /data holds uploaded files until the worker has imported them (DATA_DIR). Created here and
+# owned by the homerank user, so that a new Docker volume mounted there is writable for it.
 RUN python -m pip uninstall --yes --no-cache-dir pip \
- && useradd --system --create-home --uid 10001 homerank
+ && useradd --system --create-home --uid 10001 homerank \
+ && mkdir /data \
+ && chown homerank:homerank /data
 WORKDIR /app/backend
 COPY --from=backend /app/backend ./
 COPY --from=frontend /app/frontend/dist /app/frontend/dist
 COPY docker/entrypoint.sh /app/entrypoint.sh
 ENV PATH="/app/backend/.venv/bin:$PATH" \
     DJANGO_SETTINGS_MODULE=config.settings.prod \
+    DATA_DIR=/data \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 

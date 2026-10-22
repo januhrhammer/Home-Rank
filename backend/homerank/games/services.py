@@ -43,6 +43,11 @@ class ImportTooLargeError(DomainError):
         super().__init__(self.detail)
 
 
+class UnsupportedFileError(DomainError):
+    status = HTTPStatus.UNSUPPORTED_MEDIA_TYPE
+    detail = "Only PGN files (.pgn) can be imported."
+
+
 def import_path(run: ImportRun) -> Path:
     """Where an import's file waits for its job."""
     return Path(settings.DATA_DIR) / "imports" / f"{run.pk}.pgn"
@@ -50,6 +55,8 @@ def import_path(run: ImportRun) -> Path:
 
 def start_import(*, user: User, file_name: str, chunks: Iterable[bytes]) -> ImportRun:
     """Save an uploaded PGN file, arriving in chunks, and queue the job that imports it."""
+    if not file_name.lower().endswith(".pgn"):
+        raise UnsupportedFileError
     with transaction.atomic():
         run = ImportRun.objects.create(user=user, file_name=file_name[:255], file_size=0)
         path = import_path(run)
