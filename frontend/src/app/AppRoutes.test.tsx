@@ -2,12 +2,14 @@ import { screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 
 import { renderApp } from "../test/render";
+import { simulateAuth } from "../test/server";
 import { SOURCE_CODE_URL } from "./config";
 
-test("the start page shows the app name as the main heading", () => {
+test("logged-in users see the app name as the start page's main heading", async () => {
+  simulateAuth({ id: 1, username: "alice", email: "", is_staff: false }, { loggedIn: true });
   renderApp("/");
 
-  expect(screen.getByRole("heading", { level: 1, name: "Home-Rank" })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { level: 1, name: "Home-Rank" })).toBeInTheDocument();
 });
 
 test("unknown addresses show a not-found page with a way back", () => {

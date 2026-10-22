@@ -1,6 +1,6 @@
 import { Route, Routes } from "react-router";
 
-import { LoginPage } from "../features/auth";
+import { LoginPage, RequireAuth } from "../features/auth";
 import { HomePage } from "../features/home";
 import { Layout } from "./Layout";
 import { NotFoundPage } from "./NotFoundPage";
@@ -13,8 +13,11 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route index element={<HomePage />} />
         <Route path="login" element={<LoginPage />} />
+        {/* Pages for logged-in users only. */}
+        <Route element={<RequireAuth />}>
+          <Route index element={<HomePage />} />
+        </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

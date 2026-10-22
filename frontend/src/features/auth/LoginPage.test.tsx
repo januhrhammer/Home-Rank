@@ -4,7 +4,7 @@ import { http, HttpResponse } from "msw";
 import { expect, test } from "vitest";
 
 import { renderApp } from "../../test/render";
-import { server } from "../../test/server";
+import { server, simulateAuth } from "../../test/server";
 import { currentUserQuery, type User } from "./currentUser";
 
 const alice: User = { id: 1, username: "alice", email: "", is_staff: false };
@@ -25,7 +25,7 @@ async function logIn(username: string, password: string) {
 }
 
 test("logging in leads to the start page and remembers the user", async () => {
-  loginAnswers(HttpResponse.json(alice));
+  simulateAuth(alice);
   const { queryClient } = renderApp("/login");
 
   await logIn("alice", "correct horse battery staple");

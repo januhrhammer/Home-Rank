@@ -7,11 +7,13 @@ import {
   Label,
   TextField,
 } from "react-aria-components";
-import { useNavigate } from "react-router";
+import { Navigate, useLocation } from "react-router";
 
 import { t } from "../../lib/i18n";
+import { useCurrentUser } from "./currentUser";
 import { loginErrorMessage, useLogin } from "./login";
 import styles from "./LoginPage.module.css";
+import { returnAddress } from "./RequireAuth";
 
 function formValue(form: FormData, name: string): string {
   const value = form.get(name);
@@ -20,7 +22,8 @@ function formValue(form: FormData, name: string): string {
 
 export function LoginPage() {
   const login = useLogin();
-  const navigate = useNavigate();
+  const { data: user } = useCurrentUser();
+  const location = useLocation();
 
   // Typed by React Aria's Form itself: React's types and React Aria's currently disagree on
   // the name of the submit event type.
@@ -31,12 +34,14 @@ export function LoginPage() {
       username: formValue(form, "username"),
       password: formValue(form, "password"),
     };
-    login.mutate(credentials, {
-      onSuccess: () => {
-        void navigate("/");
-      },
-    });
+    login.mutate(credentials);
   };
+
+  // Once someone is logged in, whether just now or before opening this page, go on to where
+  // they wanted to be. A successful login stores the user, which brings us here again.
+  if (user) {
+    return <Navigate to={returnAddress(location.state)} replace />;
+  }
 
   return (
     <div className={styles.page}>

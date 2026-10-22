@@ -1,5 +1,6 @@
 import { Link, Outlet } from "react-router";
 
+import { AccountMenu } from "../features/auth";
 import { t } from "../lib/i18n";
 import { SOURCE_CODE_URL } from "./config";
 import styles from "./Layout.module.css";
@@ -12,6 +13,7 @@ export function Layout() {
         <Link to="/" className={styles.brand}>
           {t("app.name")}
         </Link>
+        <AccountMenu />
       </header>
       <main className={styles.main}>
         <Outlet />
