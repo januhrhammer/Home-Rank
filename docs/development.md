@@ -76,6 +76,16 @@ If `just check` passes locally, CI should too.
 itself once CI passes, all other minor and patch updates in one pull request for review, and each
 major update on its own. Security fixes come right away.
 
+## Releases
+
+Releases come from the commit messages on `main`, through
+[release-please](https://github.com/googleapis/release-please) (`.github/workflows/release.yml`).
+It keeps a release pull request open with the next version number and its `CHANGELOG.md` entry:
+`feat` commits raise the minor version, `fix` the patch version, and while Home-Rank is 0.x
+breaking changes raise the minor version too. Merging that pull request tags the version,
+creates the GitHub release and publishes the Docker image for amd64 and arm64 as
+`ghcr.io/januhrhammer/home-rank`, signed with cosign and with an SBOM attached.
+
 ## Settings and configuration
 
 Django's settings live in `backend/config/settings/`:
