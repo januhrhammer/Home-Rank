@@ -17,4 +17,4 @@ api = NinjaAPI(title="Home-Rank API", version="1", auth=django_auth)
 register_problem_handlers(api)
 
 api.add_router("/auth/", accounts_router)
-api.add_router("/games/", games_router)
+api.add_router("/games", games_router)

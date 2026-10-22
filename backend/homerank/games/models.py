@@ -92,6 +92,16 @@ class Game(models.Model):
                 name="game_unique_source_id_per_user",
             ),
         )
+        indexes = (
+            # The game list's default order (selectors.games). It also serves date ranges and
+            # pages far down the list: measured with 100,000 games, 27 ms became 11 ms.
+            models.Index(
+                "user",
+                models.F("date").desc(nulls_last=True),
+                models.F("id").desc(),
+                name="game_user_date",
+            ),
+        )
 
     def __str__(self) -> str:
         return f"{self.white or '?'} - {self.black or '?'} {self.result}"

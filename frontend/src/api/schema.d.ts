@@ -87,6 +87,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/games": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Games
+         * @description Your games, filtered and sorted; the newest first unless sorted otherwise.
+         */
+        get: operations["homerank_games_api_list_games"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/games/imports": {
         parameters: {
             query?: never;
@@ -137,6 +157,110 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * GameFilters
+         * @description Filters for the game list; all optional, and combined with AND.
+         */
+        GameFilters: {
+            /**
+             * Collection
+             * @description Only games in this collection
+             */
+            collection?: number | null;
+            /** @description The side you played */
+            color?: components["schemas"]["Side"] | null;
+            /** Date From */
+            date_from?: string | null;
+            /** Date To */
+            date_to?: string | null;
+            /**
+             * Eco
+             * @description An ECO code or its start: B, B2, B23
+             */
+            eco?: string | null;
+            /**
+             * Import Run
+             * @description Only games from this import
+             */
+            import_run?: number | null;
+            /**
+             * Opening
+             * @description Part of the opening's name
+             */
+            opening?: string | null;
+            /**
+             * Outcome
+             * @description The result from your side; only games in which you played
+             */
+            outcome?: ("win" | "draw" | "loss") | null;
+            /**
+             * Player
+             * @description Part of White's or Black's name
+             */
+            player?: string | null;
+            /** Result */
+            result?: ("1-0" | "0-1" | "1/2-1/2" | "*") | null;
+            /**
+             * Sort
+             * @description A field to sort by; a leading - sorts downwards
+             * @default -date
+             * @enum {string}
+             */
+            sort: "date" | "-date" | "white" | "-white" | "black" | "-black" | "white_elo" | "-white_elo" | "black_elo" | "-black_elo" | "eco" | "-eco" | "imported_at" | "-imported_at";
+            source?: components["schemas"]["Source"] | null;
+            /**
+             * Tag
+             * @description Only games with this tag
+             */
+            tag?: number | null;
+            time_class?: components["schemas"]["TimeClass"] | null;
+        };
+        /**
+         * GameListItem
+         * @description A game in the list: its headers, without the moves.
+         */
+        GameListItem: {
+            /** Black */
+            black: string;
+            /** Black Elo */
+            black_elo: number | null;
+            /** Date */
+            date: string | null;
+            /** Date Pgn */
+            date_pgn: string;
+            /** Eco */
+            eco: string;
+            /** Event */
+            event: string;
+            /** Id */
+            id: number;
+            /**
+             * Imported At
+             * Format: date-time
+             */
+            imported_at: string;
+            /** Opening */
+            opening: string;
+            /** Ply Count */
+            ply_count: number;
+            /** Result */
+            result: string;
+            /** Site */
+            site: string;
+            source: components["schemas"]["Source"];
+            time_class: components["schemas"]["TimeClass"];
+            /** Time Control */
+            time_control: string;
+            /**
+             * User Color
+             * @enum {string}
+             */
+            user_color: "white" | "black" | "";
+            /** White */
+            white: string;
+            /** White Elo */
+            white_elo: number | null;
+        };
         /** ImportErrorOut */
         ImportErrorOut: {
             /** Line */
@@ -196,6 +320,13 @@ export interface components {
             /** Username */
             username: string;
         };
+        /** PagedGameListItem */
+        PagedGameListItem: {
+            /** Items */
+            items: components["schemas"]["GameListItem"][];
+            /** Total */
+            total: number;
+        };
         /** PagedImportOut */
         PagedImportOut: {
             /** Items */
@@ -204,10 +335,25 @@ export interface components {
             total: number;
         };
         /**
+         * Side
+         * @enum {string}
+         */
+        Side: "white" | "black";
+        /**
+         * Source
+         * @enum {string}
+         */
+        Source: "pgn" | "lichess" | "chesscom";
+        /**
          * Status
          * @enum {string}
          */
         Status: "queued" | "running" | "done" | "failed";
+        /**
+         * TimeClass
+         * @enum {string}
+         */
+        TimeClass: "bullet" | "blitz" | "rapid" | "classical" | "correspondence" | "unknown";
         /**
          * UserOut
          * @description What the API reveals about a user. Fields are listed explicitly, so a field added to the
@@ -308,6 +454,52 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserOut"];
+                };
+            };
+        };
+    };
+    homerank_games_api_list_games: {
+        parameters: {
+            query?: {
+                /** @description Part of White's or Black's name */
+                player?: string | null;
+                /** @description The side you played */
+                color?: components["schemas"]["Side"] | null;
+                result?: ("1-0" | "0-1" | "1/2-1/2" | "*") | null;
+                /** @description The result from your side; only games in which you played */
+                outcome?: ("win" | "draw" | "loss") | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                /** @description An ECO code or its start: B, B2, B23 */
+                eco?: string | null;
+                /** @description Part of the opening's name */
+                opening?: string | null;
+                source?: components["schemas"]["Source"] | null;
+                time_class?: components["schemas"]["TimeClass"] | null;
+                /** @description Only games with this tag */
+                tag?: number | null;
+                /** @description Only games in this collection */
+                collection?: number | null;
+                /** @description Only games from this import */
+                import_run?: number | null;
+                /** @description A field to sort by; a leading - sorts downwards */
+                sort?: "date" | "-date" | "white" | "-white" | "black" | "-black" | "white_elo" | "-white_elo" | "black_elo" | "-black_elo" | "eco" | "-eco" | "imported_at" | "-imported_at";
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedGameListItem"];
                 };
             };
         };
