@@ -83,6 +83,13 @@ with `IMPORT_MAX_MB` in `.env`; a reverse proxy in front of Home-Rank must allow
 large too. Uploads wait in the Docker volume `home-rank_data` until the worker has imported them,
 and are deleted afterwards.
 
+Linked Lichess and Chess.com accounts are synced every 6 hours; change that with
+`SYNC_INTERVAL_HOURS`, or set it to 0 to sync only when users press "Sync now". The server needs
+to reach `lichess.org` and `api.chess.com` over HTTPS. Both sites like to know who is asking:
+consider setting `SYNC_CONTACT` to your email address, so they can contact you rather than block
+your server if something goes wrong. A first sync of a long Lichess history takes a while:
+Lichess sends about 20 games a second.
+
 ### Changing the database password
 
 PostgreSQL stores its password when it creates the database, on the very first start. Changing
