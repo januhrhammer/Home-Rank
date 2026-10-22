@@ -1,5 +1,7 @@
 """Reading a user's games data. Every query here is limited to the given user."""
 
+from collections.abc import Iterator
+
 from django.db.models import F, Q, QuerySet
 from django.db.models.expressions import OrderBy
 from django.shortcuts import get_object_or_404
@@ -45,7 +47,26 @@ def games(*, user: User, filters: GameFilters) -> QuerySet[Game]:
         queryset = queryset.filter(_OUTCOMES[filters.outcome])
     if filters.eco:
         queryset = queryset.filter(eco__startswith=filters.eco.upper())
+    if filters.ids is not None:
+        queryset = queryset.filter(pk__in=filters.ids)
     return queryset.order_by(*_ordering(filters.sort))
+
+
+def game(*, user: User, game_id: int) -> Game:
+    """One of the user's games; 404 for anyone else's, so its existence isn't revealed."""
+    return get_object_or_404(Game.objects.filter(user=user), pk=game_id)
+
+
+def export_pgn(*, user: User, filters: GameFilters) -> Iterator[str]:
+    """The PGN texts of the games the list would show, in its order, as one PGN file.
+
+    The games are read from the database in chunks while the file is sent, so exporting many
+    thousands of them never holds them all in memory. Stored texts end with a newline; a blank
+    line separates the games.
+    """
+    texts = games(user=user, filters=filters).values_list("pgn", flat=True)
+    for index, pgn in enumerate(texts.iterator(chunk_size=500)):
+        yield pgn if index == 0 else "\n" + pgn
 
 
 def _ordering(sort: str) -> tuple[OrderBy, OrderBy]:
