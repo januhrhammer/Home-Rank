@@ -101,8 +101,8 @@ export function labelErrorMessage(error: Error, name: string): string {
   return t("labels.failed");
 }
 
-async function addGame(kind: LabelKind, labelId: number, gameId: number) {
-  const body = { game_ids: [gameId] };
+async function addGames(kind: LabelKind, labelId: number, gameIds: number[]) {
+  const body = { game_ids: gameIds };
   const { response } =
     kind === "tags"
       ? await api.POST("/api/v1/tags/{tag_id}/games", {
@@ -116,8 +116,8 @@ async function addGame(kind: LabelKind, labelId: number, gameId: number) {
   check(response);
 }
 
-async function removeGame(kind: LabelKind, labelId: number, gameId: number) {
-  const query = { game_ids: [gameId] };
+async function removeGames(kind: LabelKind, labelId: number, gameIds: number[]) {
+  const query = { game_ids: gameIds };
   const { response } =
     kind === "tags"
       ? await api.DELETE("/api/v1/tags/{tag_id}/games", {
@@ -134,20 +134,20 @@ export type LabelChange =
   | { action: "create"; name: string }
   | { action: "remove"; labelId: number };
 
-/** Changes a game's tags or collections, then refreshes what shows them: games and the lists. */
-export function useLabelChange(kind: LabelKind, gameId: number) {
+/** Changes games' tags or collections, then refreshes what shows them: games and the lists. */
+export function useLabelChange(kind: LabelKind, gameIds: number[]) {
   const refresh = useRefresh(kind);
   return useMutation({
     mutationFn: async (change: LabelChange) => {
       if (change.action === "remove") {
-        await removeGame(kind, change.labelId, gameId);
+        await removeGames(kind, change.labelId, gameIds);
         return;
       }
       const labelId =
         change.action === "add"
           ? change.labelId
           : (await createLabel(kind, { name: change.name })).id;
-      await addGame(kind, labelId, gameId);
+      await addGames(kind, labelId, gameIds);
     },
     onSettled: refresh,
   });

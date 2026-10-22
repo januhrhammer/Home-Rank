@@ -1,0 +1,52 @@
+/* Stays in view at the bottom of the screen while games are selected. */
+.bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-2) var(--space-4);
+  margin-top: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  box-shadow: 0 -2px 12px rgb(0 0 0 / 10%);
+}
+
+.count {
+  align-self: center;
+  font-weight: 600;
+}
+
+.adder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.done,
+.error {
+  font-size: 0.8rem;
+}
+
+.done {
+  color: var(--color-text-muted);
+}
+
+.error {
+  color: var(--color-danger);
+}
+
+.button {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  text-decoration: none;
+  background: var(--color-bg);
+  cursor: pointer;
+}

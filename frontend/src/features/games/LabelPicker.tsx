@@ -16,7 +16,7 @@ import {
 import { t } from "../../lib/i18n";
 import { collectionsQuery, type NamedRef, tagsQuery } from "./games";
 import styles from "./LabelPicker.module.css";
-import { type LabelKind, useLabelChange } from "./labels";
+import { type LabelChange, type LabelKind, useLabelChange } from "./labels";
 
 /** The suggestion that creates a new tag or collection with the typed name. */
 const CREATE = "create";
@@ -28,25 +28,9 @@ interface LabelPickerProps {
   labels: NamedRef[];
 }
 
-/**
- * A game's tags or collections as removable chips, and a field to add more: it suggests the
- * user's existing ones and offers to create a new one with the typed name.
- */
+/** A game's tags or collections as removable chips, and a field to add more. */
 export function LabelPicker({ kind, gameId, labels }: LabelPickerProps) {
-  const tags = useQuery(tagsQuery);
-  const collections = useQuery(collectionsQuery);
-  const all: NamedRef[] = (kind === "tags" ? tags.data : collections.data) ?? [];
-  const change = useLabelChange(kind, gameId);
-  const [typed, setTyped] = useState("");
-
-  const name = typed.trim();
-  const exists = all.some((label) => label.name.toLowerCase() === name.toLowerCase());
-  const suggestions = [
-    ...all
-      .filter((label) => !labels.some((own) => own.id === label.id))
-      .map((label) => ({ id: String(label.id), name: label.name })),
-    ...(name && !exists ? [{ id: CREATE, name: t("labels.create", { name }) }] : []),
-  ];
+  const change = useLabelChange(kind, [gameId]);
 
   return (
     <div className={styles.picker}>
@@ -79,41 +63,80 @@ export function LabelPicker({ kind, gameId, labels }: LabelPickerProps) {
           )}
         </TagList>
       </TagGroup>
-      <ComboBox
-        className={styles.add}
-        items={suggestions}
-        inputValue={typed}
-        onInputChange={setTyped}
-        // Nothing stays selected: choosing a suggestion adds it and empties the field.
-        value={null}
-        onChange={(key) => {
-          if (key === null) {
-            return;
-          }
-          change.mutate(
-            key === CREATE ? { action: "create", name } : { action: "add", labelId: Number(key) },
-          );
-          setTyped("");
+      <LabelAdder
+        kind={kind}
+        exclude={labels}
+        onChoose={(choice) => {
+          change.mutate(choice);
         }}
-        menuTrigger="focus"
-      >
-        <Label className={styles.addLabel}>{t(`labels.add.${kind}`)}</Label>
-        <Input className={styles.input} placeholder={t(`labels.placeholder.${kind}`)} />
-        <Popover className={styles.popover}>
-          <ListBox className={styles.listBox}>
-            {(item: { id: string; name: string }) => (
-              <ListBoxItem className={styles.option} id={item.id}>
-                {item.name}
-              </ListBoxItem>
-            )}
-          </ListBox>
-        </Popover>
-      </ComboBox>
+      />
       {change.isError && (
         <p className={styles.error} role="alert">
           {t("labels.failed")}
         </p>
       )}
     </div>
+  );
+}
+
+interface LabelAdderProps {
+  kind: LabelKind;
+  /** Tags or collections not to suggest, e.g. those a game already has. */
+  exclude?: NamedRef[];
+  onChoose: (choice: Exclude<LabelChange, { action: "remove" }>) => void;
+}
+
+const NONE: NamedRef[] = [];
+
+/**
+ * A field that suggests the user's tags or collections while typing, and offers to create a
+ * new one with the typed name. Names that only differ in case count as the same.
+ */
+export function LabelAdder({ kind, exclude = NONE, onChoose }: LabelAdderProps) {
+  const tags = useQuery(tagsQuery);
+  const collections = useQuery(collectionsQuery);
+  const all: NamedRef[] = (kind === "tags" ? tags.data : collections.data) ?? [];
+  const [typed, setTyped] = useState("");
+
+  const name = typed.trim();
+  const exists = all.some((label) => label.name.toLowerCase() === name.toLowerCase());
+  const suggestions = [
+    ...all
+      .filter((label) => !exclude.some((excluded) => excluded.id === label.id))
+      .map((label) => ({ id: String(label.id), name: label.name })),
+    ...(name && !exists ? [{ id: CREATE, name: t("labels.create", { name }) }] : []),
+  ];
+
+  return (
+    <ComboBox
+      className={styles.add}
+      items={suggestions}
+      inputValue={typed}
+      onInputChange={setTyped}
+      // Nothing stays selected: choosing a suggestion adds it and empties the field.
+      value={null}
+      onChange={(key) => {
+        if (key === null) {
+          return;
+        }
+        onChoose(
+          key === CREATE ? { action: "create", name } : { action: "add", labelId: Number(key) },
+        );
+        setTyped("");
+      }}
+      menuTrigger="focus"
+    >
+      <Label className={styles.addLabel}>{t(`labels.add.${kind}`)}</Label>
+      <Input className={styles.input} placeholder={t(`labels.placeholder.${kind}`)} />
+      <Popover className={styles.popover}>
+        <ListBox className={styles.listBox}>
+          {(item: { id: string; name: string }) => (
+            <ListBoxItem className={styles.option} id={item.id}>
+              {item.name}
+            </ListBoxItem>
+          )}
+        </ListBox>
+      </Popover>
+    </ComboBox>
   );
 }
