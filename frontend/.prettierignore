@@ -1,5 +1,8 @@
 # Build output and generated files. (Prettier skips node_modules by itself, but it only reads
 # a .gitignore in this folder, not the repository root's.)
 dist
+test-results
+playwright-report
+e2e/.auth
 pnpm-lock.yaml
 src/api/schema.d.ts

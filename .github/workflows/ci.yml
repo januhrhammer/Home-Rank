@@ -128,7 +128,7 @@ jobs:
       # gitleaks by the next job: its hook only looks at staged changes.
       - name: Commit hooks on all files
         env:
-          SKIP: gitleaks,ruff-format,ruff-check,mypy,import-linter,uv-lock,prettier,eslint,tsc
+          SKIP: gitleaks,ruff-format,ruff-check,mypy,import-linter,uv-lock,prettier,eslint,tsc,tsc-e2e
         run: uv run --project backend pre-commit run --all-files --show-diff-on-failure
 
   secrets:
