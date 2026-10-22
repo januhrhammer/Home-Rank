@@ -4,6 +4,8 @@
 .env
 .env.*
 !.env.example
+# A self-hoster's own additions to compose.yaml, e.g. for a reverse proxy.
+compose.override.yaml
 
 # Python
 .venv/

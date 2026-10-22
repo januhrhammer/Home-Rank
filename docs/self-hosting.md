@@ -39,7 +39,8 @@ Tested on x86-64 Linux.
    - `ALLOWED_HOSTS`: the address you will type into the browser, without `http://` and port,
      e.g. `192.168.1.20` or `homeserver.local`.
    - `HTTPS`: `false` to reach Home-Rank over plain `http://` on your local network. HTTPS needs
-     a reverse proxy in front of Home-Rank.
+     a reverse proxy in front of Home-Rank, see
+     [HTTPS with a reverse proxy](#https-with-a-reverse-proxy).
 
 3. Start Home-Rank:
 
@@ -85,6 +86,98 @@ docker compose exec db psql --username=homerank --command="ALTER USER homerank P
 Then put the same password into `.env` and run `docker compose up -d`. If you changed `.env`
 first and Home-Rank no longer starts, run the `psql` command above with the new password, then
 `docker compose up -d` again.
+
+## HTTPS with a reverse proxy
+
+To reach Home-Rank over HTTPS, for example from the internet, put a reverse proxy in front of it.
+The proxy holds the certificate and passes requests on to Home-Rank. Set these in `.env`, with
+your own domain:
+
+```sh
+ALLOWED_HOSTS=chess.example.org
+HTTPS=true
+TRUST_PROXY_HEADERS=true
+HOMERANK_PORT=127.0.0.1:8000
+```
+
+`TRUST_PROXY_HEADERS` lets Home-Rank believe what the proxy reports about each request: that it
+came in over HTTPS, and from which address. `HOMERANK_PORT=127.0.0.1:8000` makes sure only the
+proxy can report anything: Home-Rank is then reachable only from the machine itself, so nobody
+can bypass the proxy and fake those reports. Don't rely on a firewall for this: Docker opens
+published ports past firewalls such as ufw.
+
+Any proxy works if it
+
+- passes on the `Host` header the browser sent,
+- sets `X-Forwarded-Proto` to `https`,
+- adds the visitor's address to the end of `X-Forwarded-For`.
+
+The examples below do all three; each was tested with a login through it.
+
+Home-Rank expects exactly one proxy in front of it. If another one sits in front of yours, such as
+Cloudflare, Home-Rank sees that one's address for every visitor, and its lockout after 10 failed
+logins then blocks all visitors together.
+
+### Caddy
+
+Caddy gets a certificate from Let's Encrypt by itself. In its `Caddyfile`:
+
+```caddy
+chess.example.org {
+	reverse_proxy 127.0.0.1:8000
+}
+```
+
+### nginx
+
+The certificate paths are where certbot puts them; change them for other certificates.
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name chess.example.org;
+    ssl_certificate     /etc/letsencrypt/live/chess.example.org/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/chess.example.org/privkey.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+Without the `Host` line, Home-Rank answers every request with "Bad Request (400)". Without
+`X-Forwarded-Proto`, the browser reports too many redirects.
+
+### Traefik
+
+When Traefik runs in Docker, it finds Home-Rank through labels. Create `compose.override.yaml`
+next to `compose.yaml`; Compose merges it in by itself:
+
+```yaml
+services:
+  web:
+    ports: !reset []
+    networks: [default, proxy]
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: proxy
+      traefik.http.routers.homerank.rule: Host(`chess.example.org`)
+      traefik.http.routers.homerank.entrypoints: websecure
+      traefik.http.routers.homerank.tls.certresolver: letsencrypt
+      traefik.http.services.homerank.loadbalancer.server.port: "8000"
+
+networks:
+  proxy:
+    external: true
+```
+
+`proxy` is the Docker network Traefik is in, and `websecure` and `letsencrypt` are the entry
+point and certificate resolver from your Traefik configuration: use your names. `ports: !reset []`
+removes Home-Rank's published port, so it is reachable only through Traefik and `HOMERANK_PORT`
+doesn't matter.
 
 ## Updating
 
