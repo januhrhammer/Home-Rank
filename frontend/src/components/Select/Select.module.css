@@ -1,0 +1,55 @@
+.select {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.label {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 8rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-bg);
+  cursor: pointer;
+}
+
+.popover {
+  min-width: var(--trigger-width); /* as wide as the button, set by React Aria */
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 15%);
+}
+
+.listBox {
+  max-height: 20rem;
+  overflow: auto;
+  padding: var(--space-1);
+  outline: none;
+}
+
+.option {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius);
+  cursor: pointer;
+  outline: none;
+}
+
+.option[data-focused] {
+  background: var(--color-surface);
+}
+
+.option[data-selected] {
+  font-weight: 600;
+}
