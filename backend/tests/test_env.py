@@ -111,3 +111,20 @@ def test_database_urls_are_parsed(monkeypatch: pytest.MonkeyPatch) -> None:
 
     assert database["ENGINE"] == "django.db.backends.postgresql"
     assert (database["HOST"], database["NAME"]) == ("db", "homerank")
+
+
+def test_choices_ignore_case_and_return_the_listed_spelling(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("HR_TEST", "warning")
+
+    assert env.choice("HR_TEST", ["INFO", "WARNING"], default="INFO") == "WARNING"
+
+
+def test_a_value_outside_the_choices_is_an_error_listing_them(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("HR_TEST", "verbos")
+
+    with pytest.raises(ImproperlyConfigured, match="INFO, WARNING"):
+        env.choice("HR_TEST", ["INFO", "WARNING"], default="INFO")

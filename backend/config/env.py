@@ -86,6 +86,15 @@ def boolean(name: str, default: bool | None = None) -> bool:
     raise InvalidValueError(name, value, "true or false")
 
 
+def choice(name: str, choices: list[str], default: str) -> str:
+    """One of a few allowed values, in any case; returned as spelled in `choices`."""
+    value = string(name, default)
+    for allowed in choices:
+        if value.lower() == allowed.lower():
+            return allowed
+    raise InvalidValueError(name, value, f"one of {', '.join(choices)}")
+
+
 def database(name: str, default: str | None = None) -> dict[str, Any]:
     """A database URL such as postgres://user:password@host:5432/name, as Django settings."""
     config: dict[str, Any] = environ.Env.db_url_config(string(name, default))

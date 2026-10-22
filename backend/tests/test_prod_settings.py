@@ -20,7 +20,7 @@ REQUIRED_VARIABLES = {
     "HTTPS": "true",
 }
 # Optional variables, cleared too, so that none leaks in from the environment running the tests.
-OPTIONAL_VARIABLES = ["TRUST_PROXY_HEADERS", "CSRF_TRUSTED_ORIGINS"]
+OPTIONAL_VARIABLES = ["TRUST_PROXY_HEADERS", "CSRF_TRUSTED_ORIGINS", "LOG_FORMAT", "LOG_LEVEL"]
 
 
 def import_prod_settings(monkeypatch: pytest.MonkeyPatch, variables: dict[str, str]) -> ModuleType:
@@ -135,3 +135,24 @@ def test_localhost_is_allowed_for_the_health_check(monkeypatch: pytest.MonkeyPat
     settings = import_prod_settings(monkeypatch, REQUIRED_VARIABLES)
 
     assert settings.ALLOWED_HOSTS == ["chess.example.org", "localhost"]
+
+
+def test_database_connection_attempts_time_out(monkeypatch: pytest.MonkeyPatch) -> None:
+    default = import_prod_settings(monkeypatch, REQUIRED_VARIABLES)
+    url = REQUIRED_VARIABLES["DATABASE_URL"] + "?connect_timeout=3"
+    from_url = import_prod_settings(monkeypatch, {**REQUIRED_VARIABLES, "DATABASE_URL": url})
+
+    assert default.DATABASES["default"]["OPTIONS"] == {"connect_timeout": 10}
+    assert from_url.DATABASES["default"]["OPTIONS"] == {"connect_timeout": 3}
+
+
+def test_logs_are_json_at_info_level_unless_configured(monkeypatch: pytest.MonkeyPatch) -> None:
+    default = import_prod_settings(monkeypatch, REQUIRED_VARIABLES)
+    readable = import_prod_settings(
+        monkeypatch, {**REQUIRED_VARIABLES, "LOG_FORMAT": "console", "LOG_LEVEL": "warning"}
+    )
+
+    assert default.LOGGING["formatters"]["structlog"]["json"] is True
+    assert default.LOGGING["root"]["level"] == "INFO"
+    assert readable.LOGGING["formatters"]["structlog"]["json"] is False
+    assert readable.LOGGING["root"]["level"] == "WARNING"

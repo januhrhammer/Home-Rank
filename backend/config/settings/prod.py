@@ -5,6 +5,7 @@ a missing variable stops Django at startup instead of running with an insecure f
 """
 
 from config import env
+from config.logging_config import build_logging
 
 from .base import *
 from .base import FRONTEND_DIR, MIDDLEWARE
@@ -16,6 +17,16 @@ SECRET_KEY = env.string("SECRET_KEY")
 ALLOWED_HOSTS = [*env.strings("ALLOWED_HOSTS"), "localhost"]
 
 DATABASES = {"default": env.database("DATABASE_URL")}
+# Give up connecting after 10 seconds rather than the operating system's minutes, so /readyz
+# promptly reports a database that can't be reached. A connect_timeout in DATABASE_URL wins.
+DATABASES["default"]["OPTIONS"] = {"connect_timeout": 10, **DATABASES["default"].get("OPTIONS", {})}
+
+# Logs are JSON lines by default, for log collectors; LOG_FORMAT=console gives readable lines
+# for reading `docker logs` directly.
+LOGGING = build_logging(
+    json=env.choice("LOG_FORMAT", ["json", "console"], default="json") == "json",
+    level=env.choice("LOG_LEVEL", ["DEBUG", "INFO", "WARNING", "ERROR"], default="INFO"),
+)
 
 # WhiteNoise serves static files: the admin's (collected into STATIC_ROOT) and the built
 # frontend. Only in production: in development Vite and runserver do this, and WhiteNoise
