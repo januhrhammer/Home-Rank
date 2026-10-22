@@ -81,7 +81,9 @@ GitHub Actions (`.github/workflows/`) runs on every pull request and every push 
 
 - `ci.yml`: the same `just` recipes as `just check`, Django's deployment checks with the
   production settings, the file checks of the git hooks, a secret scan of new commits, and the
-  Docker image built for amd64 and arm64 and scanned for known vulnerabilities.
+  Docker image built for amd64 and arm64 and scanned for known vulnerabilities. On pull
+  requests also `just e2e`; when it fails, the run keeps Playwright's report and recordings as
+  the artifact `e2e-results`.
 - `pr-title.yml`: a pull request's title must be a Conventional Commit, because squash-merging
   turns it into the commit message on `main`.
 - `codeql.yml`: GitHub's CodeQL security analysis of the Python and TypeScript code and of the
