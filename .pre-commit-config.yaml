@@ -81,12 +81,14 @@ repos:
         entry: frontend/node_modules/.bin/prettier --check --ignore-unknown
         language: system
         files: ^frontend/
-        exclude: ^frontend/pnpm-lock\.yaml$
+        # Generated files: pnpm's lockfile and the API types from `just gen-api`.
+        exclude: ^frontend/(pnpm-lock\.yaml|src/api/schema\.d\.ts)$
       - id: eslint
         name: eslint
         entry: frontend/node_modules/.bin/eslint --max-warnings=0
         language: system
         files: ^frontend/.*\.tsx?$
+        exclude: ^frontend/src/api/schema\.d\.ts$
       - id: tsc
         name: tsc (frontend types)
         entry: frontend/node_modules/.bin/tsc --project frontend

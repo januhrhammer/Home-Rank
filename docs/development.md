@@ -44,6 +44,7 @@ Run `just` to list all tasks. The ones you need most:
 | `just worker` | Run the background job worker, which also starts recurring jobs on schedule |
 | `just test` | Run all tests |
 | `just fmt` | Format all code |
+| `just gen-api` | Regenerate the frontend's API types after changing the backend API. `just check` fails while they are out of date. |
 | `just check` | Formatting, lint, types and tests. **Run it before every commit.** |
 
 Most tasks also exist for one half of the project: `just test-backend -k settings` passes

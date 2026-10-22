@@ -39,11 +39,34 @@ fmt: fmt-backend fmt-frontend
 # Check formatting without changing any files
 fmt-check: fmt-check-backend fmt-check-frontend
 
-# Lint and type-check everything
-lint: lint-backend lint-frontend
+# Lint and type-check everything, and check that the frontend's API types are up to date
+lint: lint-backend lint-frontend check-api
 
 # Run all tests
 test: test-backend test-frontend
+
+# Regenerate the frontend's API types; run this after changing the backend API
+gen-api: (_api-types justfile_directory() / "frontend/src/api/schema.d.ts")
+
+# Fail if the frontend's API types don't match the backend (fix: just gen-api)
+check-api:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    fresh=$(mktemp --suffix=.d.ts)
+    trap 'rm -f "$fresh"' EXIT
+    just _api-types "$fresh"
+    cmp --silent "$fresh" frontend/src/api/schema.d.ts \
+        || { echo "frontend/src/api/schema.d.ts is out of date: run just gen-api"; exit 1; }
+
+# Write TypeScript types for the API, generated from Django's OpenAPI schema, to a file
+_api-types output:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    schema=$(mktemp --suffix=.json)
+    trap 'rm -f "$schema"' EXIT
+    (cd backend && uv run python manage.py export_openapi_schema \
+        --api config.api.api --sorted --output "$schema")
+    (cd frontend && pnpm exec openapi-typescript "$schema" --output "{{ output }}")
 
 # Run the git commit checks on all files, not just the changed ones
 pre-commit:
