@@ -72,6 +72,11 @@ AXES_RESET_ON_SUCCESS = True
 # Don't keep a permanent record, with IP addresses, of every successful login.
 AXES_DISABLE_ACCESS_LOG = True
 AXES_LOCKOUT_CALLABLE = "homerank.accounts.lockout.lockout_response"
+AXES_CLIENT_IP_CALLABLE = "homerank.accounts.lockout.client_ip"
+
+# Whether a reverse proxy's X-Forwarded-* headers can be believed; prod.py reads it from the
+# environment. Without a proxy, any visitor could send these headers themselves.
+TRUST_PROXY_HEADERS = False
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

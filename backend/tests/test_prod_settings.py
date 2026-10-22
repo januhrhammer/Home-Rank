@@ -17,12 +17,15 @@ REQUIRED_VARIABLES = {
     "SECRET_KEY": "not-a-real-secret",
     "ALLOWED_HOSTS": "chess.example.org",
     "DATABASE_URL": "postgres://homerank:password@db:5432/homerank",
+    "HTTPS": "true",
 }
+# Optional variables, cleared too, so that none leaks in from the environment running the tests.
+OPTIONAL_VARIABLES = ["TRUST_PROXY_HEADERS", "CSRF_TRUSTED_ORIGINS"]
 
 
 def import_prod_settings(monkeypatch: pytest.MonkeyPatch, variables: dict[str, str]) -> ModuleType:
     """Import config.settings.prod afresh, with exactly the given variables in the environment."""
-    for name in REQUIRED_VARIABLES:
+    for name in [*REQUIRED_VARIABLES, *OPTIONAL_VARIABLES]:
         monkeypatch.delenv(name, raising=False)
         monkeypatch.delenv(f"{name}_FILE", raising=False)
     for name, value in variables.items():
@@ -37,7 +40,7 @@ def test_reads_all_required_variables(monkeypatch: pytest.MonkeyPatch) -> None:
     settings = import_prod_settings(monkeypatch, REQUIRED_VARIABLES)
 
     assert settings.SECRET_KEY == "not-a-real-secret"
-    assert settings.ALLOWED_HOSTS == ["chess.example.org"]
+    assert "chess.example.org" in settings.ALLOWED_HOSTS
     assert settings.DATABASES["default"]["HOST"] == "db"
 
 
@@ -99,3 +102,36 @@ def test_only_files_with_a_hash_are_cached_for_good(
     settings = import_prod_settings(monkeypatch, REQUIRED_VARIABLES)
 
     assert bool(re.match(settings.WHITENOISE_IMMUTABLE_FILE_TEST, url)) is cached_for_good
+
+
+def test_https_secures_cookies_redirects_and_sets_hsts(monkeypatch: pytest.MonkeyPatch) -> None:
+    settings = import_prod_settings(monkeypatch, {**REQUIRED_VARIABLES, "HTTPS": "true"})
+
+    assert settings.SESSION_COOKIE_SECURE is True
+    assert settings.CSRF_COOKIE_SECURE is True
+    assert settings.SECURE_SSL_REDIRECT is True
+    assert settings.SECURE_HSTS_SECONDS > 0
+
+
+def test_plain_http_on_a_local_network(monkeypatch: pytest.MonkeyPatch) -> None:
+    settings = import_prod_settings(monkeypatch, {**REQUIRED_VARIABLES, "HTTPS": "false"})
+
+    assert settings.SESSION_COOKIE_SECURE is False
+    assert settings.SECURE_SSL_REDIRECT is False
+    assert settings.SECURE_HSTS_SECONDS == 0
+
+
+def test_proxy_headers_are_believed_only_when_asked(monkeypatch: pytest.MonkeyPatch) -> None:
+    default = import_prod_settings(monkeypatch, REQUIRED_VARIABLES)
+    trusting = import_prod_settings(
+        monkeypatch, {**REQUIRED_VARIABLES, "TRUST_PROXY_HEADERS": "true"}
+    )
+
+    assert getattr(default, "SECURE_PROXY_SSL_HEADER", None) is None
+    assert trusting.SECURE_PROXY_SSL_HEADER == ("HTTP_X_FORWARDED_PROTO", "https")
+
+
+def test_localhost_is_allowed_for_the_health_check(monkeypatch: pytest.MonkeyPatch) -> None:
+    settings = import_prod_settings(monkeypatch, REQUIRED_VARIABLES)
+
+    assert settings.ALLOWED_HOSTS == ["chess.example.org", "localhost"]
