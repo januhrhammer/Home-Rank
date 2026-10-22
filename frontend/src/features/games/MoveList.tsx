@@ -11,7 +11,10 @@ interface MoveListProps {
   onSelect: (move: MoveNode) => void;
 }
 
-/** The moves as chess books print them: variations in parentheses, comments in between. */
+/**
+ * The moves as chess books print them: variations in parentheses, comments in between. A
+ * variation of the game's own moves gets a line of its own; deeper ones run on inside it.
+ */
 export function MoveList({ tree, current, onSelect }: MoveListProps) {
   return (
     <div className={styles.moves} role="group" aria-label={t("viewer.moves")}>
@@ -20,7 +23,7 @@ export function MoveList({ tree, current, onSelect }: MoveListProps) {
           {comment}
         </p>
       ))}
-      <Line candidates={tree.firstMoves} current={current} onSelect={onSelect} />
+      <Line candidates={tree.firstMoves} depth={0} current={current} onSelect={onSelect} />
     </div>
   );
 }
@@ -28,9 +31,11 @@ export function MoveList({ tree, current, onSelect }: MoveListProps) {
 interface LineProps extends Omit<MoveListProps, "tree"> {
   /** The moves possible at the line's start: the first is played, the others are variations. */
   candidates: MoveNode[];
+  /** 0 for the game's own moves, 1 for a variation of them, and so on. */
+  depth: number;
 }
 
-function Line({ candidates, current, onSelect }: LineProps) {
+function Line({ candidates, depth, current, onSelect }: LineProps) {
   const items: ReactNode[] = [];
   let next = candidates;
   let withNumber = true; // a line always starts with a move number, even for a Black move
@@ -47,8 +52,12 @@ function Line({ candidates, current, onSelect }: LineProps) {
     );
     for (const variation of variations) {
       items.push(
-        <span key={`variation-${String(variation.id)}`} className={styles.variation}>
-          (<Line candidates={[variation]} current={current} onSelect={onSelect} />)
+        <span
+          key={`variation-${String(variation.id)}`}
+          className={depth === 0 ? styles.ownLine : styles.variation}
+        >
+          (
+          <Line candidates={[variation]} depth={depth + 1} current={current} onSelect={onSelect} />)
         </span>,
       );
     }
