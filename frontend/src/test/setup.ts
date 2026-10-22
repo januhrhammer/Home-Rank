@@ -17,11 +17,12 @@ beforeAll(() => {
 
 // Remove what each test rendered, so tests can't see each other's output. Testing Library does
 // this by itself only when Vitest's global functions are enabled; we import them explicitly.
-// Also forget the answers the test registered.
+// Also forget the answers the test registered, and what it stored in the browser.
 afterEach(() => {
   cleanup();
   server.resetHandlers();
   vi.restoreAllMocks(); // e.g. the fetch that answerUploads() replaces
+  localStorage.clear(); // e.g. the viewer's notation
 });
 
 afterAll(() => {

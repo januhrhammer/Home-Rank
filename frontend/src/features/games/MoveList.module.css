@@ -1,14 +1,20 @@
+/* Set like a page of a chess book: the serif, a rule in the margin, comments as running text
+   between the moves. About as high as the board beside it. */
 .moves {
-  max-height: 24rem;
+  max-height: 34rem;
   overflow-y: auto;
-  padding: var(--space-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  line-height: 1.9;
+  padding: var(--space-1) var(--space-4);
+  border-left: 3px solid var(--color-accent);
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  line-height: 1.75;
+  /* The figurines have no bold; a faked one smudges their outlines. */
+  font-synthesis-weight: none;
 }
 
 .gameComment {
   margin: 0 0 var(--space-2);
+  font-style: italic;
   color: var(--color-text-muted);
 }
 
@@ -42,15 +48,24 @@
   color: var(--color-text-muted);
 }
 
+/* A variation of the game's own moves: a slightly smaller, indented paragraph. The game goes
+   on below it. */
+.ownLine {
+  composes: variation;
+  display: block;
+  margin: var(--space-1) 0 var(--space-1) var(--space-4);
+  font-size: 0.94em;
+}
+
 .variation .move {
   font-weight: 400;
   color: var(--color-text-muted);
 }
 
+/* In the colour of its line: the game's text, or a variation's lighter one. */
 .comment {
   margin: 0 var(--space-1);
-  font-style: italic;
-  color: var(--color-text-muted);
+  color: inherit;
 }
 
 .variation .move[aria-current] {

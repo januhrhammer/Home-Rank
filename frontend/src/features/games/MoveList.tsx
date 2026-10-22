@@ -3,16 +3,21 @@ import { type ReactNode, useEffect, useRef } from "react";
 import { t } from "../../lib/i18n";
 import styles from "./MoveList.module.css";
 import { type MoveNode, moveNumber, type MoveTree } from "./moveTree";
+import { type Notation, withFigurines } from "./notation";
 
 interface MoveListProps {
   tree: MoveTree;
   /** The move whose position is shown; null for the starting position. */
   current: MoveNode | null;
   onSelect: (move: MoveNode) => void;
+  notation: Notation;
 }
 
-/** The moves as chess books print them: variations in parentheses, comments in between. */
-export function MoveList({ tree, current, onSelect }: MoveListProps) {
+/**
+ * The moves as chess books print them: variations in parentheses, comments in between. A
+ * variation of the game's own moves gets a line of its own; deeper ones run on inside it.
+ */
+export function MoveList({ tree, current, onSelect, notation }: MoveListProps) {
   return (
     <div className={styles.moves} role="group" aria-label={t("viewer.moves")}>
       {tree.gameComments.map((comment) => (
@@ -20,7 +25,13 @@ export function MoveList({ tree, current, onSelect }: MoveListProps) {
           {comment}
         </p>
       ))}
-      <Line candidates={tree.firstMoves} current={current} onSelect={onSelect} />
+      <Line
+        candidates={tree.firstMoves}
+        depth={0}
+        current={current}
+        onSelect={onSelect}
+        notation={notation}
+      />
     </div>
   );
 }
@@ -28,9 +39,11 @@ export function MoveList({ tree, current, onSelect }: MoveListProps) {
 interface LineProps extends Omit<MoveListProps, "tree"> {
   /** The moves possible at the line's start: the first is played, the others are variations. */
   candidates: MoveNode[];
+  /** 0 for the game's own moves, 1 for a variation of them, and so on. */
+  depth: number;
 }
 
-function Line({ candidates, current, onSelect }: LineProps) {
+function Line({ candidates, depth, current, onSelect, notation }: LineProps) {
   const items: ReactNode[] = [];
   let next = candidates;
   let withNumber = true; // a line always starts with a move number, even for a Black move
@@ -43,12 +56,24 @@ function Line({ candidates, current, onSelect }: LineProps) {
         withNumber={withNumber || played.ply % 2 === 1}
         isCurrent={played === current}
         onSelect={onSelect}
+        notation={notation}
       />,
     );
     for (const variation of variations) {
       items.push(
-        <span key={`variation-${String(variation.id)}`} className={styles.variation}>
-          (<Line candidates={[variation]} current={current} onSelect={onSelect} />)
+        <span
+          key={`variation-${String(variation.id)}`}
+          className={depth === 0 ? styles.ownLine : styles.variation}
+        >
+          (
+          <Line
+            candidates={[variation]}
+            depth={depth + 1}
+            current={current}
+            onSelect={onSelect}
+            notation={notation}
+          />
+          )
         </span>,
       );
     }
@@ -64,9 +89,10 @@ interface MoveProps {
   withNumber: boolean;
   isCurrent: boolean;
   onSelect: (move: MoveNode) => void;
+  notation: Notation;
 }
 
-function Move({ move, withNumber, isCurrent, onSelect }: MoveProps) {
+function Move({ move, withNumber, isCurrent, onSelect, notation }: MoveProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   // Keep the current move in view while stepping through a long game.
@@ -88,12 +114,15 @@ function Move({ move, withNumber, isCurrent, onSelect }: MoveProps) {
         ref={buttonRef}
         type="button"
         className={styles.move}
+        // Named in letters even when it shows figurines: screen readers say "Nf3" clearly,
+        // while "♘f3" comes out as "white chess knight f3", or not at all.
+        aria-label={move.san + move.symbols.join("")}
         aria-current={isCurrent ? "step" : undefined}
         onClick={() => {
           onSelect(move);
         }}
       >
-        {move.san}
+        {notation === "figurines" ? withFigurines(move.san) : move.san}
         {move.symbols.join("")}
       </button>
       {move.commentsAfter.map((comment) => (
