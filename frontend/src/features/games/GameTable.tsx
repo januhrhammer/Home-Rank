@@ -84,7 +84,7 @@ export function GameTable({ games, sort, onSortChange }: GameTableProps) {
         </TableHeader>
         <TableBody items={games}>
           {(game) => (
-            <Row className={styles.row}>
+            <Row className={styles.row} href={`/games/${String(game.id)}`}>
               <Cell className={styles.cell}>{formatGameDate(game.date_pgn)}</Cell>
               <Cell className={styles.cell}>
                 <Player

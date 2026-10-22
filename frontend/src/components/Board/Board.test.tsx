@@ -35,3 +35,16 @@ test("can be shown from black's side", () => {
 
   expect(screen.getByRole("img", { name: "Chess board" })).toHaveClass("orientation-black");
 });
+
+test("highlights the last move's squares", () => {
+  render(<Board fen={KINGS_AND_QUEEN} lastMove={["d1", "d4"]} />);
+
+  const board = screen.getByRole("img", { name: "Chess board" });
+  expect(board.querySelectorAll("square.last-move")).toHaveLength(2);
+});
+
+test("describes the position for screen readers", () => {
+  render(<Board fen={KINGS_ONLY} label="Position after 40. Kb1" />);
+
+  expect(screen.getByRole("img", { name: "Position after 40. Kb1" })).toBeInTheDocument();
+});

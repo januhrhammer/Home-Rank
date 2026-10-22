@@ -84,6 +84,23 @@ const messages = {
   "games.importLink": "Import your games",
   "games.noMatch": "No games match these filters.",
   "games.loadFailed": "Your games couldn't be loaded.",
+  "viewer.notFound": "This game doesn't exist, or it isn't yours.",
+  "viewer.loadFailed": "This game couldn't be loaded.",
+  "viewer.unreadable": "The moves of this game couldn't be read. Here is its PGN text:",
+  "viewer.moves": "Moves",
+  "viewer.startingPosition": "Starting position",
+  "viewer.positionAfter": "Position after {move}",
+  "viewer.start": "Starting position",
+  "viewer.back": "Previous move",
+  "viewer.forward": "Next move",
+  "viewer.end": "Last move",
+  "viewer.flip": "Flip the board",
+  "viewer.keys": "Keys: ← → moves, Home and End, F flips the board",
+  "viewer.copyFen": "Copy FEN",
+  "viewer.copyPgn": "Copy PGN",
+  "viewer.copiedFen": "FEN copied.",
+  "viewer.copiedPgn": "PGN copied.",
+  "viewer.download": "Download PGN",
 } as const;
 
 export type MessageKey = keyof typeof messages;

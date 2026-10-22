@@ -31,8 +31,17 @@
   content: " ▼";
 }
 
+.row {
+  cursor: pointer;
+}
+
 .row:nth-child(even) {
   background: var(--color-surface);
+}
+
+.row[data-hovered],
+.row[data-focus-visible] {
+  background: var(--color-border);
 }
 
 .cell {

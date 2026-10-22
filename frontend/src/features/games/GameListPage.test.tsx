@@ -210,3 +210,24 @@ test("the header leads to the games", async () => {
 
   expect(await screen.findByRole("heading", { name: "Your games" })).toBeInTheDocument();
 });
+
+test("a game opens when its row is clicked", async () => {
+  simulateGames([aGame({ id: 7 })]);
+  server.use(
+    http.get("*/api/v1/games/7", () =>
+      HttpResponse.json({
+        ...aGame({ id: 7 }),
+        pgn: "1. e4 *\n",
+        import_run_id: null,
+        collections: [],
+      }),
+    ),
+  );
+  openGames();
+
+  await userEvent.setup().click(await screen.findByRole("rowheader", { name: /Uhrhammer/ }));
+
+  expect(
+    await screen.findByRole("heading", { name: "Uhrhammer, Jan (1850) – Carlsen, Magnus (2830)" }),
+  ).toBeInTheDocument();
+});
