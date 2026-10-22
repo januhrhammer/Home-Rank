@@ -1,4 +1,4 @@
-"""Changing a user's games data: importing PGN files, and collections and tags.
+"""Changing a user's games data: importing PGN files, the user's side, collections and tags.
 
 start_import saves an uploaded file and queues its import; run_import, which the background job
 calls, reads the file and stores its games, their positions and the progress.
@@ -32,6 +32,8 @@ logger = structlog.get_logger(__name__)
 IMPORT_BATCH_SIZE = 500
 # Only the first problems of a file are kept: a file of broken games needs no thousand messages.
 MAX_ERRORS_KEPT = 50
+# Games whose side changed, saved per UPDATE when recomputing the user's side.
+RECOMPUTE_BATCH_SIZE = 1000
 
 
 class ImportTooLargeError(DomainError):
@@ -238,6 +240,31 @@ class _CountedLines:
         for line in self._file:
             self.bytes_read += len(line)
             yield line
+
+
+# ---------------------------------------------------------------- the user's side
+
+
+def recompute_user_colors(*, user_id: int) -> None:
+    """Find the user's side in each of their games again, after their player names changed.
+
+    Imports store the side with the names of the time (ADR 0009). The job that calls this
+    shares the imports' lock, so it never runs while one of the user's imports does.
+    """
+    user = User.objects.get(pk=user_id)
+    games = Game.objects.filter(user=user).only("white", "black", "user_color").order_by("pk")
+    changed: list[Game] = []
+    count = 0
+    for game in games.iterator(chunk_size=RECOMPUTE_BATCH_SIZE):
+        side = user_side(game.white, game.black, user.player_names) or ""
+        if side != game.user_color:
+            game.user_color = side
+            changed.append(game)
+        if len(changed) == RECOMPUTE_BATCH_SIZE:
+            count += Game.objects.bulk_update(changed, ["user_color"])
+            changed = []
+    count += Game.objects.bulk_update(changed, ["user_color"])
+    logger.info("User's side recomputed", user_id=user_id, games_changed=count)
 
 
 # ---------------------------------------------------------------- collections and tags
