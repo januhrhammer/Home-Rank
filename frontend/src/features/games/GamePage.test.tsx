@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { cleanup, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { expect, test } from "vitest";
@@ -171,8 +171,28 @@ test("the moves read as in a chess book", async () => {
 
   const moves = await screen.findByRole("group", { name: "Moves" });
 
-  // Black's move gets its number where a line starts, and again after a variation.
+  // Black's move gets its number where a line starts, and again after a variation. Pieces
+  // are figurines, but each move is named in letters for screen readers.
   expect(moves.textContent.replace(/\s+/g, " ").trim()).toBe(
-    "A short game1.e4(1.d4d5)1…e5(1…c5The Sicilian2.Nf3)2.Nf3!",
+    "A short game1.e4(1.d4d5)1…e5(1…c5The Sicilian2.♘f3)2.♘f3!",
   );
+  expect(screen.getByRole("button", { name: "Nf3!" })).toHaveTextContent("♘f3!");
+});
+
+test("moves can be written with letters instead, and the browser remembers it", async () => {
+  openGame(aGame());
+  const user = userEvent.setup();
+  const figurines = await screen.findByRole("switch", { name: "Figurines (♘f3)" });
+  expect(figurines).toBeChecked();
+
+  await user.click(figurines);
+
+  expect(figurines).not.toBeChecked();
+  expect(screen.getByRole("button", { name: "Nf3!" })).toHaveTextContent(/^Nf3!$/);
+
+  // Another visit, in the same browser.
+  cleanup();
+  openGame(aGame());
+  expect(await screen.findByRole("switch", { name: "Figurines (♘f3)" })).not.toBeChecked();
+  expect(screen.getByRole("button", { name: "Nf3!" })).toHaveTextContent(/^Nf3!$/);
 });

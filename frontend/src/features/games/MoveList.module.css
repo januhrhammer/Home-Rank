@@ -8,6 +8,8 @@
   font-family: var(--font-serif);
   font-size: 1.125rem;
   line-height: 1.75;
+  /* The figurines have no bold; a faked one smudges their outlines. */
+  font-synthesis-weight: none;
 }
 
 .gameComment {

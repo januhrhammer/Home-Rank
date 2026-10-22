@@ -102,6 +102,7 @@ const messages = {
   "viewer.copiedFen": "FEN copied.",
   "viewer.copiedPgn": "PGN copied.",
   "viewer.download": "Download PGN",
+  "viewer.figurines": "Figurines (♘f3)",
   "labels.tags": "Tags",
   "labels.collections": "Collections",
   "labels.none": "None yet",

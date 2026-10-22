@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { Button } from "react-aria-components";
+import { Button, SwitchButton, SwitchField } from "react-aria-components";
 import { useParams } from "react-router";
 
 import { ApiError } from "../../api/errors";
@@ -13,6 +13,7 @@ import { formatGameDate } from "./GameTable";
 import { LabelPicker } from "./LabelPicker";
 import { MoveList } from "./MoveList";
 import { buildMoveTree, endOfLine, type MoveNode, moveNumber, type MoveTree } from "./moveTree";
+import { useNotation } from "./notation";
 
 export function GamePage() {
   const gameId = Number(useParams().gameId);
@@ -47,6 +48,7 @@ function Viewer({ game, tree }: { game: Game; tree: MoveTree }) {
   const [current, setCurrent] = useState<MoveNode | null>(null);
   // The user's side is at the bottom unless they flip the board.
   const [flipped, setFlipped] = useState(false);
+  const [notation, setNotation] = useNotation();
   const orientation = (game.user_color === "black") !== flipped ? "black" : "white";
 
   const go = {
@@ -119,7 +121,20 @@ function Viewer({ game, tree }: { game: Game; tree: MoveTree }) {
           <p className={styles.hint}>{t("viewer.keys")}</p>
         </div>
         <div className={styles.sideColumn}>
-          <MoveList tree={tree} current={current} onSelect={setCurrent} />
+          <MoveList tree={tree} current={current} onSelect={setCurrent} notation={notation} />
+          <SwitchField
+            isSelected={notation === "figurines"}
+            onChange={(on) => {
+              setNotation(on ? "figurines" : "letters");
+            }}
+          >
+            <SwitchButton className={styles.notation}>
+              <span className={styles.track}>
+                <span className={styles.thumb} />
+              </span>
+              {t("viewer.figurines")}
+            </SwitchButton>
+          </SwitchField>
           <LabelPicker kind="tags" gameId={game.id} labels={game.tags} />
           <LabelPicker kind="collections" gameId={game.id} labels={game.collections} />
           <Actions game={game} fen={current?.fen ?? tree.startFen} />
