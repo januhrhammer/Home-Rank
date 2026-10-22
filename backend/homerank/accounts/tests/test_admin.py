@@ -31,3 +31,23 @@ def test_staff_can_see_users_in_the_admin(admin_client: Client) -> None:
 
     assert response.status_code == HTTPStatus.OK
     assert "alice" in response.content.decode()
+
+
+def test_staff_can_set_a_users_player_names(admin_client: Client) -> None:
+    alice = User.objects.create_user(username="alice")
+    page = reverse("admin:accounts_user_change", args=[alice.pk])
+
+    response = admin_client.post(
+        page,
+        {
+            "username": "alice",
+            "date_joined_0": "2026-10-22",
+            "date_joined_1": "12:00:00",
+            "is_active": "on",
+            "player_names": "Uhrhammer, Jan\r\njanuhrhammer",
+        },
+    )
+
+    assert response.status_code == HTTPStatus.FOUND, response.context["adminform"].form.errors
+    alice.refresh_from_db()
+    assert alice.player_names == ["Uhrhammer, Jan", "januhrhammer"]

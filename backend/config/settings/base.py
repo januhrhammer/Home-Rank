@@ -30,6 +30,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # PostgreSQL-only fields such as ArrayField; see docs/adr/0006-postgresql-only.md.
+    "django.contrib.postgres",
     # Serves the API docs' JavaScript ourselves; without it the docs page loads it from a CDN.
     "ninja",
     "axes",
@@ -37,6 +39,7 @@ INSTALLED_APPS = [
     "procrastinate.contrib.django",
     "homerank.core",
     "homerank.accounts",
+    "homerank.games",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
