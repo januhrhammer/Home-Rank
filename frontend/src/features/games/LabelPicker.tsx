@@ -33,7 +33,9 @@ interface LabelPickerProps {
  * user's existing ones and offers to create a new one with the typed name.
  */
 export function LabelPicker({ kind, gameId, labels }: LabelPickerProps) {
-  const all = useQuery(kind === "tags" ? tagsQuery : collectionsQuery).data ?? [];
+  const tags = useQuery(tagsQuery);
+  const collections = useQuery(collectionsQuery);
+  const all: NamedRef[] = (kind === "tags" ? tags.data : collections.data) ?? [];
   const change = useLabelChange(kind, gameId);
   const [typed, setTyped] = useState("");
 

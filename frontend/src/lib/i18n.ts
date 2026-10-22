@@ -23,6 +23,7 @@ const messages = {
   "notFound.backHome": "Back to the start page",
   "nav.label": "Main",
   "nav.games": "Games",
+  "nav.labels": "Collections & tags",
   "nav.import": "Import",
   "import.title": "Import games",
   "import.intro":
@@ -111,6 +112,26 @@ const messages = {
   "labels.create": "Create “{name}”",
   "labels.remove": "Remove",
   "labels.failed": "That didn't work. Please try again.",
+  "labels.taken": "You already have one called “{name}”.",
+  "labels.title": "Collections & tags",
+  "labels.loadFailed": "These couldn't be loaded.",
+  "labels.empty.collections":
+    "No collections yet. Collect games from a game's page, or create one here.",
+  "labels.empty.tags": "No tags yet. Tag games from a game's page, or create one here.",
+  "labels.count": "{count} games",
+  "labels.new.collections": "New collection",
+  "labels.new.tags": "New tag",
+  "labels.edit": "Edit “{name}”",
+  "labels.editShort": "Edit",
+  "labels.export": "Export PGN",
+  "labels.delete": "Delete",
+  "labels.deleteTitle": "Delete “{name}”?",
+  "labels.deleteText.collections": "The collection goes; its games stay in your database.",
+  "labels.deleteText.tags": "The tag goes; its games stay in your database.",
+  "labels.name": "Name",
+  "labels.description": "Description",
+  "labels.save": "Save",
+  "labels.cancel": "Cancel",
 } as const;
 
 export type MessageKey = keyof typeof messages;

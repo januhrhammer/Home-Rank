@@ -7,6 +7,8 @@ import type { components, paths } from "../../api/schema";
 export type GameListItem = components["schemas"]["GameListItem"];
 export type Game = components["schemas"]["GameOut"];
 export type NamedRef = components["schemas"]["NamedRef"];
+export type Tag = components["schemas"]["TagOut"];
+export type Collection = components["schemas"]["CollectionOut"];
 export type GameListQuery = NonNullable<paths["/api/v1/games"]["get"]["parameters"]["query"]>;
 export type GameSort = NonNullable<GameListQuery["sort"]>;
 
@@ -94,22 +96,31 @@ export function useGames(query: GameListQuery) {
   return useQuery(gamesQuery(query));
 }
 
-async function fetchNamed(path: "/api/v1/tags" | "/api/v1/collections"): Promise<NamedRef[]> {
-  const { data, response } = await api.GET(path, { params: { query: { limit: 100 } } });
+// Lists of a user's tags and collections, by name. 100 is the API's page limit; more than that
+// would need paging here.
+async function fetchTags(): Promise<Tag[]> {
+  const { data, response } = await api.GET("/api/v1/tags", { params: { query: { limit: 100 } } });
   if (data === undefined) {
     throw new ApiError(response.status);
   }
   return data.items;
 }
 
-export const tagsQuery = queryOptions({
-  queryKey: ["tags"],
-  queryFn: () => fetchNamed("/api/v1/tags"),
-});
+async function fetchCollections(): Promise<Collection[]> {
+  const { data, response } = await api.GET("/api/v1/collections", {
+    params: { query: { limit: 100 } },
+  });
+  if (data === undefined) {
+    throw new ApiError(response.status);
+  }
+  return data.items;
+}
+
+export const tagsQuery = queryOptions({ queryKey: ["tags"], queryFn: fetchTags });
 
 export const collectionsQuery = queryOptions({
   queryKey: ["collections"],
-  queryFn: () => fetchNamed("/api/v1/collections"),
+  queryFn: fetchCollections,
 });
 
 export async function fetchGame(gameId: number): Promise<Game> {
