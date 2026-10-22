@@ -25,6 +25,7 @@ const SORTS: readonly GameSort[] = [
 ]; // prettier-ignore
 const COLORS = ["white", "black"] as const;
 const OUTCOMES = ["win", "draw", "loss"] as const;
+const SOURCES = ["pgn", "lichess", "chesscom"] as const;
 const TIME_CLASSES = [
   "bullet",
   "blitz",
@@ -69,6 +70,7 @@ export function listQuery(params: URLSearchParams): GameListQuery {
     tag: id(params.get("tag")),
     collection: id(params.get("collection")),
     import_run: id(params.get("import_run")),
+    source: oneOf(SOURCES, params.get("source")),
     sort: oneOf(SORTS, params.get("sort")) ?? DEFAULT_SORT,
     limit: PAGE_SIZE,
     offset: (pageOf(params) - 1) * PAGE_SIZE,
