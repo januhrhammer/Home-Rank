@@ -123,32 +123,43 @@ def run_import(*, import_run_id: int) -> None:
 
 
 @dataclass
-class _NewGame:
+class NewGame:
+    """A game read from PGN, ready to be stored by store_games."""
+
     game: Game  # not saved yet
     parsed: chess.pgn.Game  # for its positions, computed only if the game is new
 
 
 def _import_file(run: ImportRun, file: BinaryIO) -> None:
     lines = _CountedLines(file)
-    batch: list[_NewGame] = []
+    batch: list[NewGame] = []
     for item in read_pgn(lines):
         if isinstance(item, PgnError):
             run.games_failed += 1
             _add_error(run, line=item.line, reason=item.reason)
             continue
-        batch.append(_new_game(run, item))
+        batch.append(new_game(run.user, item, import_run=run))
         if len(batch) == IMPORT_BATCH_SIZE:
             _save_batch(run, batch, bytes_read=lines.bytes_read)
             batch = []
     _save_batch(run, batch, bytes_read=lines.bytes_read)
 
 
-def _new_game(run: ImportRun, item: PgnGame) -> _NewGame:
+def new_game(
+    user: User,
+    item: PgnGame,
+    *,
+    source: str = Game.Source.PGN,
+    source_id: str = "",
+    import_run: ImportRun | None = None,
+) -> NewGame:
+    """A game for the user from a game read from PGN, with its headers cleaned up."""
     headers = read_headers(item.game)
     game = Game(
-        user=run.user,
-        source=Game.Source.PGN,
-        import_run=run,
+        user=user,
+        source=source,
+        source_id=source_id,
+        import_run=import_run,
         pgn=item.pgn,
         white=headers.white,
         black=headers.black,
@@ -164,14 +175,14 @@ def _new_game(run: ImportRun, item: PgnGame) -> _NewGame:
         time_control=headers.time_control[:50],
         time_class=headers.time_class,
         termination=headers.termination,
-        user_color=user_side(headers.white, headers.black, run.user.player_names) or "",
+        user_color=user_side(headers.white, headers.black, user.player_names) or "",
         ply_count=sum(1 for _ in item.game.mainline_moves()),
         dedup_hash=dedup_hash(item.game, headers),
     )
-    return _NewGame(game, item.game)
+    return NewGame(game, item.game)
 
 
-def _positions(new: _NewGame) -> list[GamePosition]:
+def _positions(new: NewGame) -> list[GamePosition]:
     return [
         GamePosition(
             game=new.game,
@@ -185,25 +196,42 @@ def _positions(new: _NewGame) -> list[GamePosition]:
     ]
 
 
-def _save_batch(run: ImportRun, batch: list[_NewGame], *, bytes_read: int) -> None:
-    """Store the batch's new games, skip the known ones, and update the progress with them.
+@dataclass
+class Stored:
+    """What store_games did with a batch."""
 
-    Positions take the most time to compute, so only new games get them: re-importing an export
-    with a few new games is quick.
+    imported: int  # new games, now stored
+    duplicate: int  # games the user already had, or that appeared twice in the batch
+
+
+def store_games(user: User, batch: list[NewGame]) -> Stored:
+    """Store the batch's new games with their positions, and skip the ones the user has.
+
+    A game is known by its dedup hash (ADR 0008), and a synced game also by the site's id for
+    it. Positions take the most time to compute, so only new games get them: re-importing an
+    export with a few new games is quick.
     """
     hashes = [new.game.dedup_hash for new in batch]
     known = set(
-        Game.objects.filter(user=run.user, dedup_hash__in=hashes).values_list(
-            "dedup_hash", flat=True
-        )
+        Game.objects.filter(user=user, dedup_hash__in=hashes).values_list("dedup_hash", flat=True)
+    )
+    source_ids = [(new.game.source, new.game.source_id) for new in batch if new.game.source_id]
+    known_ids = set(
+        Game.objects.filter(
+            user=user,
+            source__in={source for source, _ in source_ids},
+            source_id__in={source_id for _, source_id in source_ids},
+        ).values_list("source", "source_id")
     )
     new_games = []
     for new in batch:
-        if new.game.dedup_hash in known:
-            run.games_duplicate += 1
-        else:
-            known.add(new.game.dedup_hash)  # a game may also appear twice in one file
-            new_games.append(new)
+        game_id = (new.game.source, new.game.source_id)
+        if new.game.dedup_hash in known or game_id in known_ids:
+            continue
+        known.add(new.game.dedup_hash)  # a game may also appear twice in one batch
+        if new.game.source_id:
+            known_ids.add(game_id)
+        new_games.append(new)
 
     with transaction.atomic():
         # On PostgreSQL bulk_create sets the games' ids, which their positions need.
@@ -211,7 +239,15 @@ def _save_batch(run: ImportRun, batch: list[_NewGame], *, bytes_read: int) -> No
         GamePosition.objects.bulk_create(
             (position for new in new_games for position in _positions(new)), batch_size=5000
         )
-        run.games_imported += len(new_games)
+    return Stored(imported=len(new_games), duplicate=len(batch) - len(new_games))
+
+
+def _save_batch(run: ImportRun, batch: list[NewGame], *, bytes_read: int) -> None:
+    """Store the batch and update the import's progress, in one transaction."""
+    with transaction.atomic():
+        stored = store_games(run.user, batch)
+        run.games_imported += stored.imported
+        run.games_duplicate += stored.duplicate
         run.bytes_read = bytes_read
         run.save(
             update_fields=[
