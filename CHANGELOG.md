@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.2.0](https://github.com/januhrhammer/Home-Rank/compare/v0.1.0...v0.2.0) (2026-10-22)
+
+
+### Features
+
+* **chesslib:** extract game data, fingerprints and positions ([#10](https://github.com/januhrhammer/Home-Rank/issues/10)) ([7661316](https://github.com/januhrhammer/Home-Rank/commit/7661316c3dd90895a0478a43fa63e2303c0508cd))
+* **chesslib:** read pgn files one game at a time ([#8](https://github.com/januhrhammer/Home-Rank/issues/8)) ([2a7c9df](https://github.com/januhrhammer/Home-Rank/commit/2a7c9df7b034234e53a7be674beb81bcb8c9c9b9))
+* **games:** add the game database models ([#11](https://github.com/januhrhammer/Home-Rank/issues/11)) ([d1d8bbd](https://github.com/januhrhammer/Home-Rank/commit/d1d8bbd6ab663e7b1e972d2738a7f44be95afa2f))
+* **games:** import pgn files in a background job ([#12](https://github.com/januhrhammer/Home-Rank/issues/12)) ([34f4c04](https://github.com/januhrhammer/Home-Rank/commit/34f4c04a67cc6b6a1ec411819859c076060dcb42))
+* **games:** list games with filters and sorting ([#14](https://github.com/januhrhammer/Home-Rank/issues/14)) ([ecee863](https://github.com/januhrhammer/Home-Rank/commit/ecee8639f4c7986ddb181febd5a94afc5116a240))
+* **games:** manage collections and tags ([#17](https://github.com/januhrhammer/Home-Rank/issues/17)) ([e963283](https://github.com/januhrhammer/Home-Rank/commit/e9632836cac596297e65a4fc3837e69bf1bbba0d))
+* **games:** show a game and export pgn ([#16](https://github.com/januhrhammer/Home-Rank/issues/16)) ([0765edd](https://github.com/januhrhammer/Home-Rank/commit/0765eddc94abe42ad964c55ff2235df5533b516a))
+* **games:** upload pgn files through the api ([#13](https://github.com/januhrhammer/Home-Rank/issues/13)) ([9bf897d](https://github.com/januhrhammer/Home-Rank/commit/9bf897ddaf48818535e3f3c2ed775a2e29a55e79))
+* let users set their player names, updating all their games ([#27](https://github.com/januhrhammer/Home-Rank/issues/27)) ([f61cb82](https://github.com/januhrhammer/Home-Rank/commit/f61cb827d1fd48b9e5aa0db752405566b44bb4f1))
+* **ui:** act on several games at once ([#23](https://github.com/januhrhammer/Home-Rank/issues/23)) ([1081134](https://github.com/januhrhammer/Home-Rank/commit/10811344aa977c5d867d36abb98ec6a8909f256a))
+* **ui:** add a page for collections and tags ([#22](https://github.com/januhrhammer/Home-Rank/issues/22)) ([a892e7c](https://github.com/januhrhammer/Home-Rank/commit/a892e7cece16c7d7b1215545eee997a126d6ef5e))
+* **ui:** add the game list ([#19](https://github.com/januhrhammer/Home-Rank/issues/19)) ([ec9b22c](https://github.com/januhrhammer/Home-Rank/commit/ec9b22cd47f41941196c87828bf9a82a9433fd6c))
+* **ui:** add the game viewer ([#20](https://github.com/januhrhammer/Home-Rank/issues/20)) ([a617b24](https://github.com/januhrhammer/Home-Rank/commit/a617b245017e8f1851b8ed69fee95546fc66fc4e))
+* **ui:** add the import page ([#18](https://github.com/januhrhammer/Home-Rank/issues/18)) ([d4bef3d](https://github.com/januhrhammer/Home-Rank/commit/d4bef3dc957cb314c0506a9cb5f11265c8106942))
+* **ui:** give the app the look of a chess book ([#25](https://github.com/januhrhammer/Home-Rank/issues/25)) ([3d8d92a](https://github.com/januhrhammer/Home-Rank/commit/3d8d92a509a91ae476c38f2df66224e73f91fd42))
+* **ui:** tag games and add them to collections ([#21](https://github.com/januhrhammer/Home-Rank/issues/21)) ([fb80346](https://github.com/januhrhammer/Home-Rank/commit/fb803466a803e4d4598c560497dd6cfe44512bd5))
+* **ui:** typeset the move list like a chess book, with figurines ([#26](https://github.com/januhrhammer/Home-Rank/issues/26)) ([0d525bd](https://github.com/januhrhammer/Home-Rank/commit/0d525bdadbc08e426b8783b16ec7d131cba5daac))
+
 ## 0.1.0 (2026-10-22)
 
 
