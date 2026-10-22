@@ -8,6 +8,7 @@ const messages = {
   "app.name": "Home-Rank",
   "app.tagline": "Your games, analysed overnight, turned into your personal training plan.",
   "footer.sourceCode": "Source code",
+  "board.label": "Chess board",
   "header.logIn": "Log in",
   "header.logOut": "Log out",
   "errors.loadFailed": "This page couldn't be loaded. Please try again later.",

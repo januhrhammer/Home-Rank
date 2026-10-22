@@ -36,6 +36,18 @@ export default defineConfig(
     rules: {
       "simple-import-sort/imports": "error",
       "simple-import-sort/exports": "error",
+      // chessground is wrapped once, in components/Board; nothing else uses it directly.
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@lichess-org/chessground", "@lichess-org/chessground/*"],
+              message: "Use the Board component (src/components/Board) instead.",
+            },
+          ],
+        },
+      ],
       // @eslint-react has its own copies of these official React hooks rules. Keep the React
       // team's originals (react-hooks/...) so each problem is reported once.
       "@eslint-react/error-boundaries": "off",
@@ -48,6 +60,10 @@ export default defineConfig(
       "@eslint-react/unsupported-syntax": "off",
       "@eslint-react/use-memo": "off",
     },
+  },
+  {
+    files: ["src/components/Board/**"],
+    rules: { "@typescript-eslint/no-restricted-imports": "off" },
   },
   // Last: switches off all rules that would conflict with Prettier's formatting.
   prettier,

@@ -166,6 +166,9 @@ importers:
 
   .:
     dependencies:
+      '@lichess-org/chessground':
+        specifier: ^10.5.0
+        version: 10.5.0
       '@tanstack/react-query':
         specifier: ^5.104.5
         version: 5.104.5(@types/react@19.3.0)(react@19.3.1)
@@ -594,6 +597,10 @@ packages:
 
   '@keyv/serialize@1.1.1':
     resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
+
+  '@lichess-org/chessground@10.5.0':
+    resolution: {integrity: sha512-LmTNnzCQ67RQsryzouWY0jYoN24LlpubtPyYko1gmdpTj5HSfz0VgUGB4Gpo6oifg0MyeT9YeV2TdZEbOP6byA==}
+    engines: {node: '>=24', pnpm: '>=12'}
 
   '@msw/url@0.1.2':
     resolution: {integrity: sha512-DdeBLQxQ+ZrtmwEmaj7GQ7lbzPCgbbbyAqOz/I4ulo68hwBpfdNvQJ5bmihJUkAAKOeCmqCIG3OFZGosqFN4mA==}
@@ -2403,6 +2410,8 @@ snapshots:
       keyv: 5.6.0
 
   '@keyv/serialize@1.1.1': {}
+
+  '@lichess-org/chessground@10.5.0': {}
 
   '@msw/url@0.1.2': {}
 

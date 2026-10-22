@@ -1,0 +1,7 @@
+/* chessground fills its container, so the container needs a size: as wide as there is room,
+   up to a limit, and always square. */
+.board {
+  width: 100%;
+  max-width: 32rem;
+  aspect-ratio: 1;
+}
