@@ -26,7 +26,9 @@ of the names the user plays under and comparing every game with it.
   `Game.user_color`: white, black, or empty if the user didn't play, or played both sides.
 - Changing the list updates `user_color` for all of the user's games.
 
-Implemented in `homerank.chesslib.players`.
+Implemented in `homerank.chesslib.players`. Users edit the list under Settings
+(`PATCH /api/v1/settings`); the job `homerank.games.tasks.recompute_user_colors` updates their
+games.
 
 ## Consequences
 

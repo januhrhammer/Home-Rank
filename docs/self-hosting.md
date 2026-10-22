@@ -62,6 +62,11 @@ Tested on x86-64 Linux.
 
 5. Open `http://<your ALLOWED_HOSTS value>:8000` and log in.
 
+6. Under **Settings**, enter the names you play under, one per line: your name as tournament
+   PGN files spell it ("Carlsen, Magnus") and your usernames on Lichess or Chess.com. Home-Rank
+   uses them to find your side in each game, and so whether you won. Changing them later
+   updates all your games in the background.
+
 ## Configuration
 
 All settings live in `.env`, and `.env.example` explains each of them. After changing `.env`,
