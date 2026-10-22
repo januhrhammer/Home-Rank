@@ -1,0 +1,56 @@
+/* Wide tables scroll sideways on narrow screens instead of widening the page. */
+.scroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.column {
+  padding: var(--space-2);
+  border-bottom: 2px solid var(--color-border);
+  text-align: left;
+  white-space: nowrap;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.column[data-allows-sorting] {
+  cursor: pointer;
+}
+
+/* An arrow after the sorted column's name. */
+.column[aria-sort="ascending"]::after {
+  content: " ▲";
+}
+
+.column[aria-sort="descending"]::after {
+  content: " ▼";
+}
+
+.row:nth-child(even) {
+  background: var(--color-surface);
+}
+
+.cell {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+}
+
+.elo,
+.eco {
+  color: var(--color-text-muted);
+}
+
+.tag {
+  display: inline-block;
+  margin-left: var(--space-1);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-size: 0.75rem;
+}

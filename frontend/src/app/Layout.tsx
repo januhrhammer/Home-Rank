@@ -18,6 +18,9 @@ export function Layout() {
         {user && (
           <nav className={styles.nav} aria-label={t("nav.label")}>
             {/* NavLink marks the link to the current page with aria-current="page". */}
+            <NavLink to="/games" className={styles.navLink}>
+              {t("nav.games")}
+            </NavLink>
             <NavLink to="/import" className={styles.navLink}>
               {t("nav.import")}
             </NavLink>

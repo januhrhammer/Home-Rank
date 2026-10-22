@@ -156,3 +156,12 @@ test("the header leads to the import page", async () => {
   expect(await screen.findByRole("heading", { name: "Import games" })).toBeInTheDocument();
   expect(link).toHaveAttribute("aria-current", "page");
 });
+
+test("a finished import links to its games", async () => {
+  simulateImports([anImport({ id: 4 }), anImport({ id: 5, status: "running" })]);
+  openImportPage();
+
+  const links = await screen.findAllByRole("link", { name: "Show these games" });
+
+  expect(links.map((link) => link.getAttribute("href"))).toEqual(["/games?import_run=4"]);
+});

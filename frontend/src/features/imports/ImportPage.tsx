@@ -10,6 +10,7 @@ import {
   ProgressBar,
   Text,
 } from "react-aria-components";
+import { Link } from "react-router";
 
 import { t } from "../../lib/i18n";
 import styles from "./ImportPage.module.css";
@@ -132,6 +133,11 @@ function ImportItem({ run }: { run: Import }) {
         })}
       </p>
       {run.errors.length > 0 && <Problems run={run} />}
+      {run.games_imported > 0 && !isActive(run) && (
+        <Link className={styles.showGames} to={`/games?import_run=${String(run.id)}`}>
+          {t("import.showGames")}
+        </Link>
+      )}
     </li>
   );
 }
