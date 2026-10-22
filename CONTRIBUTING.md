@@ -4,6 +4,8 @@ Thanks for your interest! Home-Rank is in early development, so things still mov
 you work on something bigger than a small fix, please open an issue first, so we can agree on the
 approach before you spend time on it.
 
+Everyone taking part in the project follows the [Code of Conduct](CODE_OF_CONDUCT.md).
+
 ## Getting started
 
 [docs/development.md](docs/development.md) explains the setup. In short:
