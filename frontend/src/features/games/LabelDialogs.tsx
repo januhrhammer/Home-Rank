@@ -2,21 +2,18 @@ import { type ReactNode, useState } from "react";
 import {
   Button,
   Dialog,
-  DialogTrigger,
   FieldError,
   Form,
   type FormProps,
   Heading,
   Input,
   Label,
-  Modal,
-  ModalOverlay,
   TextArea,
   TextField,
 } from "react-aria-components";
 
+import { dialogStyles as styles, ModalDialog } from "../../components/Dialog";
 import { t } from "../../lib/i18n";
-import styles from "./LabelDialogs.module.css";
 import {
   labelErrorMessage,
   type LabelFields,
@@ -25,18 +22,6 @@ import {
   useDeleteLabel,
   useUpdateLabel,
 } from "./labels";
-
-/** A modal dialog: it keeps the focus inside, closes with Escape, and tells screen readers. */
-function ModalDialog({ trigger, children }: { trigger: ReactNode; children: ReactNode }) {
-  return (
-    <DialogTrigger>
-      {trigger}
-      <ModalOverlay className={styles.overlay} isDismissable>
-        <Modal className={styles.modal}>{children}</Modal>
-      </ModalOverlay>
-    </DialogTrigger>
-  );
-}
 
 interface EditDialogProps {
   kind: LabelKind;

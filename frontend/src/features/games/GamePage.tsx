@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Button,
   Disclosure,
@@ -14,6 +14,7 @@ import { ApiError } from "../../api/errors";
 import { Board } from "../../components/Board";
 import { BackIcon, EndIcon, FlipIcon, ForwardIcon, StartIcon } from "../../components/Icons";
 import { t } from "../../lib/i18n";
+import { useKeyboard } from "../../lib/useKeyboard";
 import type { PositionEval } from "../analysis";
 import { AnalysisPanel, EvalBar, EvalGraph, useGameAnalysis } from "../analysis";
 import { ExplorerPanel, type Source } from "../explorer";
@@ -306,26 +307,4 @@ function Actions({ game, fen }: { game: Game; fen: string }) {
       </span>
     </div>
   );
-}
-
-/**
- * Keys that step through the game. Not while typing in a field, e.g. a tag's name, and not in
- * combination with Alt, Ctrl or Cmd, which stay the browser's.
- */
-function useKeyboard(actions: Record<string, () => void>) {
-  useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      const typing = event.target instanceof Element && event.target.closest("input, textarea");
-      const action = actions[event.key];
-      if (action === undefined || typing || event.altKey || event.ctrlKey || event.metaKey) {
-        return;
-      }
-      event.preventDefault();
-      action();
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  });
 }

@@ -1,0 +1,123 @@
+/* Board on the left, moves and the explorer on the right; one below the other on phones. */
+.editor {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
+/* The board takes what it can get, up to its own limit (Board.module.css). */
+.boardColumn {
+  flex: 0 1 38rem;
+  min-width: min(22rem, 100%);
+}
+
+.sideColumn {
+  flex: 1 1 20rem;
+  max-width: 36rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.heading {
+  margin: 0 0 var(--space-2);
+  font-size: 1.125rem;
+}
+
+.controls,
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.controls {
+  justify-content: center;
+  margin-top: var(--space-3);
+}
+
+.control,
+.button {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  background: var(--color-bg);
+  cursor: pointer;
+}
+
+.control {
+  display: inline-grid;
+  place-items: center;
+  min-width: 2.75rem; /* a comfortable target for fingers */
+  min-height: 2.25rem;
+}
+
+.hint,
+.muted {
+  margin: var(--space-2) 0 0;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.hint {
+  text-align: center;
+}
+
+.error {
+  margin: var(--space-2) 0 0;
+  color: var(--color-danger);
+}
+
+/* The shown move's line is printed like the move list: in the book serif. */
+.current .heading {
+  font-family: var(--font-serif);
+}
+
+.current .muted {
+  margin-top: 0;
+}
+
+.linkButton {
+  margin-top: var(--space-2);
+  padding: 0;
+  border: none;
+  font: inherit;
+  font-size: 0.875rem;
+  text-align: left;
+  color: var(--color-accent);
+  text-decoration: underline;
+  background: none;
+  cursor: pointer;
+}
+
+.commentForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.textarea {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-bg);
+  resize: vertical;
+}
