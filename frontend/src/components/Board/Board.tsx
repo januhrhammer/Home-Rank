@@ -28,6 +28,12 @@ export interface BoardProps {
   label?: string;
   /** If given, the user can move; otherwise the board only shows the position. */
   movable?: Movable;
+  /**
+   * If given, the board is for setting up a position: pieces move freely, a piece dragged off
+   * the board is removed, and onChange gets the board's new FEN (pieces only). onSquare is
+   * called with a clicked square, e.g. to put a piece there.
+   */
+  editable?: { onChange: (boardFen: string) => void; onSquare: (square: Key) => void };
 }
 
 /**
@@ -36,15 +42,24 @@ export interface BoardProps {
  * The only place in the app that uses chessground. chessground changes the page directly
  * instead of going through React, so the board is created once and then updated via its API.
  */
-export function Board({ fen, orientation = "white", lastMove, label, movable }: BoardProps) {
+export function Board({
+  fen,
+  orientation = "white",
+  lastMove,
+  label,
+  movable,
+  editable,
+}: BoardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<Api | null>(null);
   // The props of the first render; useRef keeps its initial value for good.
   const initialRef = useRef({ fen, orientation, lastMove });
   // The latest move handler, for chessground's event, which is set up only once.
   const onMoveRef = useRef<Movable["onMove"] | undefined>(undefined);
+  const editableRef = useRef<BoardProps["editable"]>(undefined);
   useEffect(() => {
     onMoveRef.current = movable?.onMove;
+    editableRef.current = editable;
   });
 
   // Create the board once, already showing the first position: created empty, chessground
@@ -65,6 +80,17 @@ export function Board({ fen, orientation = "white", lastMove, label, movable }: 
           },
         },
       },
+      events: {
+        change: () => {
+          const board = boardRef.current;
+          if (board && editableRef.current) {
+            editableRef.current.onChange(board.getFen());
+          }
+        },
+        select: (square) => {
+          editableRef.current?.onSquare(square);
+        },
+      },
     });
     return () => {
       boardRef.current?.destroy();
@@ -80,11 +106,16 @@ export function Board({ fen, orientation = "white", lastMove, label, movable }: 
       orientation,
       lastMove,
       turnColor: movable?.color ?? orientation,
-      movable: { color: movable?.color, dests: movable?.dests ?? new Map() },
-      draggable: { enabled: movable !== undefined },
-      selectable: { enabled: movable !== undefined },
+      movable: editable
+        ? { free: true, color: "both" }
+        : { free: false, color: movable?.color, dests: movable?.dests ?? new Map() },
+      draggable: {
+        enabled: movable !== undefined || editable !== undefined,
+        deleteOnDropOff: !!editable,
+      },
+      selectable: { enabled: movable !== undefined || editable !== undefined },
     });
-  }, [fen, orientation, lastMove, movable]);
+  }, [fen, orientation, lastMove, movable, editable]);
 
   return (
     <div

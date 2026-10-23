@@ -1,6 +1,7 @@
 import { Route, Routes } from "react-router";
 
 import { LoginPage, RequireAuth } from "../features/auth";
+import { ReferenceGamePage, ReferencePage, SearchPage } from "../features/explorer";
 import { GameListPage, GamePage, LabelsPage } from "../features/games";
 import { HomePage } from "../features/home";
 import { ImportPage } from "../features/imports";
@@ -27,6 +28,9 @@ export function AppRoutes() {
           <Route path="import" element={<ImportPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="train" element={<TrainPage />} />
+          <Route path="search" element={<SearchPage />} />
+          <Route path="reference" element={<ReferencePage />} />
+          <Route path="reference/:databaseId/games/:gameId" element={<ReferenceGamePage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Route>
