@@ -38,3 +38,4 @@ Thumbs.db
 
 # Uploaded files waiting for import (backend DATA_DIR) in local development
 /data/
+import/
