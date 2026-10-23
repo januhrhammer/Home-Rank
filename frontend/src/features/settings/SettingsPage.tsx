@@ -4,13 +4,19 @@ import {
   Button,
   Form,
   type FormProps,
+  Input,
   Label,
+  NumberField,
+  SwitchButton,
+  SwitchField,
   Text,
   TextArea,
   TextField,
 } from "react-aria-components";
 
+import { ApiError } from "../../api/errors";
 import { t } from "../../lib/i18n";
+import { type AnalysisSettings, analysisSettingsQuery, useSaveAnalysisSettings } from "../analysis";
 import { type Settings, settingsQuery, useSaveSettings } from "./settings";
 import styles from "./SettingsPage.module.css";
 
@@ -22,6 +28,7 @@ export function SettingsPage() {
       <h1>{t("settings.title")}</h1>
       {settings.isError && <p role="alert">{t("settings.loadFailed")}</p>}
       {settings.data && <PlayerNames settings={settings.data} />}
+      <AnalysisSection />
     </div>
   );
 }
@@ -80,5 +87,90 @@ function PlayerNames({ settings }: { settings: Settings }) {
         )}
       </Form>
     </section>
+  );
+}
+
+function AnalysisSection() {
+  const settings = useQuery(analysisSettingsQuery);
+  return (
+    <section aria-labelledby="analysis-settings-heading">
+      <h2 id="analysis-settings-heading">{t("settings.analysis.title")}</h2>
+      {settings.isError && <p role="alert">{t("settings.loadFailed")}</p>}
+      {settings.data && <AnalysisForm settings={settings.data} />}
+    </section>
+  );
+}
+
+const THRESHOLDS = ["inaccuracy", "mistake", "blunder"] as const;
+
+/** Automatic analysis on or off, and how much a move may lose before it counts as weak. */
+function AnalysisForm({ settings }: { settings: AnalysisSettings }) {
+  const save = useSaveAnalysisSettings();
+  const [values, setValues] = useState(settings);
+
+  const change = (changes: Partial<AnalysisSettings>) => {
+    setValues((current) => ({ ...current, ...changes }));
+    save.reset(); // a new change: "Saved" no longer applies
+  };
+
+  const handleSubmit: FormProps["onSubmit"] = (event) => {
+    event.preventDefault();
+    save.mutate(values);
+  };
+
+  const error =
+    save.error instanceof ApiError && save.error.status === 422
+      ? t("settings.analysis.order")
+      : t("settings.saveFailed");
+
+  return (
+    <Form className={styles.form} onSubmit={handleSubmit}>
+      <SwitchField
+        isSelected={values.auto_analyse}
+        onChange={(on) => {
+          change({ auto_analyse: on });
+        }}
+      >
+        <SwitchButton className={styles.switch}>
+          <span className={styles.track}>
+            <span className={styles.thumb} />
+          </span>
+          {t("settings.analysis.auto")}
+        </SwitchButton>
+      </SwitchField>
+      <p className={styles.hint}>{t("settings.analysis.autoHint")}</p>
+      <p className={styles.intro}>{t("settings.analysis.thresholds")}</p>
+      <div className={styles.thresholds}>
+        {THRESHOLDS.map((name) => (
+          <NumberField
+            key={name}
+            className={styles.field}
+            value={values[name]}
+            minValue={1}
+            maxValue={100}
+            step={1}
+            onChange={(value) => {
+              change({ [name]: value });
+            }}
+          >
+            <Label>{t(`settings.analysis.${name}`)}</Label>
+            <Input className={styles.number} />
+          </NumberField>
+        ))}
+      </div>
+      <div className={styles.actions}>
+        <Button className={styles.button} type="submit" isPending={save.isPending}>
+          {t("settings.save")}
+        </Button>
+        <span role="status" className={styles.status}>
+          {save.isSuccess && t("settings.analysis.saved")}
+        </span>
+      </div>
+      {save.isError && (
+        <p className={styles.error} role="alert">
+          {error}
+        </p>
+      )}
+    </Form>
   );
 }

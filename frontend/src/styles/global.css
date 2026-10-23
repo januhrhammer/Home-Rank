@@ -32,6 +32,14 @@
   --board-dark: #8ca2ad;
   --board-last-move: rgb(45 106 79 / 32%);
 
+  /* Engine analysis: the evaluation bar's two sides, and the marks for weak moves, which
+     meet AA contrast as text on the page. */
+  --eval-white: #f4f4f2;
+  --eval-black: #3a4148;
+  --color-inaccuracy: #8a6d00;
+  --color-mistake: #b54708;
+  --color-blunder: #b42318;
+
   /* Spacing scale */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -66,6 +74,11 @@
     /* A little darker, so the board doesn't glare on a dark page. */
     --board-light: #c9d2d8;
     --board-dark: #7b919d;
+    --eval-white: #d9dde1;
+    --eval-black: #2a3138;
+    --color-inaccuracy: #e3c34d;
+    --color-mistake: #f79a5b;
+    --color-blunder: #f97066;
   }
 }
 

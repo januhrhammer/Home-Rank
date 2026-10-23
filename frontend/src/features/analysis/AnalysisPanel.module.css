@@ -1,0 +1,160 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.heading {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.button {
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  border-radius: var(--radius);
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-on-accent);
+  background: var(--color-accent);
+  cursor: pointer;
+}
+
+.secondary {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  background: var(--color-bg);
+  cursor: pointer;
+}
+
+.button[data-pending],
+.secondary[data-pending] {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.error {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-danger);
+}
+
+.progress {
+  width: 100%;
+}
+
+.progressText {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.track {
+  height: var(--space-2);
+  margin-top: var(--space-1);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--color-surface);
+}
+
+.fill {
+  height: 100%;
+  background: var(--color-accent);
+  transition: width 0.3s;
+}
+
+.fill[data-waiting] {
+  width: 30%;
+  animation: waiting 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes waiting {
+  from {
+    margin-left: 0;
+  }
+  to {
+    margin-left: 70%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fill {
+    transition: none;
+  }
+
+  .fill[data-waiting] {
+    animation: none;
+  }
+}
+
+.summary {
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.summary th,
+.summary td {
+  padding: var(--space-1) var(--space-3) var(--space-1) 0;
+  text-align: right;
+}
+
+.summary th[scope="row"] {
+  text-align: left;
+  font-weight: 600;
+}
+
+.summary thead th {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.summary thead th.inaccuracy {
+  color: var(--color-inaccuracy);
+}
+
+.summary thead th.mistake {
+  color: var(--color-mistake);
+}
+
+.summary thead th.blunder {
+  color: var(--color-blunder);
+}
+
+/* For screen readers only. */
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.engine {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+/* The score in the shown position, then the engine's line in the book's serif. */
+.line {
+  display: flex;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.score {
+  flex-shrink: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.moves {
+  font-family: var(--font-serif);
+  color: var(--color-text-muted);
+}

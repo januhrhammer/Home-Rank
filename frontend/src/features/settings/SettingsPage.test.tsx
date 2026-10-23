@@ -1,7 +1,7 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { expect, test } from "vitest";
+import { beforeEach, expect, test } from "vitest";
 
 import { renderApp } from "../../test/render";
 import { server, simulateAuth } from "../../test/server";
@@ -29,10 +29,41 @@ function simulateSettings(playerNames: string[]) {
   return received;
 }
 
+/** A simulated analysis settings API that keeps what was saved. Returns the changes received. */
+function simulateAnalysisSettings(status = 200) {
+  const received: unknown[] = [];
+  let stored = { auto_analyse: true, inaccuracy: 10, mistake: 20, blunder: 30 };
+  server.use(
+    http.get("*/api/v1/analysis/settings", () => HttpResponse.json(stored)),
+    http.patch("*/api/v1/analysis/settings", async ({ request }) => {
+      const changes = (await request.json()) as typeof stored;
+      received.push(changes);
+      if (status !== 200) {
+        return new HttpResponse(null, { status });
+      }
+      stored = { ...stored, ...changes };
+      return HttpResponse.json(stored);
+    }),
+  );
+  return received;
+}
+
+function namesSection() {
+  return screen.getByRole("region", { name: "Your player names" });
+}
+
+function analysisSection() {
+  return screen.getByRole("region", { name: "Engine analysis" });
+}
+
 function openSettings() {
   simulateAuth(jan, { loggedIn: true });
   renderApp("/settings");
 }
+
+beforeEach(() => {
+  simulateAnalysisSettings();
+});
 
 test("shows the player names, one per line", async () => {
   simulateSettings(["Uhrhammer, Jan", "januhrhammer"]);
@@ -50,9 +81,9 @@ test("saves the names and shows them as the server keeps them", async () => {
   const names = await screen.findByRole("textbox", { name: "Player names" });
 
   await user.type(names, "\n  januhrhammer \n");
-  await user.click(screen.getByRole("button", { name: "Save" }));
+  await user.click(within(namesSection()).getByRole("button", { name: "Save" }));
 
-  expect(await screen.findByRole("status")).toHaveTextContent(
+  expect(await within(namesSection()).findByRole("status")).toHaveTextContent(
     "Saved. Your games are being updated in the background.",
   );
   expect(received).toEqual([{ player_names: ["Uhrhammer, Jan", "  januhrhammer ", ""] }]);
@@ -60,7 +91,7 @@ test("saves the names and shows them as the server keeps them", async () => {
 
   // Typing again: "Saved" no longer applies.
   await user.type(names, "x");
-  expect(screen.getByRole("status")).toBeEmptyDOMElement();
+  expect(within(namesSection()).getByRole("status")).toBeEmptyDOMElement();
 });
 
 test("a failed save says so", async () => {
@@ -70,7 +101,7 @@ test("a failed save says so", async () => {
   const user = userEvent.setup();
 
   await user.type(await screen.findByRole("textbox", { name: "Player names" }), "jan");
-  await user.click(screen.getByRole("button", { name: "Save" }));
+  await user.click(within(namesSection()).getByRole("button", { name: "Save" }));
 
   expect(await screen.findByRole("alert")).toHaveTextContent("Saving didn't work.");
 });
@@ -91,4 +122,34 @@ test("the header leads to the settings", async () => {
   await user.click(await screen.findByRole("link", { name: "Settings" }));
 
   expect(await screen.findByRole("heading", { name: "Settings" })).toBeInTheDocument();
+});
+
+test("turns automatic analysis off and changes the thresholds", async () => {
+  simulateSettings([]);
+  const received = simulateAnalysisSettings();
+  openSettings();
+  const user = userEvent.setup();
+
+  const auto = await screen.findByRole("switch", { name: "Analyse new games automatically" });
+  expect(auto).toBeChecked();
+  await user.click(auto);
+  const blunder = screen.getByRole("textbox", { name: "Blunder" });
+  await user.clear(blunder);
+  await user.type(blunder, "25");
+  await user.click(within(analysisSection()).getByRole("button", { name: "Save" }));
+
+  expect(await screen.findByText("Saved.")).toBeInTheDocument();
+  expect(received).toEqual([{ auto_analyse: false, inaccuracy: 10, mistake: 20, blunder: 25 }]);
+});
+
+test("thresholds out of order are explained", async () => {
+  simulateSettings([]);
+  simulateAnalysisSettings(422);
+  openSettings();
+  const user = userEvent.setup();
+
+  await screen.findByRole("switch", { name: "Analyse new games automatically" });
+  await user.click(within(analysisSection()).getByRole("button", { name: "Save" }));
+
+  expect(await screen.findByRole("alert")).toHaveTextContent("must lose less than a mistake");
 });
