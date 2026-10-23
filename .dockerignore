@@ -5,6 +5,7 @@
 !frontend
 !docker/entrypoint.sh
 !docker/get-stockfish.sh
+!docker/get-maia.sh
 
 # ...but not local environments, build output and caches inside those folders.
 **/node_modules

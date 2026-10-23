@@ -6,7 +6,7 @@
 # checkpoint by docker/convert-maia.py and attached to a release of Home-Rank. The download is
 # checked against the checksum below. Maia's licence comes along for the Docker image.
 #
-# Leaves DIR/maia3-5m.onnx and DIR/LICENSE.
+# Leaves DIR/maia3-5m.onnx, DIR/LICENSE and DIR/SOURCE (where the model and its code come from).
 #
 # A new model: run `uv run docker/convert-maia.py OUT_DIR`, which prints the model's checksum,
 # and copy OUT_DIR/maia3-5m-expected.json to backend/homerank/engine/tests/fixtures/. Publish
@@ -37,4 +37,13 @@ download() { # URL FILE SHA256
 download "https://github.com/januhrhammer/Home-Rank/releases/download/$MAIA_RELEASE/maia3-5m.onnx" \
     "$dir/maia3-5m.onnx" "$SHA256"
 download "$LICENSE_URL" "$dir/LICENSE" "$LICENSE_SHA256"
+cat > "$dir/SOURCE" <<END
+Maia-3 5M, a model that plays chess like people of a given rating, by the University of
+Toronto's Computational Social Science Lab, licensed under the GNU AGPL 3.0 (LICENSE).
+
+Code and model:  https://github.com/CSSLab/maia3
+                 https://huggingface.co/UofTCSSLab/Maia3-5M
+This file:       converted to ONNX by Home-Rank's docker/convert-maia.py and published as
+                 https://github.com/januhrhammer/Home-Rank/releases/tag/$MAIA_RELEASE
+END
 echo "Maia ($MAIA_RELEASE) is in $dir/maia3-5m.onnx"

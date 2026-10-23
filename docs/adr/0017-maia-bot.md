@@ -67,7 +67,9 @@ Three ways to get the ONNX model into the image were considered:
 
 ## Consequences
 
-- The image grows by about 70 MB (onnxruntime and its dependencies, and the model).
+- The image grows by about 170 MB, measured when the model went into it: installed,
+  onnxruntime takes 67 MB and numpy (which it needs) 69 MB, and the model 21 MB. (This
+  record first said about 70 MB, from the size of the downloads.)
 - Each website process that has served a bot move holds the model: about 55 MB more memory per
   web worker (two by default).
 - A new Maia model means running the script again and publishing a new file; Renovate can't
