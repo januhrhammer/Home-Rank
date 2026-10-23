@@ -73,7 +73,7 @@ class Gap:
 # from another starting position leaves it at ply 0, where the repertoire has no moves.
 _GAPS_SQL = """
 WITH first_out AS (
-    SELECT p.game_id, min(p.ply) AS ply
+    SELECT DISTINCT ON (p.game_id) p.game_id, p.zobrist, p.move_uci, p.move_san
     FROM games_gameposition p
     JOIN games_game g ON g.id = p.game_id
     WHERE p.user_id = %(user)s AND g.user_color = %(color)s AND p.ply <= %(reach)s
@@ -82,20 +82,19 @@ WITH first_out AS (
           WHERE m.repertoire_id = %(repertoire)s
             AND m.from_zobrist = p.zobrist AND m.move_uci = p.move_uci
       )
-    GROUP BY p.game_id
+    ORDER BY p.game_id, p.ply
 )
-SELECT p.zobrist, p.move_uci, min(p.move_san), count(*),
-       (array_agg(p.game_id ORDER BY g.date DESC NULLS LAST, g.id DESC))[1:%(listed)s],
+SELECT f.zobrist, f.move_uci, min(f.move_san), count(*),
+       (array_agg(f.game_id ORDER BY g.date DESC NULLS LAST, g.id DESC))[1:%(listed)s],
        max(g.date)
 FROM first_out f
-JOIN games_gameposition p ON p.game_id = f.game_id AND p.ply = f.ply
 JOIN games_game g ON g.id = f.game_id
-WHERE p.move_uci <> ''
-  AND p.zobrist IN (
+WHERE f.move_uci <> ''
+  AND f.zobrist IN (
       SELECT from_zobrist FROM repertoire_repertoiremove WHERE repertoire_id = %(repertoire)s
   )
-GROUP BY p.zobrist, p.move_uci
-ORDER BY count(*) DESC, p.move_uci
+GROUP BY f.zobrist, f.move_uci
+ORDER BY count(*) DESC, f.move_uci
 """
 
 
