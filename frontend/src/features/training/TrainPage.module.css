@@ -1,0 +1,15 @@
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.stats,
+.empty {
+  color: var(--color-text-muted);
+}
+
+.empty {
+  max-width: 40rem;
+}

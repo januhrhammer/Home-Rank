@@ -124,15 +124,16 @@ def _win(score: chess.engine.Score) -> float:
 
 
 def themes(board: chess.Board, solution: Sequence[str]) -> list[str]:
-    """Simple themes of a puzzle: "mateInN" if the solution mates, "material" if it wins at
-    least MATERIAL_GAIN pawns. More can be added later."""
+    """Simple themes of a puzzle: "mate" and "mateInN" if the solution mates (as on Lichess, so
+    that all mates can be chosen at once), "material" if it wins at least MATERIAL_GAIN pawns.
+    More can be added later."""
     solver = board.turn
     after = board.copy()
     for uci in solution:
         after.push_uci(uci)
     found = []
     if after.is_checkmate():
-        found.append(f"mateIn{(len(solution) + 1) // 2}")
+        found += ["mate", f"mateIn{(len(solution) + 1) // 2}"]
     elif _material(after, solver) - _material(board, solver) >= MATERIAL_GAIN:
         found.append("material")
     return found
