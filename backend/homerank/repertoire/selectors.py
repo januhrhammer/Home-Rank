@@ -1,17 +1,19 @@
 """Reading a user's repertoires. Every query is filtered by the user."""
 
-from collections import defaultdict
-from dataclasses import dataclass
-from datetime import date
+from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import UTC, date, datetime
 
 from django.db import connection
 from django.db.models import Count, QuerySet
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 from homerank.accounts.models import User
 from homerank.chesslib.positions import as_bigint
 from homerank.chesslib.repertoire import START_ZOBRIST
 from homerank.repertoire.models import Repertoire, RepertoireMove
+from homerank.training.models import ReviewCard
 
 # Games listed per gap at most; the count covers all of them.
 GAP_GAMES = 20
@@ -141,3 +143,134 @@ def _reach(moves: list[tuple[int, int]]) -> int:
             break
         deepest = ply
     return deepest
+
+
+# ---------------------------------------------------------------- drill
+
+
+@dataclass
+class DrillStep:
+    """A move of a drill: the user's own, to be asked for (with its card), or the opponent's,
+    to be played for them."""
+
+    move_id: int
+    fen: str  # the position the move is played from
+    move_uci: str
+    move_san: str
+    comment: str
+    card_id: int | None  # None for the opponent's moves
+    due: bool
+    # The repertoire's other moves of the user's in this position: playing one isn't wrong,
+    # the user is asked for this one instead (ADR 0016).
+    other_moves: list[str] = field(default_factory=list)
+
+
+@dataclass
+class DueDrill:
+    step: DrillStep | None  # the card due longest, None if none is due
+    last_move_uci: str  # the move that led to its position ("" at the start), to show it
+    due: int  # how many of the repertoire's cards are due now
+
+
+def next_due(repertoire: Repertoire) -> DueDrill:
+    """The repertoire's card due longest, in its position."""
+    due = ReviewCard.objects.filter(
+        repertoire_move__repertoire=repertoire, due_at__lte=timezone.now()
+    ).select_related("repertoire_move")
+    card = due.order_by("due_at", "pk").first()
+    if card is None or card.repertoire_move is None:
+        return DueDrill(step=None, last_move_uci="", due=0)
+    move = card.repertoire_move
+    before = repertoire.moves.filter(to_zobrist=move.from_zobrist).order_by("pk").first()
+    graph = _Graph(repertoire)
+    return DueDrill(
+        step=graph.step(move),
+        last_move_uci=before.move_uci if before is not None else "",
+        due=due.count(),
+    )
+
+
+def drill_line(repertoire: Repertoire, *, through: RepertoireMove | None = None) -> list[DrillStep]:
+    """A line from the starting position to the end of the repertoire: through the given move,
+    or else through the card due longest. From there on it follows, at each position, the
+    move whose card (or, for the opponent's moves, the next card) is due first."""
+    graph = _Graph(repertoire)
+    if through is None:
+        through = graph.most_urgent()
+    path = graph.path_to(through) if through is not None else []
+    seen = {as_bigint(START_ZOBRIST), *(m.to_zobrist for m in path)}
+    position = path[-1].to_zobrist if path else as_bigint(START_ZOBRIST)
+    while graph.moves_from[position]:
+        move = min(graph.moves_from[position], key=lambda m: (graph.urgency(m), m.pk))
+        path.append(move)
+        if move.to_zobrist in seen:
+            break  # back to a position the line has passed: it would go round in circles
+        seen.add(move.to_zobrist)
+        position = move.to_zobrist
+    return [graph.step(m) for m in path]
+
+
+_NEVER = datetime.max.replace(tzinfo=UTC)
+
+
+class _Graph:
+    """A repertoire's moves, by the positions they join, with their cards."""
+
+    def __init__(self, repertoire: Repertoire) -> None:
+        self.moves_from: defaultdict[int, list[RepertoireMove]] = defaultdict(list)
+        self.cards: dict[int, ReviewCard] = {}  # by move id
+        for move in repertoire.moves.select_related("card").order_by("pk"):
+            self.moves_from[move.from_zobrist].append(move)
+            card = getattr(move, "card", None)
+            if card is not None:
+                self.cards[move.pk] = card
+        self.now = timezone.now()
+
+    def step(self, move: RepertoireMove) -> DrillStep:
+        card = self.cards.get(move.pk)
+        others = [
+            m.move_uci
+            for m in self.moves_from[move.from_zobrist]
+            if m.pk != move.pk and m.pk in self.cards
+        ]
+        return DrillStep(
+            move_id=move.pk,
+            fen=move.from_fen,
+            move_uci=move.move_uci,
+            move_san=move.move_san,
+            comment=move.comment,
+            card_id=card.pk if card is not None else None,
+            due=card is not None and card.due_at <= self.now,
+            other_moves=others if card is not None else [],
+        )
+
+    def urgency(self, move: RepertoireMove) -> datetime:
+        """When the move's card is due; for the opponent's moves, the first card after it."""
+        if move.pk in self.cards:
+            return self.cards[move.pk].due_at
+        after = [
+            self.cards[m.pk].due_at for m in self.moves_from[move.to_zobrist] if m.pk in self.cards
+        ]
+        return min(after, default=_NEVER)
+
+    def most_urgent(self) -> RepertoireMove | None:
+        moves = [m for ms in self.moves_from.values() for m in ms if m.pk in self.cards]
+        return min(moves, key=lambda m: (self.cards[m.pk].due_at, m.pk), default=None)
+
+    def path_to(self, target: RepertoireMove) -> list[RepertoireMove]:
+        """The shortest line of moves from the starting position that ends with the move."""
+        start = as_bigint(START_ZOBRIST)
+        came_by: dict[int, RepertoireMove | None] = {start: None}
+        todo = deque([start])
+        while todo and target.from_zobrist not in came_by:
+            position = todo.popleft()
+            for move in self.moves_from[position]:
+                if move.to_zobrist not in came_by:
+                    came_by[move.to_zobrist] = move
+                    todo.append(move.to_zobrist)
+        path = [target]
+        previous = came_by.get(target.from_zobrist)
+        while previous is not None:
+            path.append(previous)
+            previous = came_by[previous.from_zobrist]
+        return path[::-1]
