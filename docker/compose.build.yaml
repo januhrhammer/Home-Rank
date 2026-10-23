@@ -1,0 +1,20 @@
+# Builds the Home-Rank image from this repository instead of pulling the published one. Used by
+# `just e2e`, and by anyone who runs their own changes:
+#
+#   docker compose --file compose.yaml --file docker/compose.build.yaml up -d
+#
+# Every `up` rebuilds the image, which takes seconds when nothing changed. Without pull_policy,
+# Compose would first try to pull home-rank:local from Docker Hub and fail.
+services:
+  web:
+    build:
+      # Paths are relative to the first file, compose.yaml.
+      context: .
+      dockerfile: docker/Dockerfile
+    image: home-rank:local
+    pull_policy: build
+
+  worker:
+    # The image the web service builds.
+    image: home-rank:local
+    pull_policy: never
