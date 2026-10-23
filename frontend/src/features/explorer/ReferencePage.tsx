@@ -70,38 +70,44 @@ function Games({ databaseId }: { databaseId: number }) {
       {games.isError && <p role="alert">{t("reference.loadFailed")}</p>}
       {games.data && (
         <>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th scope="col">{t("games.column.white")}</th>
-                <th scope="col">{t("games.column.black")}</th>
-                <th scope="col">{t("games.column.result")}</th>
-                <th scope="col">{t("games.column.date")}</th>
-                <th scope="col">{t("games.column.event")}</th>
-                <th scope="col">ECO</th>
-              </tr>
-            </thead>
-            <tbody>
-              {games.data.items.map((game) => (
-                <tr key={game.id}>
-                  <td>
-                    <Link to={`/reference/${String(databaseId)}/games/${String(game.id)}`}>
-                      {game.white || "?"}
-                    </Link>
-                    {game.white_elo ? ` ${String(game.white_elo)}` : ""}
-                  </td>
-                  <td>
-                    {game.black || "?"}
-                    {game.black_elo ? ` ${String(game.black_elo)}` : ""}
-                  </td>
-                  <td>{game.result === "1/2-1/2" ? "½-½" : game.result}</td>
-                  <td>{formatGameDate(game.date_pgn)}</td>
-                  <td>{game.event}</td>
-                  <td>{game.eco}</td>
+          <div className={styles.scroll}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th scope="col">{t("games.column.white")}</th>
+                  <th scope="col">{t("games.column.black")}</th>
+                  <th scope="col">{t("games.column.result")}</th>
+                  <th scope="col">{t("games.column.date")}</th>
+                  <th scope="col" className={styles.wideOnly}>
+                    {t("games.column.event")}
+                  </th>
+                  <th scope="col" className={styles.wideOnly}>
+                    ECO
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {games.data.items.map((game) => (
+                  <tr key={game.id}>
+                    <td>
+                      <Link to={`/reference/${String(databaseId)}/games/${String(game.id)}`}>
+                        {game.white || "?"}
+                      </Link>
+                      {game.white_elo ? ` ${String(game.white_elo)}` : ""}
+                    </td>
+                    <td>
+                      {game.black || "?"}
+                      {game.black_elo ? ` ${String(game.black_elo)}` : ""}
+                    </td>
+                    <td>{game.result === "1/2-1/2" ? "½-½" : game.result}</td>
+                    <td>{formatGameDate(game.date_pgn)}</td>
+                    <td className={styles.wideOnly}>{game.event}</td>
+                    <td className={styles.wideOnly}>{game.eco}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           <div className={styles.pager}>
             <Button
               className={styles.button}

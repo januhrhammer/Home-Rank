@@ -31,6 +31,22 @@
   background: var(--color-bg);
 }
 
+/* Wide tables scroll sideways instead of widening the page; on phones the event and ECO
+   columns hide, and long names may break, so the rest fits. */
+.scroll {
+  overflow-x: auto;
+}
+
+@media (width < 48rem) {
+  .wideOnly {
+    display: none;
+  }
+
+  .table td {
+    overflow-wrap: anywhere;
+  }
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
