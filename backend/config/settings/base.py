@@ -127,6 +127,10 @@ DATA_DIR = Path(env.string("DATA_DIR", default=str(BASE_DIR.parent / "data")))
 # (as exported by Chess.com and Lichess) or about 350,000 without.
 IMPORT_MAX_BYTES = env.integer("IMPORT_MAX_MB", default=200) * 1024 * 1024
 
+# Stockfish, the chess engine that analyses games in the worker. The Docker image has it on the
+# PATH; locally, `just stockfish` downloads it to .tools/, where dev.py and test.py look.
+STOCKFISH_PATH = env.string("STOCKFISH_PATH", default="stockfish")
+
 # Syncing games from Lichess and Chess.com (docs/adr/0011-online-account-sync.md). A contact,
 # such as an email address or a URL, added to the User-Agent of requests to the two sites, so
 # they can reach the operator instead of blocking the server. Optional.

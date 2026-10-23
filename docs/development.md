@@ -12,11 +12,14 @@ How to set up Home-Rank on your machine and work on it.
 - [Node.js](https://nodejs.org/) 24, the version in `.nvmrc`, for the frontend. A version manager
   such as [fnm](https://github.com/Schniz/fnm) can switch to it automatically in this folder.
 - pnpm, enabled once with `corepack enable pnpm`. `frontend/package.json` pins its version.
+- curl, for downloading Stockfish (the chess engine) during setup. The download is a Linux
+  program; on macOS, install Stockfish yourself (e.g. `brew install stockfish`) and set
+  `STOCKFISH_PATH` in `.env` to where it is.
 
 ## First-time setup
 
 ```sh
-just setup   # install backend and frontend dependencies, and the git hooks
+just setup   # install dependencies, Stockfish and the git hooks
 just check   # start the database and run every check
 ```
 
@@ -42,7 +45,8 @@ Run `just` to list all tasks. The ones you need most:
 |---|---|
 | `just dev` | Start the database, Django on <http://localhost:8100> and the frontend on <http://localhost:5173>. Ctrl+C stops both. |
 | `just worker` | Run the background job worker, which also starts recurring jobs on schedule. PGN imports and Lichess/Chess.com syncs only run while it does; uploads wait in `data/` until then. Syncs make real requests to the two sites. |
-| `just test` | Run all tests |
+| `just test` | Run all tests. Tests marked `engine` run Stockfish. |
+| `just stockfish` | Download Stockfish to `.tools/stockfish/`, where the dev server and tests find it. `just setup` does this too. |
 | `just fmt` | Format all code |
 | `just gen-api` | Regenerate the frontend's API types after changing the backend API. `just check` fails while they are out of date. |
 | `just build` | Build the Docker image as `home-rank:dev` (`docker/Dockerfile`) |

@@ -3,8 +3,8 @@
 # One image for both the website and the background job worker (see docker/entrypoint.sh).
 # Build from the repository root:  just build   (or: docker build -f docker/Dockerfile .)
 #
-# Three stages: the first two build things, and only the third becomes the image, without the
-# build tools. Dependency files are copied before the code, so Docker's cache keeps installed
+# Four stages: the first three build or fetch things, and only the last becomes the image,
+# without the build tools. Dependency files are copied before the code, so Docker's cache keeps installed
 # dependencies when only the code changes.
 
 # ---------------------------------------------------------------- 1: build the frontend
@@ -29,7 +29,18 @@ COPY backend/pyproject.toml backend/uv.lock ./
 RUN uv sync --frozen --no-dev
 COPY backend/ ./
 
-# ---------------------------------------------------------------- 3: the image that runs
+# ---------------------------------------------------------------- 3: Stockfish
+# The official release for this machine's architecture, checked against its checksum; see
+# docker/get-stockfish.sh. (`uname -m`, not TARGETARCH: the classic builder doesn't set it.)
+FROM python:3.12-slim AS stockfish
+# hadolint ignore=DL3008
+RUN apt-get update \
+ && apt-get install --yes --no-install-recommends ca-certificates curl \
+ && rm -rf /var/lib/apt/lists/*
+COPY docker/get-stockfish.sh /usr/local/bin/get-stockfish.sh
+RUN get-stockfish.sh /stockfish
+
+# ---------------------------------------------------------------- 4: the image that runs
 FROM python:3.12-slim
 LABEL org.opencontainers.image.title="Home-Rank" \
       org.opencontainers.image.source="https://github.com/januhrhammer/Home-Rank" \
@@ -47,6 +58,10 @@ WORKDIR /app/backend
 COPY --from=backend /app/backend ./
 COPY --from=frontend /app/frontend/dist /app/frontend/dist
 COPY docker/entrypoint.sh /app/entrypoint.sh
+# Stockfish is GPL-licensed: its source code and licence travel with the program (ADR 0002).
+COPY --from=stockfish /stockfish/stockfish /usr/local/bin/stockfish
+COPY --from=stockfish ["/stockfish/Copying.txt", "/stockfish/AUTHORS", "/stockfish/README.md", "/usr/share/doc/stockfish/"]
+COPY --from=stockfish /stockfish/src /usr/share/doc/stockfish/src
 ENV PATH="/app/backend/.venv/bin:$PATH" \
     DJANGO_SETTINGS_MODULE=config.settings.prod \
     DATA_DIR=/data \

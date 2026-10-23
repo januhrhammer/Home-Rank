@@ -87,6 +87,18 @@
       extractVersionTemplate: '^v(?<version>.+)$',
     },
     {
+      // Renovate can't update the two checksums next to the version: the image build fails
+      // until someone copies them from the release page, which is the point of having them.
+      description: 'Stockfish, downloaded by docker/get-stockfish.sh',
+      customType: 'regex',
+      managerFilePatterns: ['/^docker/get-stockfish\\.sh$/'],
+      matchStrings: ['STOCKFISH_VERSION="(?<currentValue>[^"]+)"'],
+      depNameTemplate: 'official-stockfish/Stockfish',
+      datasourceTemplate: 'github-releases',
+      extractVersionTemplate: '^sf_(?<version>.+)$',
+      versioningTemplate: 'loose',
+    },
+    {
       description: 'Trivy, run as a container pinned by digest in the image scan',
       customType: 'regex',
       managerFilePatterns: ['/^\\.github/workflows/ci\\.yml$/'],

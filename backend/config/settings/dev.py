@@ -4,6 +4,7 @@ from config import env
 from config.logging_config import build_logging
 
 from .base import *
+from .base import BASE_DIR
 
 DEBUG = True
 
@@ -20,3 +21,8 @@ DATABASES = {
         "DATABASE_URL", default="postgres://homerank:homerank@localhost:5432/homerank"
     ),
 }
+
+# Downloaded by `just stockfish`.
+STOCKFISH_PATH = env.string(
+    "STOCKFISH_PATH", default=str(BASE_DIR.parent / ".tools" / "stockfish" / "stockfish")
+)

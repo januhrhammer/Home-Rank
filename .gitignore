@@ -25,6 +25,9 @@ frontend/test-results/
 frontend/playwright-report/
 frontend/e2e/.auth/
 
+# Tools downloaded by `just setup`, such as Stockfish
+.tools/
+
 # Editors and OS
 .idea/
 .vscode/*
