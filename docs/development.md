@@ -77,6 +77,12 @@ in `frontend/`. Arguments go to Playwright: `just e2e --headed` shows the browse
 `just e2e --debug` steps through a test. A failed test leaves a recording in
 `frontend/test-results/`; `pnpm exec playwright show-trace <file>` replays it.
 
+`e2e/accessibility.spec.ts` runs [axe](https://github.com/dequelabs/axe-core) on every page in
+both themes (WCAG 2.2 A and AA, plus axe's best practices) and `e2e/phone.spec.ts` checks that
+no page is wider than a phone. Neither replaces trying a change with the keyboard alone (Tab,
+Enter, Escape, the arrow keys) and, for anything that appears or changes by itself, checking
+that it's announced (`role="status"` or `role="alert"`).
+
 The end-to-end tests cover what the unit tests can't: the real server, the background worker and
 files really uploaded by a browser. Keep them to the main journeys; details belong in the unit
 tests.
