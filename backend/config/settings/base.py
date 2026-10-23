@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "homerank.training",
     "homerank.reference",
     "homerank.explorer",
+    "homerank.repertoire",
 ]
 
 AUTH_USER_MODEL = "accounts.User"

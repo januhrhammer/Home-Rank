@@ -88,7 +88,11 @@ def test_no_extra_indexes_on_the_foreign_keys() -> None:
         )
 
     assert indexes(Puzzle._meta.db_table) == [["game_id", "ply"], ["user_id", "created_at"]]
-    assert indexes(ReviewCard._meta.db_table) == [["puzzle_id"], ["user_id", "due_at"]]
+    assert indexes(ReviewCard._meta.db_table) == [
+        ["puzzle_id"],
+        ["repertoire_move_id"],
+        ["user_id", "due_at"],
+    ]
 
 
 def test_staff_can_see_puzzles_but_not_add_them(admin_client: Client, alice: User) -> None:
