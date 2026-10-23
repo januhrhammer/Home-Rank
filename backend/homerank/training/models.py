@@ -10,6 +10,7 @@ from django.db import models
 
 from homerank.engine.tactics import PuzzleKind
 from homerank.games.models import Game
+from homerank.repertoire.models import RepertoireMove
 
 
 class Puzzle(models.Model):
@@ -54,17 +55,21 @@ class PuzzleScan(models.Model):
 
 
 class ReviewCard(models.Model):
-    """Something the user trains, with its spaced-repetition state. For now always a puzzle;
-    repertoire moves follow in a later milestone."""
+    """Something the user trains, with its spaced-repetition state: a puzzle, or one of the
+    user's moves in a repertoire (ADR 0016)."""
 
     class CardType(models.TextChoices):
         PUZZLE = "puzzle"
+        REPERTOIRE = "repertoire"
 
     # The (user, due_at) index below also serves lookups by user.
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, db_index=False)
     card_type = models.CharField(max_length=10, choices=CardType, default=CardType.PUZZLE)
     puzzle = models.OneToOneField(
         Puzzle, on_delete=models.CASCADE, null=True, blank=True, related_name="card"
+    )
+    repertoire_move = models.OneToOneField(
+        RepertoireMove, on_delete=models.CASCADE, null=True, blank=True, related_name="card"
     )
     # The fsrs package's Card, as its to_dict() gives it.
     fsrs_state = models.JSONField()
@@ -75,6 +80,11 @@ class ReviewCard(models.Model):
             models.CheckConstraint(
                 condition=~models.Q(card_type="puzzle") | models.Q(puzzle__isnull=False),
                 name="review_card_puzzle_set",
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(card_type="repertoire")
+                | models.Q(repertoire_move__isnull=False),
+                name="review_card_repertoire_move_set",
             ),
         )
         indexes = (models.Index(fields=["user", "due_at"], name="review_card_user_due"),)
