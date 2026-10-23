@@ -97,7 +97,7 @@ def test_finds_the_mate_the_user_found_after_a_blunder(alice: User) -> None:
     puzzle = Puzzle.objects.get()
     assert (puzzle.user, puzzle.game, puzzle.ply, puzzle.kind) == (alice, game, 6, "found")
     assert puzzle.solution == ["h5f7"]
-    assert puzzle.themes == ["mateIn1"]
+    assert puzzle.themes == ["mate", "mateIn1"]
     assert puzzle.last_move_uci == "g8f6"
     assert puzzle.fen.startswith("r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/")
     card = ReviewCard.objects.get(puzzle=puzzle)

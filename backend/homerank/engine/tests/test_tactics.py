@@ -85,7 +85,7 @@ def test_black_users_see_the_chances_from_their_side() -> None:
 
 
 def test_a_mating_solution_has_the_theme_mate_in_n() -> None:
-    assert themes(FOOLS_MATE_BEFORE_QH4, ["d8h4"]) == ["mateIn1"]
+    assert themes(FOOLS_MATE_BEFORE_QH4, ["d8h4"]) == ["mate", "mateIn1"]
 
 
 def test_winning_material_has_the_theme_material() -> None:
