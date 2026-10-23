@@ -12,7 +12,8 @@ How to set up Home-Rank on your machine and work on it.
 - [Node.js](https://nodejs.org/) 24, the version in `.nvmrc`, for the frontend. A version manager
   such as [fnm](https://github.com/Schniz/fnm) can switch to it automatically in this folder.
 - pnpm, enabled once with `corepack enable pnpm`. `frontend/package.json` pins its version.
-- curl, for downloading Stockfish (the chess engine) during setup. The download is a Linux
+- curl, for downloading Stockfish (the chess engine) and Maia (the model behind the human-like
+  bot) during setup. The download is a Linux
   program; on macOS, install Stockfish yourself (e.g. `brew install stockfish`) and set
   `STOCKFISH_PATH` in `.env` to where it is.
 
@@ -48,6 +49,7 @@ Run `just` to list all tasks. The ones you need most:
 | `just manage import_reference FILE --name NAME` | Import a large PGN file from `data/import/` (or `REFERENCE_IMPORT_DIR`) as a reference database, e.g. a month of [the Lichess database](https://database.lichess.org). Keep such files out of the repository. |
 | `just test` | Run all tests. Tests marked `engine` run Stockfish. |
 | `just stockfish` | Download Stockfish to `.tools/stockfish/`, where the dev server and tests find it. `just setup` does this too. |
+| `just maia` | Download Maia (the bot's model, ADR 0017) to `.tools/maia/`, where the dev server and tests find it. `just setup` does this too. `docker/convert-maia.py` makes the model; see `docker/get-maia.sh`. |
 | `just fmt` | Format all code |
 | `just gen-api` | Regenerate the frontend's API types after changing the backend API. `just check` fails while they are out of date. |
 | `just build` | Build the Docker image as `home-rank:dev` (`docker/Dockerfile`) |

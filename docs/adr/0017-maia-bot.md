@@ -4,7 +4,7 @@ Date: 2026-10-23
 
 ## Status
 
-Proposed
+Accepted (maintainer, 2026-10-23)
 
 ## Context
 
@@ -59,7 +59,7 @@ Three ways to get the ONNX model into the image were considered:
 - Maia **samples** its moves (temperature 1): that is what makes it human-like. The rating
   offered is Maia's own, a Lichess rating, from 800 to 2400; the UI says that it plays like a
   Lichess player of about that rating, not like an engine rating.
-- The model comes from the **"convert once, publish it ourselves"** way: `scripts/convert-maia.py`
+- The model comes from the **"convert once, publish it ourselves"** way: `docker/convert-maia.py`
   (run in a throwaway environment with PyTorch) writes `maia3-5m.onnx` and fails unless it
   matches PyTorch on a fixed set of positions; it is attached to a release of this repository;
   `docker/get-maia.sh` downloads it with a pinned SHA-256 for the image, CI and `just maia`.
