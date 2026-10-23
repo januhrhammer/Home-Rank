@@ -50,6 +50,7 @@ const messages = {
   "training.rating.easy": "Easy",
   "training.reviewFailed": "Your result couldn't be saved. Please try again.",
   "training.fromGame": "From your game {white} – {black}, {date}",
+  "training.fromUndatedGame": "From your game {white} – {black}",
   "training.loadFailed": "Your puzzles couldn't be loaded.",
   "training.nothingDue":
     "Nothing to train right now. Puzzles come from your analysed games: positions where you or your opponent missed a winning move. They come back when it's time to repeat them.",
