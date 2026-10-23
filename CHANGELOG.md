@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/januhrhammer/Home-Rank/compare/v0.2.0...v0.3.0) (2026-10-23)
+
+
+### Features
+
+* **api:** link Lichess and Chess.com accounts and sync them ([#33](https://github.com/januhrhammer/Home-Rank/issues/33)) ([e268fbf](https://github.com/januhrhammer/Home-Rank/commit/e268fbf4fd0ca4e2cdaf82eb50d97f93fb012634))
+* **sync:** add linked accounts and sync runs ([#28](https://github.com/januhrhammer/Home-Rank/issues/28)) ([267095e](https://github.com/januhrhammer/Home-Rank/commit/267095eb6aa82c9bdc59ea5b4e4247d2aea2406b))
+* **sync:** fetch games from Lichess and Chess.com ([#30](https://github.com/januhrhammer/Home-Rank/issues/30)) ([83023ca](https://github.com/januhrhammer/Home-Rank/commit/83023cab3c3f78792f4a2ae9df9f1d1c3d161a4a))
+* **sync:** link accounts and sync their games in the background ([#32](https://github.com/januhrhammer/Home-Rank/issues/32)) ([1f605ad](https://github.com/januhrhammer/Home-Rank/commit/1f605ad04c69e1465804e58bc67ac4e55a4e4f8d))
+* **sync:** sync linked accounts on a schedule ([#34](https://github.com/januhrhammer/Home-Rank/issues/34)) ([9c0dd8a](https://github.com/januhrhammer/Home-Rank/commit/9c0dd8a55e913e8aea821009bdee35e59c8fd234))
+* **ui:** link Lichess and Chess.com accounts on the import page ([#35](https://github.com/januhrhammer/Home-Rank/issues/35)) ([da529ac](https://github.com/januhrhammer/Home-Rank/commit/da529ac985e326c5042002cd4ead18ce5707264d))
+
 ## [0.2.0](https://github.com/januhrhammer/Home-Rank/compare/v0.1.0...v0.2.0) (2026-10-22)
 
 
