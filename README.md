@@ -15,9 +15,11 @@ explorer.
 >   date, tags and collections;
 > - a viewer with the moves set like a chess book, figurines, variations and comments;
 > - tags and collections, and PGN export of one game, a selection or a collection;
-> - syncing your games from Lichess and Chess.com, every few hours or at the press of a button.
+> - syncing your games from Lichess and Chess.com, every few hours or at the press of a button;
+> - analysis by Stockfish: an evaluation bar and graph, inaccuracies, mistakes and blunders, and
+>   each player's accuracy, computed like on Lichess; new games are analysed automatically.
 >
-> Engine analysis and training come in the next releases.
+> Training with puzzles from your own mistakes comes in the next release.
 
 ## Quick start
 

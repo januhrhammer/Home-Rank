@@ -5,6 +5,9 @@ import { expect, test } from "@playwright/test";
 /** Morphy's Opera Game, with a comment and a variation, and Fool's Mate. */
 const PGN_FILE = path.join(import.meta.dirname, "fixtures", "two-games.pgn");
 
+// One after the other: the second test analyses a game the first one imported.
+test.describe.configure({ mode: "serial" });
+
 test("import a PGN file, step through a game, tag it and find it by its tag", async ({ page }) => {
   // Choose the file as a person does, in the browser's file dialog. The real file reaches the
   // server, which the unit tests can't check (see src/test/uploads.ts).
@@ -49,4 +52,20 @@ test("import a PGN file, step through a game, tag it and find it by its tag", as
   await page.getByRole("option", { name: "Brilliancy" }).click();
   await expect(page.getByText("1–1 of 1")).toBeVisible();
   await expect(page.getByRole("row").filter({ hasText: "Morphy, Paul" })).toBeVisible();
+});
+
+test("analyse a game with Stockfish and see each player's accuracy", async ({ page }) => {
+  // Fool's Mate, imported by the test above: four moves, quick to analyse even in CI.
+  await page.goto("/games");
+  await page.getByRole("row").filter({ hasText: "Example, Anna" }).click();
+  await page.getByRole("button", { name: "Analyse with Stockfish" }).click();
+
+  // The worker runs the real Stockfish from the image; the page follows its progress.
+  const table = page.getByRole("table");
+  await expect(table).toBeVisible({ timeout: 60_000 });
+  await expect(table.getByRole("row", { name: /White/ })).toContainText("%");
+  await expect(page.getByText(/^Stockfish \d+, depth \d+$/)).toBeVisible();
+  // 2. g4?? allows mate in one.
+  await expect(page.getByRole("button", { name: "g4 (blunder)" })).toBeVisible();
+  await expect(page.getByRole("meter", { name: "Evaluation" })).toBeVisible();
 });
