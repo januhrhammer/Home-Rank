@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "homerank.core",
     "homerank.accounts",
     "homerank.games",
+    "homerank.sync",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
