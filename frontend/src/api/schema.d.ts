@@ -521,6 +521,107 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/training/next": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Next Puzzle
+         * @description The puzzle due longest, with these filters, and how many are due now.
+         */
+        get: operations["homerank_training_api_next_puzzle"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/puzzles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Puzzles
+         * @description Your puzzles, newest first.
+         */
+        get: operations["homerank_training_api_list_puzzles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Review
+         * @description Record a solve: the rating follows from it (wrong move: Again; solved: by the time per
+         *     move) and the puzzle is scheduled again. Change the rating with PATCH if you disagree.
+         */
+        post: operations["homerank_training_api_review"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/reviews/{review_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Change Rating
+         * @description Change the rating of a puzzle's latest review; 409 for an earlier one.
+         */
+        patch: operations["homerank_training_api_change_rating"];
+        trace?: never;
+    };
+    "/api/v1/training/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Training Stats
+         * @description How many puzzles you have and are due, and how you did in recent weeks.
+         */
+        get: operations["homerank_training_api_training_stats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -939,6 +1040,12 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** NextPuzzleOut */
+        NextPuzzleOut: {
+            /** Due */
+            due: number;
+            puzzle: components["schemas"]["PuzzleOut"] | null;
+        };
         /** PagedCollectionOut */
         PagedCollectionOut: {
             /** Items */
@@ -964,6 +1071,13 @@ export interface components {
         PagedLinkedAccountOut: {
             /** Items */
             items: components["schemas"]["LinkedAccountOut"][];
+            /** Total */
+            total: number;
+        };
+        /** PagedPuzzleOut */
+        PagedPuzzleOut: {
+            /** Items */
+            items: components["schemas"]["PuzzleOut"][];
             /** Total */
             total: number;
         };
@@ -999,6 +1113,120 @@ export interface components {
             score_mate: number | null;
             /** Win Percent */
             win_percent: number;
+        };
+        /**
+         * PuzzleFilters
+         * @description Filters for puzzles; all optional, and combined with AND.
+         */
+        PuzzleFilters: {
+            /** Date From */
+            date_from?: string | null;
+            /** Date To */
+            date_to?: string | null;
+            /**
+             * Eco
+             * @description Opening code or its start, e.g. B or B90
+             */
+            eco?: string | null;
+            /**
+             * Game
+             * @description Only puzzles from this game
+             */
+            game?: number | null;
+            /** @description E.g. "missed": only your own misses */
+            kind?: components["schemas"]["PuzzleKind"] | null;
+            /**
+             * Opening
+             * @description Part of the opening's name
+             */
+            opening?: string | null;
+            /**
+             * Theme
+             * @description E.g. "mateIn2" or "material"
+             */
+            theme?: string | null;
+        };
+        /**
+         * PuzzleGameOut
+         * @description The game a puzzle comes from, to show and link to.
+         */
+        PuzzleGameOut: {
+            /** Black */
+            black: string;
+            /** Date Pgn */
+            date_pgn: string;
+            /** Eco */
+            eco: string;
+            /** Id */
+            id: number;
+            /** Opening */
+            opening: string;
+            /** User Color */
+            user_color: string;
+            /** White */
+            white: string;
+        };
+        /**
+         * PuzzleKind
+         * @enum {string}
+         */
+        PuzzleKind: "missed" | "found" | "opponent_blunder";
+        /** PuzzleOut */
+        PuzzleOut: {
+            /** Card Id */
+            card_id: number;
+            /**
+             * Due At
+             * Format: date-time
+             */
+            due_at: string;
+            /** Fen */
+            fen: string;
+            game: components["schemas"]["PuzzleGameOut"];
+            /** Id */
+            id: number;
+            kind: components["schemas"]["PuzzleKind"];
+            /** Last Move Uci */
+            last_move_uci: string;
+            /** Ply */
+            ply: number;
+            /** Solution */
+            solution: string[];
+            /** Themes */
+            themes: string[];
+            /** Win Swing */
+            win_swing: number;
+        };
+        /**
+         * Rating
+         * @enum {integer}
+         */
+        Rating: 1 | 2 | 3 | 4;
+        /** RatingIn */
+        RatingIn: {
+            rating: components["schemas"]["Rating"];
+        };
+        /** ReviewIn */
+        ReviewIn: {
+            /** Card Id */
+            card_id: number;
+            /** Correct */
+            correct: boolean;
+            /** Elapsed Ms */
+            elapsed_ms: number;
+        };
+        /** ReviewOut */
+        ReviewOut: {
+            /** Correct */
+            correct: boolean;
+            /** Id */
+            id: number;
+            /**
+             * Next Due At
+             * Format: date-time
+             */
+            next_due_at: string;
+            rating: components["schemas"]["Rating"];
         };
         /**
          * SettingsOut
@@ -1086,6 +1314,19 @@ export interface components {
          * @enum {string}
          */
         TimeClass: "bullet" | "blitz" | "rapid" | "classical" | "correspondence" | "unknown";
+        /** TrainingStatsOut */
+        TrainingStatsOut: {
+            /** Due Now */
+            due_now: number;
+            /** Due Today */
+            due_today: number;
+            /** Puzzles */
+            puzzles: number;
+            /** Reviewed Today */
+            reviewed_today: number;
+            /** Weeks */
+            weeks: components["schemas"]["WeekStatsOut"][];
+        };
         /**
          * UserOut
          * @description What the API reveals about a user. Fields are listed explicitly, so a field added to the
@@ -1100,6 +1341,18 @@ export interface components {
             is_staff: boolean;
             /** Username */
             username: string;
+        };
+        /** WeekStatsOut */
+        WeekStatsOut: {
+            /** Reviews */
+            reviews: number;
+            /** Solved */
+            solved: number;
+            /**
+             * Week
+             * Format: date
+             */
+            week: string;
         };
     };
     responses: never;
@@ -1974,6 +2227,144 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TagOut"];
+                };
+            };
+        };
+    };
+    homerank_training_api_next_puzzle: {
+        parameters: {
+            query?: {
+                /** @description Only puzzles from this game */
+                game?: number | null;
+                /** @description E.g. "missed": only your own misses */
+                kind?: components["schemas"]["PuzzleKind"] | null;
+                /** @description E.g. "mateIn2" or "material" */
+                theme?: string | null;
+                /** @description Opening code or its start, e.g. B or B90 */
+                eco?: string | null;
+                /** @description Part of the opening's name */
+                opening?: string | null;
+                date_from?: string | null;
+                date_to?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NextPuzzleOut"];
+                };
+            };
+        };
+    };
+    homerank_training_api_list_puzzles: {
+        parameters: {
+            query?: {
+                /** @description Only puzzles from this game */
+                game?: number | null;
+                /** @description E.g. "missed": only your own misses */
+                kind?: components["schemas"]["PuzzleKind"] | null;
+                /** @description E.g. "mateIn2" or "material" */
+                theme?: string | null;
+                /** @description Opening code or its start, e.g. B or B90 */
+                eco?: string | null;
+                /** @description Part of the opening's name */
+                opening?: string | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedPuzzleOut"];
+                };
+            };
+        };
+    };
+    homerank_training_api_review: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewOut"];
+                };
+            };
+        };
+    };
+    homerank_training_api_change_rating: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                review_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RatingIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewOut"];
+                };
+            };
+        };
+    };
+    homerank_training_api_training_stats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrainingStatsOut"];
                 };
             };
         };
