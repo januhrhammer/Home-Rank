@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.5.0](https://github.com/januhrhammer/Home-Rank/compare/v0.4.0...v0.5.0) (2026-10-23)
+
+
+### Features
+
+* **api:** train puzzles: next due, reviews, list and statistics ([#50](https://github.com/januhrhammer/Home-Rank/issues/50)) ([f0da872](https://github.com/januhrhammer/Home-Rank/commit/f0da872e0f1339818a7df6df7bdb5e32cbafee67))
+* **engine:** find puzzles in analysed games ([#46](https://github.com/januhrhammer/Home-Rank/issues/46)) ([89e308b](https://github.com/januhrhammer/Home-Rank/commit/89e308b804758a289414fcd859390f0bc2964a3e))
+* **engine:** tag mating puzzles "mate" as well as "mateInN" ([#51](https://github.com/januhrhammer/Home-Rank/issues/51)) ([fe0fd2b](https://github.com/januhrhammer/Home-Rank/commit/fe0fd2b4157513d6c7c5cd2ffc61352b1936567b))
+* **training:** add puzzles and spaced-repetition cards ([#48](https://github.com/januhrhammer/Home-Rank/issues/48)) ([6e6da8d](https://github.com/januhrhammer/Home-Rank/commit/6e6da8d5c8904b33f1b0ab62591cf11ddda0b146))
+* **training:** find puzzles in analysed games and schedule them with FSRS ([#49](https://github.com/januhrhammer/Home-Rank/issues/49)) ([f1d5ac0](https://github.com/januhrhammer/Home-Rank/commit/f1d5ac0ce3df2c3d66bed59e87b7c617a37e6b3f))
+
 ## [0.4.0](https://github.com/januhrhammer/Home-Rank/compare/v0.3.0...v0.4.0) (2026-10-23)
 
 
