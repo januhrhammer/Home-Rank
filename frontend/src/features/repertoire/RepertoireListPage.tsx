@@ -43,8 +43,12 @@ export function RepertoireListPage() {
             <span className={styles.details}>
               {t(`repertoire.for.${repertoire.color}`)} ·{" "}
               {t("repertoire.moveCount", { count: repertoire.move_count })}
-              {repertoire.due > 0 && ` · ${t("repertoire.due", { count: repertoire.due })}`}
             </span>
+            {repertoire.due > 0 && (
+              <Link className={styles.drill} to={`/repertoires/${String(repertoire.id)}/drill`}>
+                {t("repertoire.drillDue", { count: repertoire.due })}
+              </Link>
+            )}
           </li>
         ))}
       </ul>

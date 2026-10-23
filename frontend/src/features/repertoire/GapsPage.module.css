@@ -1,0 +1,122 @@
+.header {
+  margin-bottom: var(--space-4);
+}
+
+.back {
+  margin: 0 0 var(--space-1);
+  font-size: 0.875rem;
+}
+
+.back a {
+  color: var(--color-accent);
+}
+
+.title {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.intro,
+.empty,
+.details {
+  color: var(--color-text-muted);
+}
+
+.intro {
+  max-width: 48rem;
+}
+
+/* The selected gap's board on the left, the list on the right; stacked on phones. */
+.gaps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-6);
+}
+
+.boardColumn {
+  flex: 0 1 32rem;
+  min-width: min(22rem, 100%);
+  position: sticky;
+  top: var(--space-4);
+}
+
+.listColumn {
+  flex: 1 1 22rem;
+  max-width: 40rem;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gap {
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.gap[aria-current] {
+  background: var(--color-surface);
+}
+
+/* The whole line is the button that shows the gap on the board. */
+.show {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-2);
+  padding: 0;
+  border: none;
+  font: inherit;
+  font-family: var(--font-serif);
+  font-size: 1.0625rem;
+  text-align: left;
+  color: var(--color-text);
+  background: none;
+  cursor: pointer;
+}
+
+.show .where {
+  color: var(--color-text-muted);
+}
+
+.show > :last-child {
+  font-weight: 700;
+}
+
+.details {
+  margin: var(--space-1) 0 var(--space-2);
+  font-size: 0.875rem;
+}
+
+.kind {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.kind[data-by-user] {
+  color: var(--color-mistake);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.action {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  text-decoration: none;
+  background: var(--color-bg);
+  cursor: pointer;
+}
+
+.error {
+  color: var(--color-danger);
+}

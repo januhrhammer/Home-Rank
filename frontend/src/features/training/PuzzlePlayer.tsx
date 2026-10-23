@@ -200,7 +200,14 @@ function Status({ progress, puzzle }: { progress: Progress; puzzle: Puzzle }) {
   );
 }
 
-function Ratings({ current, onChange }: { current: Rating; onChange: (rating: Rating) => void }) {
+/** The four FSRS ratings as buttons, the current one pressed, to change it. */
+export function Ratings({
+  current,
+  onChange,
+}: {
+  current: Rating;
+  onChange: (rating: Rating) => void;
+}) {
   return (
     <div role="group" aria-labelledby="rating-label" className={styles.ratings}>
       <span id="rating-label" className={styles.label}>
