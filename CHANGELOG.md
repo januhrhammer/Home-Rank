@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.6.0](https://github.com/januhrhammer/Home-Rank/compare/v0.5.0...v0.6.0) (2026-10-23)
+
+
+### Features
+
+* **api:** browse reference databases and explore positions ([#58](https://github.com/januhrhammer/Home-Rank/issues/58)) ([169e928](https://github.com/januhrhammer/Home-Rank/commit/169e928617cf07a15d5931bfff106434094ac9c9))
+* **chesslib:** stream compressed PGN and pack games for reference databases ([#53](https://github.com/januhrhammer/Home-Rank/issues/53)) ([e60fdee](https://github.com/januhrhammer/Home-Rank/commit/e60fdeeaae2c2335f0696227e065e26e0446c895))
+* **explorer:** search positions and explore moves in my games and reference databases ([#57](https://github.com/januhrhammer/Home-Rank/issues/57)) ([2304a5f](https://github.com/januhrhammer/Home-Rank/commit/2304a5f501b4a2ef6b5254eea0536a32136d9c60))
+* **reference:** add reference databases with partitioned, compact storage ([#55](https://github.com/januhrhammer/Home-Rank/issues/55)) ([8328b3f](https://github.com/januhrhammer/Home-Rank/commit/8328b3fcb4833c5e36d4db4f7a28172503127066))
+* **reference:** import large PGN files with a pool of processes ([#56](https://github.com/januhrhammer/Home-Rank/issues/56)) ([f0b2c51](https://github.com/januhrhammer/Home-Rank/commit/f0b2c518ab23a7435b53e87d528f4bb679d8910e))
+* **ui:** explore openings, find positions and browse reference databases ([#59](https://github.com/januhrhammer/Home-Rank/issues/59)) ([cd148e8](https://github.com/januhrhammer/Home-Rank/commit/cd148e87285bf66f99590f24da213e61514b1287))
+
+
+### Performance Improvements
+
+* **explorer:** meet the 200 ms target with 100,000 personal games ([#60](https://github.com/januhrhammer/Home-Rank/issues/60)) ([7f9d655](https://github.com/januhrhammer/Home-Rank/commit/7f9d65563e7277e99cb0eaf105d18a76fb2583ad))
+
 ## [0.5.0](https://github.com/januhrhammer/Home-Rank/compare/v0.4.0...v0.5.0) (2026-10-23)
 
 
