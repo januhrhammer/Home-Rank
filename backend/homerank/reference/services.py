@@ -341,3 +341,7 @@ def copy_game(
     if collection is not None:
         add_games(collection, game_ids=[copy.pk])
     return copy, stored.imported == 1
+
+
+def import_folder() -> Path:
+    return Path(settings.REFERENCE_IMPORT_DIR)

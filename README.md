@@ -22,7 +22,10 @@ explorer.
 > - training with puzzles from your own games: positions where you or your opponent missed a
 >   winning move, repeated with spaced repetition (FSRS) until they stick.
 >
-> Reference databases, position search and an opening explorer come next.
+> - reference databases such as Lumbra's GigaBase (millions of games, imported from compressed
+>   PGN), position search across your games and them, and an opening explorer comparing both.
+>
+> The repertoire trainer comes next.
 
 ## Quick start
 

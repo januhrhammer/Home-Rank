@@ -14,9 +14,9 @@ worker for background jobs, and PostgreSQL.
   source code.
 - About 2 GB of disk for the images, plus your data, and about 250 MB of memory, plus about
   300 MB while a game is analysed ([Engine analysis](#engine-analysis)). Reference databases
-  will need more once they arrive. The image includes Stockfish, the
-  chess engine, with its source code (it is GPL-licensed); `/usr/share/doc/stockfish` in the
-  image holds both.
+  need more: about 1 GB per million games ([Reference databases](#reference-databases)). The
+  image includes Stockfish, the chess engine, with its source code (it is GPL-licensed);
+  `/usr/share/doc/stockfish` in the image holds both.
 
 Tested on x86-64 Linux.
 
@@ -124,6 +124,43 @@ Analysed games are then searched for puzzles: positions where one move clearly w
 compares the best two moves of each candidate at `PUZZLE_DEPTH` (default 20), which takes a few
 seconds per game. The search runs in the same engine slots and hours as automatic analyses, so
 the settings above apply to it as well.
+
+### Reference databases
+
+A reference database is a large collection of games that all users can browse, search by
+position and compare with their own games in the opening explorer, for example
+[Lumbra's GigaBase](https://lumbrasgigabase.com) (over 12 million over-the-board games) or a
+month of the [Lichess database](https://database.lichess.org). Files of several GB aren't
+uploaded through the website; put them into the import folder and import them from there:
+
+1. Put the PGN files into `./import` next to `compose.yaml` (or the folder `HOMERANK_IMPORT_DIR`
+   names in `.env`). `.pgn`, `.pgn.gz`, `.pgn.bz2`, `.pgn.zst` and `.7z` work; they are read as
+   they are decompressed and never unpacked to disk.
+2. Either in the admin (*Reference databases* → add one → *Import files…*), which runs the import
+   on the worker, or in a shell, which shows an estimate first and runs it right there:
+
+   ```sh
+   docker compose exec worker python manage.py import_reference lumbra/otb.7z --name "Lumbra OTB"
+   ```
+
+   Several files can go into one database. An interrupted import resumes where it stopped when
+   started again with the same files. Games already in the database are skipped.
+3. Follow it in the admin under *Reference imports*, or in the shell's output.
+
+How big and how long, measured with 1.5 million Lichess games (January 2015) on a 16-core PC:
+
+| | 1.5 M Lichess games | Estimated for 12 M OTB games |
+|---|---|---|
+| Disk space (games, explorer, position index) | 1.6 GB | about 12 GB |
+| Import with 15 processes | 6 minutes | about 50 minutes |
+| Import with 3 processes on a 4-core mini PC (estimated) | about 30 minutes | about 4 hours |
+
+The importer needs the space while it runs plus about as much again for a few minutes while it
+builds the indexes. Positions are indexed for the first 30 half-moves of each game, which covers
+the openings; a database created in the admin can index more or fewer (`--depth` in the shell),
+and the space for the index grows with it. `REFERENCE_IMPORT_WORKERS` sets the number of
+processes (default: all CPU cores but one). Deleting a database in the admin frees its space at
+once.
 
 ### Changing the database password
 
