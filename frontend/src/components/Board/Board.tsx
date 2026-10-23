@@ -71,6 +71,8 @@ export function Board({
     }
     boardRef.current = Chessground(containerRef.current, {
       ...initialRef.current,
+      // Pieces glide to their new squares, unless the system asks for less motion.
+      animation: { enabled: !window.matchMedia("(prefers-reduced-motion: reduce)").matches },
       movable: {
         free: false,
         showDests: true,
@@ -98,7 +100,7 @@ export function Board({
     };
   }, []);
 
-  // Follow later changes; chessground animates the moves. Without `movable` the board takes no
+  // Follow later changes; chessground animates the moves (see above). Without `movable` the board takes no
   // moves at all; with it, only the given colour's, to the given squares.
   useEffect(() => {
     boardRef.current?.set({
