@@ -3,8 +3,12 @@
 #   1. cp .env.example .env   and fill in the required values
 #   2. docker compose up -d
 #
-# See docs/self-hosting.md for reverse proxies, backups and updates.
+# See docs/self-hosting.md for reverse proxies, backups and updates. To build the image from
+# this repository instead: add `--file compose.yaml --file docker/compose.build.yaml`.
 name: home-rank
+
+# The published image of this release; each release changes the version here.
+x-homerank-image: &homerank-image ghcr.io/januhrhammer/home-rank:0.7.0 # x-release-please-version
 
 # Settings for the website and the worker, from .env. Required ones stop `docker compose up`
 # with a message if missing; optional ones arrive empty when unset, which counts as unset.
@@ -50,14 +54,7 @@ services:
       retries: 10
 
   web:
-    # Built from this repository for now; published images come with the first release. Every
-    # `docker compose up` rebuilds it, which takes seconds when nothing changed and picks up new
-    # code after a `git pull`. Without pull_policy, Compose would first try Docker Hub and fail.
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-    image: home-rank:local
-    pull_policy: build
+    image: *homerank-image
     restart: unless-stopped
     environment: *homerank-environment
     volumes:
@@ -73,9 +70,7 @@ services:
         condition: service_healthy
 
   worker:
-    # The image the web service builds.
-    image: home-rank:local
-    pull_policy: never
+    image: *homerank-image
     command: worker
     restart: unless-stopped
     environment: *homerank-environment

@@ -3,15 +3,10 @@
 Home-Rank runs on your own machine with Docker Compose, in three containers: the website, a
 worker for background jobs, and PostgreSQL.
 
-> Home-Rank is in early development. You can install it and log in, but there is nothing to do
-> yet.
-
 ## Requirements
 
 - [Docker Engine](https://docs.docker.com/engine/install/) with the Compose plugin:
   `docker compose version` must work.
-- git, to download Home-Rank. There are no published images yet, so Compose builds one from the
-  source code.
 - About 2 GB of disk for the images, plus your data, and about 250 MB of memory, plus about
   300 MB while a game is analysed ([Engine analysis](#engine-analysis)). Reference databases
   need more: about 1 GB per million games ([Reference databases](#reference-databases)). The
@@ -22,12 +17,16 @@ Tested on x86-64 Linux.
 
 ## Installation
 
-1. Download Home-Rank:
+1. Make a folder for Home-Rank and download its two files from the latest release:
 
    ```sh
-   git clone https://github.com/januhrhammer/Home-Rank.git
-   cd Home-Rank
+   mkdir home-rank && cd home-rank
+   curl -fLO https://github.com/januhrhammer/Home-Rank/releases/latest/download/compose.yaml
+   curl -fLO https://github.com/januhrhammer/Home-Rank/releases/latest/download/.env.example
    ```
+
+   `compose.yaml` describes the three containers and names the version of Home-Rank to run;
+   `.env.example` lists the settings.
 
 2. Create your settings file and open it in an editor:
 
@@ -51,8 +50,8 @@ Tested on x86-64 Linux.
    docker compose up -d
    ```
 
-   The first start builds the image, which takes a few minutes. Afterwards `docker compose ps`
-   shows all three containers as `healthy`.
+   The first start downloads the images, about 1 GB. Afterwards `docker compose ps` shows all
+   three containers as `healthy`.
 
 4. Create your account:
 
@@ -287,8 +286,8 @@ that haven't been imported yet.) To back it up into one file:
 docker compose exec -T db pg_dump --username=homerank --format=custom homerank > home-rank-$(date +%F).dump
 ```
 
-Keep the backup somewhere other than this machine, together with a copy of `.env`: without the
-same `SECRET_KEY`, everyone has to log in again.
+Keep the backup somewhere other than this machine, together with a copy of `.env` and
+`compose.yaml`: without the same `SECRET_KEY`, everyone has to log in again.
 
 To restore a backup, stop Home-Rank, replace the database's contents, and start it again:
 
@@ -299,24 +298,43 @@ docker compose up -d
 ```
 
 This replaces everything, including what was added after the backup. On a new machine, install
-Home-Rank with the saved `.env`, start only the database with `docker compose up -d db`, then run
+Home-Rank with the saved `.env` and `compose.yaml`, start only the database with `docker compose up -d db`, then run
 the last two commands. Restore with the same version of Home-Rank as the backup, or a newer one:
 the website updates an older database when it starts.
 
 ## Updating
 
-[Back up](#backup-and-restore) first, then:
+[Back up](#backup-and-restore) first. Then, in Home-Rank's folder, download the `compose.yaml`
+of the latest release, which names the new version, and start it:
 
 ```sh
-git pull                      # the new version of Home-Rank
-docker compose pull           # the newest PostgreSQL 18 release
-docker compose build --pull   # rebuild Home-Rank, with updates to its base images
-docker compose up -d          # restart what changed
+curl -fLO https://github.com/januhrhammer/Home-Rank/releases/latest/download/compose.yaml
+docker compose pull    # the new version, and the newest PostgreSQL 18 release
+docker compose up -d   # restart what changed
 ```
+
+Your `.env` stays as it is. The [release notes](https://github.com/januhrhammer/Home-Rank/releases)
+list new settings; the release's `.env.example` explains them. The version to run is in the
+`x-homerank-image` line of `compose.yaml`. To go back to an older one, put its version there and
+[restore](#backup-and-restore) the backup made before the update: an older version can't read a
+database that a newer one has updated.
 
 When the website starts, it updates the database to the new version before it accepts requests,
 and the worker waits until it has. Each update leaves the previous image behind;
 `docker image prune` removes such leftovers.
+
+### Running your own build
+
+To run Home-Rank built from its source code instead, e.g. with your own changes, clone the
+repository, put your `.env` there, and add the build file to every `docker compose` command:
+
+```sh
+git clone https://github.com/januhrhammer/Home-Rank.git
+cd Home-Rank
+docker compose --file compose.yaml --file docker/compose.build.yaml up -d
+```
+
+Every `up` rebuilds the image, which takes a few minutes the first time.
 
 ## Uninstalling
 

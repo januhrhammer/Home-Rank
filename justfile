@@ -170,11 +170,11 @@ test-frontend *args:
 e2e *args:
     #!/usr/bin/env bash
     set -euo pipefail
-    # compose.yaml, as self-hosters run it, but as its own project with its own containers and
-    # volumes, so it never touches a local installation. Its settings come from a file of its
-    # own instead of .env.
+    # compose.yaml, as self-hosters run it, but with the image built from this checkout, and as
+    # its own project with its own containers and volumes, so it never touches a local
+    # installation. Its settings come from a file of its own instead of .env.
     env_file=$(mktemp)
-    compose=(docker compose --file ../compose.yaml --project-name home-rank-e2e --env-file "$env_file")
+    compose=(docker compose --file ../compose.yaml --file ../docker/compose.build.yaml --project-name home-rank-e2e --env-file "$env_file")
     trap '"${compose[@]}" down --volumes --remove-orphans; rm -f "$env_file"' EXIT
     {
         echo "SECRET_KEY=$(openssl rand -hex 32)"

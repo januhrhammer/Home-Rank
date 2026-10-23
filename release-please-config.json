@@ -6,7 +6,8 @@
   "include-component-in-tag": false,
   "packages": {
     ".": {
-      "package-name": "home-rank"
+      "package-name": "home-rank",
+      "extra-files": ["compose.yaml"]
     }
   }
 }

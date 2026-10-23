@@ -7,10 +7,11 @@
 # 2. Merging that pull request tags the version (v0.2.0) and creates the GitHub release. This
 #    workflow then builds the Docker image for amd64 and arm64 and publishes it as
 #    ghcr.io/<owner>/home-rank:0.2.0, :0.2 and :latest, with an SBOM, build provenance and a
-#    signature.
+#    signature. Once it is published, compose.yaml and .env.example are attached to the release:
+#    self-hosters download them from there (docs/self-hosting.md).
 #
 # Configuration: release-please-config.json; .release-please-manifest.json holds the current
-# version.
+# version. The release pull request also updates the image version in compose.yaml.
 name: Release
 
 on:
@@ -99,3 +100,21 @@ jobs:
         env:
           DIGEST: ${{ steps.build.outputs.digest }}
         run: cosign sign --yes "$IMAGE@$DIGEST"
+
+  files:
+    name: Attach the Compose files
+    # Only after the image is published: the compose.yaml of the latest release must never point
+    # at an image that doesn't exist yet.
+    needs: [release-please, image]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write # to add files to the release
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Attach compose.yaml and .env.example
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release-please.outputs.tag }}
+        run: gh release upload "$TAG" compose.yaml .env.example --clobber

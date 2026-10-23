@@ -33,8 +33,9 @@ explorer.
 With Docker and the Compose plugin installed:
 
 ```sh
-git clone https://github.com/januhrhammer/Home-Rank.git
-cd Home-Rank
+mkdir home-rank && cd home-rank
+curl -fLO https://github.com/januhrhammer/Home-Rank/releases/latest/download/compose.yaml
+curl -fLO https://github.com/januhrhammer/Home-Rank/releases/latest/download/.env.example
 cp .env.example .env   # then fill in the four required values at the top
 docker compose up -d
 docker compose exec web python manage.py createsuperuser

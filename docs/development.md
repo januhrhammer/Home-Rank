@@ -68,8 +68,9 @@ Django uses port 8100 rather than its usual 8000, which other local projects oft
 `just e2e` tests the whole app in a real browser (Chromium, driven by
 [Playwright](https://playwright.dev)): it starts `compose.yaml` as a separate Compose project
 (`home-rank-e2e`, on <http://localhost:8104>), with an empty database and an account of its own,
-runs the tests in `frontend/e2e/`, and removes the containers and their data again. It builds the
-Docker image first, so the first run takes a few minutes; later ones about a minute.
+runs the tests in `frontend/e2e/`, and removes the containers and their data again. Instead of
+the published image it builds one from your checkout (`docker/compose.build.yaml`), so the first
+run takes a few minutes; later ones about a minute.
 
 Before the first run, download Playwright's browser once: `pnpm exec playwright install chromium`
 in `frontend/`. Arguments go to Playwright: `just e2e --headed` shows the browser,
@@ -109,7 +110,10 @@ It keeps a release pull request open with the next version number and its `CHANG
 `feat` commits raise the minor version, `fix` the patch version, and while Home-Rank is 0.x
 breaking changes raise the minor version too. Merging that pull request tags the version,
 creates the GitHub release and publishes the Docker image for amd64 and arm64 as
-`ghcr.io/januhrhammer/home-rank`, signed with cosign and with an SBOM attached.
+`ghcr.io/januhrhammer/home-rank`, signed with cosign and with an SBOM attached. The release pull
+request also raises the image version in `compose.yaml` (the line marked
+`x-release-please-version`); once the image is published, `compose.yaml` and `.env.example` are
+attached to the release, where self-hosters download them.
 
 ## Settings and configuration
 
