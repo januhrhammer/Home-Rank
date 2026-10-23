@@ -6,6 +6,7 @@ here and in those modules only, through config/env.py; the rest of the code uses
 django.conf.settings.
 """
 
+import os
 from datetime import timedelta
 from pathlib import Path
 
@@ -126,6 +127,12 @@ FRONTEND_DIR = BASE_DIR.parent / "frontend" / "dist"
 # Files kept outside the database: uploaded PGN files waiting for their import job. The website
 # and the worker must share it, as /data in Docker; locally it is the data/ folder.
 DATA_DIR = Path(env.string("DATA_DIR", default=str(BASE_DIR.parent / "data")))
+# Reference databases (docs/adr/0015-reference-databases.md): the folder their PGN files are
+# imported from (multi-GB files are put there, not uploaded), and how many processes parse them.
+REFERENCE_IMPORT_DIR = Path(env.string("REFERENCE_IMPORT_DIR", default=str(DATA_DIR / "import")))
+REFERENCE_IMPORT_WORKERS = max(
+    1, env.integer("REFERENCE_IMPORT_WORKERS", default=max(1, (os.cpu_count() or 2) - 1))
+)
 # The largest PGN file a user may upload, in MB: 200 MB hold 70,000 games with clock comments
 # (as exported by Chess.com and Lichess) or about 350,000 without.
 IMPORT_MAX_BYTES = env.integer("IMPORT_MAX_MB", default=200) * 1024 * 1024

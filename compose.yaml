@@ -29,6 +29,7 @@ x-homerank-environment: &homerank-environment
   ANALYSIS_CONCURRENCY: ${ANALYSIS_CONCURRENCY:-}
   ANALYSIS_HOURS: ${ANALYSIS_HOURS:-}
   PUZZLE_DEPTH: ${PUZZLE_DEPTH:-}
+  REFERENCE_IMPORT_WORKERS: ${REFERENCE_IMPORT_WORKERS:-}
   TIME_ZONE: ${TIME_ZONE:-}
 
 services:
@@ -62,6 +63,8 @@ services:
     volumes:
       # Uploaded PGN files, saved by the website and imported by the worker.
       - data:/data
+      # Large PGN files for reference databases, put here on the host (read only).
+      - ${HOMERANK_IMPORT_DIR:-./import}:/data/import:ro
     ports:
       # Host port, e.g. 127.0.0.1:8000 to reach it only through a reverse proxy on this machine.
       - "${HOMERANK_PORT:-8000}:8000"
@@ -78,6 +81,7 @@ services:
     environment: *homerank-environment
     volumes:
       - data:/data
+      - ${HOMERANK_IMPORT_DIR:-./import}:/data/import:ro
     # The image's own health check asks the website; the worker checks its database instead.
     healthcheck:
       test: ["CMD", "python", "manage.py", "procrastinate", "healthchecks"]

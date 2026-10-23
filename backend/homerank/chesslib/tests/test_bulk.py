@@ -1,7 +1,14 @@
 import chess
 import chess.polyglot
 
-from homerank.chesslib.bulk import BulkError, BulkGame, parse_game
+from homerank.chesslib.bulk import (
+    BulkError,
+    BulkGame,
+    parse_chunk,
+    parse_game,
+    positions_from_packed,
+    reindex_chunk,
+)
 from homerank.chesslib.packed import encode_move, unpack_moves
 from homerank.chesslib.positions import as_bigint
 
@@ -55,3 +62,22 @@ def test_a_broken_game_says_why() -> None:
 
 def test_no_game_at_all() -> None:
     assert parse_game(b"\n\n") == BulkError("no game found")
+
+
+def test_a_chunk_keeps_its_offsets_and_order() -> None:
+    results = parse_chunk([(0, FOOLS_MATE), (120, b'[White "X"]\n\n1. e5 *\n')])
+
+    assert [offset for offset, _ in results] == [0, 120]
+    assert isinstance(results[0][1], BulkGame)
+    assert isinstance(results[1][1], BulkError)
+
+
+def test_stored_games_give_the_same_positions_again() -> None:
+    game = parse_game(FOOLS_MATE)
+    assert isinstance(game, BulkGame)
+
+    assert positions_from_packed(game.start_fen, game.moves) == game.positions
+    assert reindex_chunk([(7, game.start_fen, game.moves)], depth=1) == [
+        (7, game.positions[0].zobrist, 0, game.positions[0].next_move),
+        (7, game.positions[1].zobrist, 1, game.positions[1].next_move),
+    ]
