@@ -113,7 +113,8 @@ creates the GitHub release and publishes the Docker image for amd64 and arm64 as
 `ghcr.io/januhrhammer/home-rank`, signed with cosign and with an SBOM attached. The release pull
 request also raises the image version in `compose.yaml` (the line marked
 `x-release-please-version`); once the image is published, `compose.yaml` and `.env.example` are
-attached to the release, where self-hosters download them.
+attached to the release (the latter as `env.example`: GitHub renames files that start with a
+dot), where self-hosters download them.
 
 ## Settings and configuration
 

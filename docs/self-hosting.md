@@ -22,7 +22,7 @@ Tested on x86-64 Linux.
    ```sh
    mkdir home-rank && cd home-rank
    curl -fLO https://github.com/januhrhammer/Home-Rank/releases/latest/download/compose.yaml
-   curl -fLO https://github.com/januhrhammer/Home-Rank/releases/latest/download/.env.example
+   curl -fL -o .env.example https://github.com/januhrhammer/Home-Rank/releases/latest/download/env.example
    ```
 
    `compose.yaml` describes the three containers and names the version of Home-Rank to run;

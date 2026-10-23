@@ -35,7 +35,7 @@ With Docker and the Compose plugin installed:
 ```sh
 mkdir home-rank && cd home-rank
 curl -fLO https://github.com/januhrhammer/Home-Rank/releases/latest/download/compose.yaml
-curl -fLO https://github.com/januhrhammer/Home-Rank/releases/latest/download/.env.example
+curl -fL -o .env.example https://github.com/januhrhammer/Home-Rank/releases/latest/download/env.example
 cp .env.example .env   # then fill in the four required values at the top
 docker compose up -d
 docker compose exec web python manage.py createsuperuser
