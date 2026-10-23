@@ -1,6 +1,6 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { http, HttpResponse } from "msw";
+import { delay, http, HttpResponse } from "msw";
 import { expect, test } from "vitest";
 
 import { renderApp } from "../../test/render";
@@ -32,6 +32,39 @@ test("logging in leads to the start page and remembers the user", async () => {
 
   expect(await screen.findByRole("heading", { name: "Home-Rank" })).toBeInTheDocument();
   expect(queryClient.getQueryData(currentUserQuery.queryKey)).toEqual(alice);
+});
+
+test("a check of the user still under way when the login succeeds doesn't undo it", async () => {
+  // As on a busy server: asking who is logged in takes a while, and the answer is the one of
+  // the moment the request was made, here before the login.
+  let loggedIn = false;
+  server.use(
+    http.get("*/api/v1/auth/me", async () => {
+      const answer = loggedIn ? HttpResponse.json(alice) : new HttpResponse(null, { status: 401 });
+      await delay(300);
+      return answer;
+    }),
+    http.get("*/api/v1/auth/csrf", () => new HttpResponse(null, { status: 204 })),
+    http.post("*/api/v1/auth/login", () => {
+      loggedIn = true;
+      return HttpResponse.json(alice);
+    }),
+  );
+  const { queryClient } = renderApp("/login");
+  const user = userEvent.setup();
+  await user.type(await screen.findByLabelText("Username"), "alice");
+  await user.type(screen.getByLabelText("Password"), "correct horse battery staple");
+
+  // A check starts (e.g. the browser tab got the focus again), and the login overtakes it.
+  void queryClient.invalidateQueries({ queryKey: currentUserQuery.queryKey });
+  await user.click(screen.getByRole("button", { name: "Log in" }));
+
+  expect(await screen.findByRole("heading", { name: "Home-Rank" })).toBeInTheDocument();
+  await waitFor(() => {
+    expect(queryClient.isFetching({ queryKey: currentUserQuery.queryKey })).toBe(0);
+  });
+  expect(queryClient.getQueryData(currentUserQuery.queryKey)).toEqual(alice);
+  expect(screen.queryByRole("heading", { name: "Log in" })).not.toBeInTheDocument();
 });
 
 test("wrong credentials show a message and stay on the page", async () => {

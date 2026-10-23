@@ -23,7 +23,10 @@ export function useLogin() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: logIn,
-    onSuccess: (user) => {
+    onSuccess: async (user) => {
+      // A check of who is logged in may still be under way, asked before the login: its late
+      // "nobody" would undo the login. Drop it, then store the user.
+      await queryClient.cancelQueries({ queryKey: currentUserQuery.queryKey });
       queryClient.setQueryData(currentUserQuery.queryKey, user);
     },
   });
