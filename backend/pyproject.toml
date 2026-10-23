@@ -14,6 +14,8 @@ dependencies = [
     "fsrs>=6.3.2",
     "gunicorn>=26.2.0",
     "httpx>=0.28.1",
+    "numpy>=2.3",
+    "onnxruntime>=1.31.0",
     "procrastinate[django]>=3.10.0",
     "psycopg[binary]>=3.3.6",
     "py7zr>=1.1.4",
@@ -71,8 +73,9 @@ select = [
 # Generated migrations: Django writes help texts as long strings that can't be wrapped, and its
 # Migration class declares dependencies/operations as plain class-level lists by design.
 "**/migrations/*.py" = ["E501", "RUF012"]
-# pytest works with plain assert statements, and tests use fake secrets and passwords.
-"**/tests/**" = ["S101", "S105", "S106"]
+# pytest works with plain assert statements, and tests use fake secrets and passwords, and
+# seeded random numbers (for repeatable results, not security).
+"**/tests/**" = ["S101", "S105", "S106", "S311"]
 
 [tool.mypy]
 strict = true
@@ -80,8 +83,8 @@ files = ["."]
 plugins = ["mypy_django_plugin.main", "pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-# django-environ and django-axes ship no type information.
-module = ["environ", "axes.*"]
+# django-environ, django-axes and onnxruntime ship no type information.
+module = ["environ", "axes.*", "onnxruntime"]
 ignore_missing_imports = true
 
 [tool.django-stubs]
@@ -120,7 +123,10 @@ strict = true
 # Turn warnings into errors, so deprecations in our dependencies surface while they're easy to
 # fix. A warning we can't fix gets a specific "ignore:..." entry here, with the reason.
 filterwarnings = ["error"]
-markers = ["engine: runs Stockfish (`just stockfish` downloads it)"]
+markers = [
+    "engine: runs Stockfish (`just stockfish` downloads it)",
+    "maia: runs Maia, the human-like model (`just maia` downloads it)",
+]
 
 [tool.coverage.run]
 # Measured with `just test-backend --cov` (CI does). Tests and migrations aren't code under test.
