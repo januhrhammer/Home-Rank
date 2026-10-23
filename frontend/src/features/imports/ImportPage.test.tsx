@@ -44,7 +44,10 @@ function simulateImports(...pages: Import[][]) {
 
 function openImportPage({ playerNames = ["Alice"] } = {}) {
   simulateAuth(alice, { loggedIn: true });
-  server.use(http.get("*/api/v1/settings", () => HttpResponse.json({ player_names: playerNames })));
+  server.use(
+    http.get("*/api/v1/settings", () => HttpResponse.json({ player_names: playerNames })),
+    http.get("*/api/v1/sync/accounts", () => HttpResponse.json({ items: [], total: 0 })),
+  );
   return renderApp("/import");
 }
 

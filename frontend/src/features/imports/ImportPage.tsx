@@ -15,6 +15,7 @@ import { Link } from "react-router";
 
 import { t } from "../../lib/i18n";
 import { settingsQuery } from "../settings";
+import { LinkedAccounts } from "../sync";
 import styles from "./ImportPage.module.css";
 import { type Import, isActive, uploadErrorMessage, useImports, useUpload } from "./imports";
 
@@ -43,6 +44,8 @@ export function ImportPage() {
   return (
     <div className={styles.page}>
       <h1>{t("import.title")}</h1>
+      <LinkedAccounts />
+      <h2>{t("import.fromFile")}</h2>
       <p className={styles.intro}>{t("import.intro")}</p>
       <PlayerNamesHint />
       <UploadZone onFile={start} isDisabled={upload.isPending} />

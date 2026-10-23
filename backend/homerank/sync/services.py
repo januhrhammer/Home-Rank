@@ -118,7 +118,9 @@ def _active_run(account: LinkedAccount) -> SyncRun | None:
         if job_alive:
             return run
         run.status = SyncRun.Status.FAILED
-        run.errors.append({"game": None, "reason": "The sync stopped unexpectedly."})
+        run.errors.append(
+            {"game": None, "reason": "The background worker stopped during the sync."}
+        )
         run.finished_at = timezone.now()
         run.save(update_fields=["status", "errors", "finished_at"])
     return None
@@ -146,7 +148,8 @@ def run_sync(*, sync_run_id: int) -> None:
         # The job's boundary: record why the sync stopped. Expected problems, such as a
         # misspelt username or the site being down, need no stack trace in the worker's log.
         run.status = SyncRun.Status.FAILED
-        run.errors.append({"game": None, "reason": f"The sync stopped: {error}"})
+        # The app shows it after "Sync stopped".
+        run.errors.append({"game": None, "reason": str(error)})
         if not isinstance(error, EXPECTED_ERRORS):
             raise
     else:

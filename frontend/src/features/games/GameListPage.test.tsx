@@ -99,12 +99,13 @@ test("shows only what is known of a date", () => {
 
 test("the address holds the filters, the sort and the page", async () => {
   const api = simulateGames([aGame()], 120);
-  openGames("/games?outcome=loss&time_class=blitz&sort=white&page=2");
+  openGames("/games?outcome=loss&time_class=blitz&source=lichess&sort=white&page=2");
 
   await screen.findByRole("grid");
 
   const query = api.latest();
   expect(query.get("outcome")).toBe("loss");
+  expect(query.get("source")).toBe("lichess");
   expect(query.get("time_class")).toBe("blitz");
   expect(query.get("sort")).toBe("white");
   expect([query.get("limit"), query.get("offset")]).toEqual(["50", "50"]);
@@ -113,11 +114,12 @@ test("the address holds the filters, the sort and the page", async () => {
 
 test("invalid values in the address are ignored", async () => {
   const api = simulateGames([aGame()]);
-  openGames("/games?color=green&page=x&sort=pgn");
+  openGames("/games?color=green&source=chess24&page=x&sort=pgn");
 
   await screen.findByRole("grid");
 
   expect(api.latest().get("color")).toBeNull();
+  expect(api.latest().get("source")).toBeNull();
   expect(api.latest().get("offset")).toBe("0");
   expect(api.latest().get("sort")).toBe("-date");
 });
