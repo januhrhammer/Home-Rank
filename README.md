@@ -14,9 +14,10 @@ explorer.
 > - a game list to search and filter by player, your side and result, opening, time control,
 >   date, tags and collections;
 > - a viewer with the moves set like a chess book, figurines, variations and comments;
-> - tags and collections, and PGN export of one game, a selection or a collection.
+> - tags and collections, and PGN export of one game, a selection or a collection;
+> - syncing your games from Lichess and Chess.com, every few hours or at the press of a button.
 >
-> Syncing from Lichess and Chess.com, engine analysis and training come in the next releases.
+> Engine analysis and training come in the next releases.
 
 ## Quick start
 
