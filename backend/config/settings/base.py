@@ -144,6 +144,10 @@ IMPORT_MAX_BYTES = env.integer("IMPORT_MAX_MB", default=200) * 1024 * 1024
 # PATH; locally, `just stockfish` downloads it to .tools/, where dev.py and test.py look.
 STOCKFISH_PATH = env.string("STOCKFISH_PATH", default="stockfish")
 
+# Maia, the model behind the human-like bot (docs/adr/0017-maia-bot.md). The Docker image has
+# it at this path; locally, `just maia` downloads it to .tools/, where dev.py and test.py look.
+MAIA_PATH = env.string("MAIA_PATH", default="/usr/local/share/maia/maia3-5m.onnx")
+
 # Engine analysis (docs/adr/0013-engine-analysis.md). Stockfish's CPU threads and hash table
 # (MB) per analysis, and how deep it searches each position by default. Users may ask for
 # deeper analyses of single games, up to ANALYSIS_MAX_DEPTH.

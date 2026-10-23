@@ -29,3 +29,6 @@ DATABASES = {
 STOCKFISH_PATH = env.string(
     "STOCKFISH_PATH", default=str(BASE_DIR.parent / ".tools" / "stockfish" / "stockfish")
 )
+MAIA_PATH = env.string(
+    "MAIA_PATH", default=str(BASE_DIR.parent / ".tools" / "maia" / "maia3-5m.onnx")
+)
