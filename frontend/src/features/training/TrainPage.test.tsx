@@ -6,6 +6,7 @@ import { expect, test } from "vitest";
 import { renderApp } from "../../test/render";
 import { server, simulateAuth } from "../../test/server";
 import type { User } from "../auth";
+import { formatGameDate } from "../games";
 import type { Puzzle } from "./training";
 
 const alice: User = { id: 1, username: "alice", email: "", is_staff: false };
@@ -97,6 +98,26 @@ async function play(move: string) {
   await user.click(screen.getByRole("button", { name: "Play" }));
 }
 
+test("the link to the puzzle's game shows what is known of its date", async () => {
+  const puzzle = aPuzzle();
+  simulateTraining(aPuzzle({ game: { ...puzzle.game, date_pgn: "1960.??.??" } }));
+  openTraining();
+
+  expect(
+    await screen.findByRole("link", { name: "From your game alice64 – bob_b, 1960" }),
+  ).toBeInTheDocument();
+});
+
+test("without a date the link leaves it out", async () => {
+  const puzzle = aPuzzle();
+  simulateTraining(aPuzzle({ game: { ...puzzle.game, date_pgn: "????.??.??" } }));
+  openTraining();
+
+  expect(
+    await screen.findByRole("link", { name: "From your game alice64 – bob_b" }),
+  ).toBeInTheDocument();
+});
+
 test("solving a puzzle records it and offers the rating to change", async () => {
   const received = simulateTraining(aPuzzle());
   openTraining();
@@ -105,10 +126,11 @@ test("solving a puzzle records it and offers the rating to change", async () => 
     await screen.findByRole("heading", { name: "Find the best move for White" }),
   ).toBeVisible();
   expect(screen.getByText("Your opponent blundered, and you punished it.")).toBeVisible();
-  expect(screen.getByRole("link", { name: /alice64 – bob_b, 2026.10.01/ })).toHaveAttribute(
-    "href",
-    "/games/7",
-  );
+  expect(
+    screen.getByRole("link", {
+      name: `From your game alice64 – bob_b, ${formatGameDate("2026.10.01")}`,
+    }),
+  ).toHaveAttribute("href", "/games/7");
   await play("Qxf7#");
 
   expect(await screen.findByText("Solved!")).toBeVisible();

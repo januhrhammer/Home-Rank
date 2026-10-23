@@ -5,6 +5,7 @@ import { Link } from "react-router";
 import { Board } from "../../components/Board";
 import { t } from "../../lib/i18n";
 import { sanLine } from "../analysis";
+import { formatGameDate } from "../games";
 import {
   begin,
   boardMove,
@@ -43,6 +44,7 @@ export function PuzzlePlayer({ puzzle, onNext }: PuzzlePlayerProps) {
   const changeRating = useChangeRating();
   const timerRef = useRef<number | undefined>(undefined);
   const solver = turnOf(puzzle.fen);
+  const date = formatGameDate(puzzle.game.date_pgn);
 
   // No reply may arrive after the puzzle is gone.
   useEffect(
@@ -133,10 +135,10 @@ export function PuzzlePlayer({ puzzle, onNext }: PuzzlePlayerProps) {
         )}
         <p className={styles.source}>
           <Link to={`/games/${String(puzzle.game.id)}`}>
-            {t("training.fromGame", {
+            {t(date ? "training.fromGame" : "training.fromUndatedGame", {
               white: puzzle.game.white || "?",
               black: puzzle.game.black || "?",
-              date: puzzle.game.date_pgn,
+              date,
             })}
           </Link>
         </p>
