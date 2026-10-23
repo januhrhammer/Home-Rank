@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.8.0](https://github.com/januhrhammer/Home-Rank/compare/v0.7.0...v0.8.0) (2026-10-23)
+
+
+### Features
+
+* **ui:** add a favicon ([#69](https://github.com/januhrhammer/Home-Rank/issues/69)) ([4cb1a58](https://github.com/januhrhammer/Home-Rank/commit/4cb1a58cc1cbcdb9ef32af36ea77fb78ed2e5fb5))
+* **ui:** fit the game list on phones ([#73](https://github.com/januhrhammer/Home-Rank/issues/73)) ([1e8876c](https://github.com/januhrhammer/Home-Rank/commit/1e8876cc1d2cc9fec704b374c2f378d7a0bd5d20))
+* **ui:** fold the header into a menu on phones ([#72](https://github.com/januhrhammer/Home-Rank/issues/72)) ([1d34c6a](https://github.com/januhrhammer/Home-Rank/commit/1d34c6acbf5b60fa4a6443f42a11656060bbfdab))
+* **ui:** type moves into the repertoire editor ([#77](https://github.com/januhrhammer/Home-Rank/issues/77)) ([7b2196b](https://github.com/januhrhammer/Home-Rank/commit/7b2196b1d4392ea9bbe62a27d4f098db596d6b44))
+
+
+### Bug Fixes
+
+* **auth:** keep a login that overtakes a check of who is logged in ([#83](https://github.com/januhrhammer/Home-Rank/issues/83)) ([7f16d37](https://github.com/januhrhammer/Home-Rank/commit/7f16d37762a5d6af5ddf4fad9944796fe4122caa))
+* **release:** attach .env.example as env.example ([#70](https://github.com/januhrhammer/Home-Rank/issues/70)) ([3b348bf](https://github.com/januhrhammer/Home-Rank/commit/3b348bf621bbe063defe47bb6e0d80d554238e35))
+* **ui:** keep the board's letters and the database table on phones ([#74](https://github.com/januhrhammer/Home-Rank/issues/74)) ([7d9dfe7](https://github.com/januhrhammer/Home-Rank/commit/7d9dfe7b76236f2d7ddb1fa18b6ea05e770fcc7c))
+* **ui:** show a puzzle's game date as the game list does ([#81](https://github.com/januhrhammer/Home-Rank/issues/81)) ([df495f6](https://github.com/januhrhammer/Home-Rank/commit/df495f6614990a388bb14e75df9cf2040f8a1c0c))
+* **ui:** show keyboard focus in dropdowns and calm the board ([#76](https://github.com/januhrhammer/Home-Rank/issues/76)) ([58dc7e8](https://github.com/januhrhammer/Home-Rank/commit/58dc7e836465a1317c5365e4d0232198331ab3b7))
+
+
+### Performance Improvements
+
+* **ui:** download each page when it is first shown ([#79](https://github.com/januhrhammer/Home-Rank/issues/79)) ([e6c6f39](https://github.com/januhrhammer/Home-Rank/commit/e6c6f3944a1ecfe5cc84f4ddd8b75f37b19cb366))
+
 ## [0.7.0](https://github.com/januhrhammer/Home-Rank/compare/v0.6.0...v0.7.0) (2026-10-23)
 
 
