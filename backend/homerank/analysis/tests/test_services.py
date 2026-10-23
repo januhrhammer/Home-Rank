@@ -14,7 +14,7 @@ from homerank.analysis.models import AnalysisRun, GameAnalysis, PositionEval
 from homerank.analysis.services import DepthTooLargeError, run_analysis, start_analysis
 from homerank.chesslib.pgn import PgnGame, read_pgn
 from homerank.games.models import Game
-from homerank.games.services import new_game, store_games
+from homerank.games.services import GamesNotFoundError, new_game, store_games
 
 pytestmark = pytest.mark.django_db
 
@@ -110,7 +110,9 @@ def test_only_your_own_games_can_be_chosen(alice: User) -> None:
     bob = User.objects.create_user(username="bob")
     mine, bobs = a_game(alice), a_game(bob)
 
-    assert services.games_of(alice, [mine.pk, bobs.pk]) == [mine]
+    assert services.games_of(alice, [mine.pk]) == [mine]
+    with pytest.raises(GamesNotFoundError):
+        services.games_of(alice, [mine.pk, bobs.pk])  # all or nothing
 
 
 # ---------------------------------------------------------------- the job

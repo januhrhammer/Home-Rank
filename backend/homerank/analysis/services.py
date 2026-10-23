@@ -21,11 +21,13 @@ from procrastinate.contrib.django import app
 
 from homerank.accounts.models import User
 from homerank.analysis.models import AnalysisRun, AnalysisSettings, GameAnalysis, PositionEval
+from homerank.analysis.selectors import settings_of
 from homerank.core.errors import DomainError
 from homerank.engine.analysis import PositionAnalysis, analyse_game
 from homerank.engine.evaluation import game_accuracy
 from homerank.engine.uci import open_engine
 from homerank.games.models import Game
+from homerank.games.services import GamesNotFoundError
 
 logger = structlog.get_logger(__name__)
 
@@ -42,12 +44,6 @@ class DepthTooLargeError(DomainError):
     def __init__(self) -> None:
         self.detail = f"The depth can be at most {settings.ANALYSIS_MAX_DEPTH}."
         super().__init__(self.detail)
-
-
-def settings_of(user: User) -> AnalysisSettings:
-    """The user's analysis settings; the defaults (unsaved) if they never changed them."""
-    found = AnalysisSettings.objects.filter(user=user).first()
-    return found or AnalysisSettings(user=user)
 
 
 def start_analysis(
@@ -241,5 +237,25 @@ def queue_auto_analyses() -> int:
 
 
 def games_of(user: User, game_ids: Iterable[int]) -> list[Game]:
-    """The user's games among these; others' are left out."""
-    return list(Game.objects.filter(user=user, pk__in=list(game_ids)))
+    """The user's games with these ids; 404 if one of them isn't theirs."""
+    wanted = set(game_ids)
+    games = list(Game.objects.filter(user=user, pk__in=wanted))
+    if len(games) != len(wanted):
+        raise GamesNotFoundError
+    return games
+
+
+class ThresholdsOrderError(DomainError):
+    status = HTTPStatus.UNPROCESSABLE_ENTITY
+    detail = "Inaccuracies need a smaller loss than mistakes, and mistakes than blunders."
+
+
+def update_settings(*, user: User, **changes: object) -> AnalysisSettings:
+    """Change the given settings, e.g. update_settings(user=u, blunder=25.0)."""
+    found = settings_of(user)
+    for name, value in changes.items():
+        setattr(found, name, value)
+    if not found.inaccuracy < found.mistake < found.blunder:
+        raise ThresholdsOrderError
+    found.save()
+    return found
