@@ -226,6 +226,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/explorer/my": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Explorer
+         * @description The moves you played from the position, with their results.
+         */
+        get: operations["homerank_explorer_api_my_explorer"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/explorer/reference/{database_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Reference Explorer
+         * @description The moves played from the position in a reference database, with their results.
+         */
+        get: operations["homerank_explorer_api_reference_explorer"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/explorer/search/my": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search My Games
+         * @description Your games reaching the position, newest first, 50 a page.
+         */
+        get: operations["homerank_explorer_api_search_my_games"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/explorer/search/reference/{database_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search Reference
+         * @description A reference database's games reaching the position, newest first, 50 a page.
+         */
+        get: operations["homerank_explorer_api_search_reference"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/games": {
         parameters: {
             query?: never;
@@ -348,6 +428,87 @@ export interface paths {
         get: operations["homerank_games_api_download_game"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reference/databases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Databases
+         * @description The reference databases, shared by all users; an admin imports them.
+         */
+        get: operations["homerank_reference_api_list_databases"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reference/databases/{database_id}/games": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Games
+         * @description A database's games, filtered, newest first.
+         */
+        get: operations["homerank_reference_api_list_games"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reference/databases/{database_id}/games/{game_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Game
+         * @description One game, with its PGN.
+         */
+        get: operations["homerank_reference_api_get_game"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reference/databases/{database_id}/games/{game_id}/copy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Copy Game
+         * @description Copy a game into your games (201), or find the copy you have (200); optionally add it to
+         *     one of your collections (404 if it isn't yours).
+         */
+        post: operations["homerank_reference_api_copy_game"];
         delete?: never;
         options?: never;
         head?: never;
@@ -746,6 +907,35 @@ export interface components {
             /** Name */
             name?: string | null;
         };
+        /** CopyIn */
+        CopyIn: {
+            /**
+             * Collection
+             * @description Also add the copy to this collection
+             */
+            collection?: number | null;
+        };
+        /** CopyOut */
+        CopyOut: {
+            /** Created */
+            created: boolean;
+            /** Game Id */
+            game_id: number;
+        };
+        /**
+         * DatabaseStatus
+         * @enum {string}
+         */
+        DatabaseStatus: "empty" | "importing" | "ready" | "failed";
+        /** ExplorerOut */
+        ExplorerOut: {
+            /** Filtered */
+            filtered: boolean;
+            /** Games */
+            games: number;
+            /** Moves */
+            moves: components["schemas"]["MoveStatsOut"][];
+        };
         /**
          * GameAnalysisOut
          * @description A game's analysis: the latest job, the summary, and every position.
@@ -1030,6 +1220,95 @@ export interface components {
          * @enum {string}
          */
         MoveClass: "good" | "inaccuracy" | "mistake" | "blunder";
+        /** MoveStatsOut */
+        MoveStatsOut: {
+            /** Average Rating */
+            average_rating: number | null;
+            /** Black */
+            black: number;
+            /** Draws */
+            draws: number;
+            /** Games */
+            games: number;
+            /** Last Played */
+            last_played: string | null;
+            /** San */
+            san: string;
+            /** Uci */
+            uci: string;
+            /** White */
+            white: number;
+        };
+        /** MyFoundGame */
+        MyFoundGame: {
+            /** Black */
+            black: string;
+            /** Black Elo */
+            black_elo: number | null;
+            /** Date */
+            date: string | null;
+            /** Date Pgn */
+            date_pgn: string;
+            /** Eco */
+            eco: string;
+            /** Event */
+            event: string;
+            /** Id */
+            id: number;
+            /**
+             * Imported At
+             * Format: date-time
+             */
+            imported_at: string;
+            /** Opening */
+            opening: string;
+            /** Ply */
+            ply: number;
+            /** Ply Count */
+            ply_count: number;
+            /** Result */
+            result: string;
+            /** Site */
+            site: string;
+            source: components["schemas"]["Source"];
+            /** Tags */
+            tags: components["schemas"]["NamedRef"][];
+            time_class: components["schemas"]["TimeClass"];
+            /** Time Control */
+            time_control: string;
+            /**
+             * User Color
+             * @enum {string}
+             */
+            user_color: "white" | "black" | "";
+            /** White */
+            white: string;
+            /** White Elo */
+            white_elo: number | null;
+        };
+        /** MyGamesQuery */
+        MyGamesQuery: {
+            /** @description The side you played */
+            color?: components["schemas"]["Side"] | null;
+            /** Date From */
+            date_from?: string | null;
+            /** Date To */
+            date_to?: string | null;
+            /**
+             * Fen
+             * @description The position in FEN, e.g. from the board or the viewer
+             */
+            fen: string;
+            source?: components["schemas"]["Source"] | null;
+            time_class?: components["schemas"]["TimeClass"] | null;
+        };
+        /** MySearchOut */
+        MySearchOut: {
+            /** Items */
+            items: components["schemas"]["MyFoundGame"][];
+            /** Total */
+            total: number;
+        };
         /**
          * NamedRef
          * @description A collection or tag as other objects mention it.
@@ -1045,6 +1324,14 @@ export interface components {
             /** Due */
             due: number;
             puzzle: components["schemas"]["PuzzleOut"] | null;
+        };
+        /** PageQuery */
+        PageQuery: {
+            /**
+             * Page
+             * @default 1
+             */
+            page: number;
         };
         /** PagedCollectionOut */
         PagedCollectionOut: {
@@ -1078,6 +1365,13 @@ export interface components {
         PagedPuzzleOut: {
             /** Items */
             items: components["schemas"]["PuzzleOut"][];
+            /** Total */
+            total: number;
+        };
+        /** PagedReferenceGameItem */
+        PagedReferenceGameItem: {
+            /** Items */
+            items: components["schemas"]["ReferenceGameItem"][];
             /** Total */
             total: number;
         };
@@ -1205,6 +1499,159 @@ export interface components {
         /** RatingIn */
         RatingIn: {
             rating: components["schemas"]["Rating"];
+        };
+        /** ReferenceDatabaseOut */
+        ReferenceDatabaseOut: {
+            /** Depth */
+            depth: number;
+            /** Description */
+            description: string;
+            /** Game Count */
+            game_count: number;
+            /** Id */
+            id: number;
+            /** Imported At */
+            imported_at: string | null;
+            /** Name */
+            name: string;
+            status: components["schemas"]["DatabaseStatus"];
+        };
+        /** ReferenceFoundGame */
+        ReferenceFoundGame: {
+            /** Black */
+            black: string;
+            /** Black Elo */
+            black_elo: number | null;
+            /** Date Pgn */
+            date_pgn: string;
+            /** Eco */
+            eco: string;
+            /** Event */
+            event: string;
+            /** Id */
+            id: number;
+            /** Opening */
+            opening: string;
+            /** Ply */
+            ply: number;
+            /** Ply Count */
+            ply_count: number;
+            /** Result */
+            result: string;
+            /** Site */
+            site: string;
+            /** White */
+            white: string;
+            /** White Elo */
+            white_elo: number | null;
+        };
+        /** ReferenceGameFilters */
+        ReferenceGameFilters: {
+            /** Date From */
+            date_from?: string | null;
+            /** Date To */
+            date_to?: string | null;
+            /** Eco */
+            eco?: string | null;
+            /**
+             * Min Rating
+             * @description Both players rated at least this
+             */
+            min_rating?: number | null;
+            /**
+             * Player
+             * @description Part of White's or Black's name
+             */
+            player?: string | null;
+            /** Result */
+            result?: string | null;
+        };
+        /** ReferenceGameItem */
+        ReferenceGameItem: {
+            /** Black */
+            black: string;
+            /** Black Elo */
+            black_elo: number | null;
+            /** Date Pgn */
+            date_pgn: string;
+            /** Eco */
+            eco: string;
+            /** Event */
+            event: string;
+            /** Id */
+            id: number;
+            /** Opening */
+            opening: string;
+            /** Ply Count */
+            ply_count: number;
+            /** Result */
+            result: string;
+            /** Site */
+            site: string;
+            /** White */
+            white: string;
+            /** White Elo */
+            white_elo: number | null;
+        };
+        /** ReferenceGameOut */
+        ReferenceGameOut: {
+            /** Black */
+            black: string;
+            /** Black Elo */
+            black_elo: number | null;
+            /** Date Pgn */
+            date_pgn: string;
+            /** Eco */
+            eco: string;
+            /** Event */
+            event: string;
+            /** Id */
+            id: number;
+            /** Opening */
+            opening: string;
+            /** Pgn */
+            pgn: string;
+            /** Ply Count */
+            ply_count: number;
+            /** Result */
+            result: string;
+            /** Site */
+            site: string;
+            /** White */
+            white: string;
+            /** White Elo */
+            white_elo: number | null;
+        };
+        /** ReferenceQuery */
+        ReferenceQuery: {
+            /** Date From */
+            date_from?: string | null;
+            /** Date To */
+            date_to?: string | null;
+            /**
+             * Fen
+             * @description The position in FEN, e.g. from the board or the viewer
+             */
+            fen: string;
+            /**
+             * Max Rating
+             * @description Both players rated at most this
+             */
+            max_rating?: number | null;
+            /**
+             * Min Rating
+             * @description Both players rated at least this
+             */
+            min_rating?: number | null;
+        };
+        /** ReferenceSearchOut */
+        ReferenceSearchOut: {
+            /** Items */
+            items: components["schemas"]["ReferenceFoundGame"][];
+            /** Too Common */
+            too_common: boolean;
+            /** Total */
+            total: number;
         };
         /** ReviewIn */
         ReviewIn: {
@@ -1698,6 +2145,128 @@ export interface operations {
             };
         };
     };
+    homerank_explorer_api_my_explorer: {
+        parameters: {
+            query: {
+                /** @description The position in FEN, e.g. from the board or the viewer */
+                fen: string;
+                /** @description The side you played */
+                color?: components["schemas"]["Side"] | null;
+                time_class?: components["schemas"]["TimeClass"] | null;
+                source?: components["schemas"]["Source"] | null;
+                date_from?: string | null;
+                date_to?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExplorerOut"];
+                };
+            };
+        };
+    };
+    homerank_explorer_api_reference_explorer: {
+        parameters: {
+            query: {
+                /** @description The position in FEN, e.g. from the board or the viewer */
+                fen: string;
+                /** @description Both players rated at least this */
+                min_rating?: number | null;
+                /** @description Both players rated at most this */
+                max_rating?: number | null;
+                date_from?: string | null;
+                date_to?: string | null;
+            };
+            header?: never;
+            path: {
+                database_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExplorerOut"];
+                };
+            };
+        };
+    };
+    homerank_explorer_api_search_my_games: {
+        parameters: {
+            query: {
+                /** @description The position in FEN, e.g. from the board or the viewer */
+                fen: string;
+                /** @description The side you played */
+                color?: components["schemas"]["Side"] | null;
+                time_class?: components["schemas"]["TimeClass"] | null;
+                source?: components["schemas"]["Source"] | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MySearchOut"];
+                };
+            };
+        };
+    };
+    homerank_explorer_api_search_reference: {
+        parameters: {
+            query: {
+                /** @description The position in FEN, e.g. from the board or the viewer */
+                fen: string;
+                /** @description Both players rated at least this */
+                min_rating?: number | null;
+                /** @description Both players rated at most this */
+                max_rating?: number | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                page?: number;
+            };
+            header?: never;
+            path: {
+                database_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferenceSearchOut"];
+                };
+            };
+        };
+    };
     homerank_games_api_list_games: {
         parameters: {
             query?: {
@@ -1904,6 +2473,118 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    homerank_reference_api_list_databases: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferenceDatabaseOut"][];
+                };
+            };
+        };
+    };
+    homerank_reference_api_list_games: {
+        parameters: {
+            query?: {
+                /** @description Part of White's or Black's name */
+                player?: string | null;
+                eco?: string | null;
+                result?: string | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                /** @description Both players rated at least this */
+                min_rating?: number | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                database_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedReferenceGameItem"];
+                };
+            };
+        };
+    };
+    homerank_reference_api_get_game: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                database_id: number;
+                game_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferenceGameOut"];
+                };
+            };
+        };
+    };
+    homerank_reference_api_copy_game: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                database_id: number;
+                game_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CopyIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopyOut"];
+                };
+            };
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopyOut"];
+                };
             };
         };
     };

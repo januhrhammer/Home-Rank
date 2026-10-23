@@ -156,8 +156,10 @@ def search_my_games(
         .annotate(first=Max("ply"))
         .values_list("game_id", "first")
     )
-    games: QuerySet[Game] = Game.objects.filter(_my_games(user, filters), pk__in=plies).order_by(
-        F("date").desc(nulls_last=True), "-pk"
+    games: QuerySet[Game] = (
+        Game.objects.filter(_my_games(user, filters), pk__in=plies)
+        .prefetch_related("tags")
+        .order_by(F("date").desc(nulls_last=True), "-pk")
     )
     total = games.count()
     found = []

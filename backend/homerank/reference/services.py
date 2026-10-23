@@ -6,6 +6,7 @@ their positions with COPY in batches, notes after each batch where each file sta
 removes duplicates and builds the explorer and position index.
 """
 
+import io
 import multiprocessing
 import multiprocessing.pool
 from collections import deque
@@ -20,9 +21,13 @@ from django.db import transaction
 from django.utils import timezone
 from procrastinate.contrib.django import app
 
+from homerank.accounts.models import User
 from homerank.chesslib import bulk
 from homerank.chesslib.archives import SUFFIXES, open_pgn, split_games
+from homerank.chesslib.pgn import PgnGame, read_pgn
 from homerank.core.errors import DomainError
+from homerank.games.models import Collection, Game
+from homerank.games.services import add_games, new_game, store_games
 from homerank.reference import repository
 from homerank.reference.models import (
     ReferenceDatabase,
@@ -30,6 +35,7 @@ from homerank.reference.models import (
     ReferenceImport,
     ReferenceImportFile,
 )
+from homerank.reference.selectors import pgn_of
 
 logger = structlog.get_logger(__name__)
 
@@ -310,3 +316,28 @@ def _store(
         failed=file.games_failed,
         progress=round(progress, 4),
     )
+
+
+class UnreadableGameError(DomainError):
+    status = HTTPStatus.INTERNAL_SERVER_ERROR
+
+    def __init__(self, reason: str) -> None:
+        self.detail = f"The stored game can't be read: {reason}"
+        super().__init__(self.detail)
+
+
+def copy_game(
+    *, user: User, game: ReferenceGame, collection: Collection | None
+) -> tuple[Game, bool]:
+    """Copy a reference game into the user's games (or find the copy they have), and add it to
+    the collection if given. Returns the user's game and whether it is new."""
+    items = list(read_pgn(io.BytesIO(pgn_of(game).encode())))
+    item = items[0]
+    if not isinstance(item, PgnGame):  # can't happen: the moves were legal when imported
+        raise UnreadableGameError(item.reason)
+    new = new_game(user, item)
+    stored = store_games(user, [new])
+    copy = Game.objects.get(user=user, dedup_hash=new.game.dedup_hash)
+    if collection is not None:
+        add_games(collection, game_ids=[copy.pk])
+    return copy, stored.imported == 1
