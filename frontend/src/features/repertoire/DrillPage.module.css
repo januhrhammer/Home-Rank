@@ -113,37 +113,6 @@
   margin-top: var(--space-4);
 }
 
-.moveForm {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: var(--space-2);
-  margin-top: var(--space-3);
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.label {
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.input {
-  width: 8rem;
-  height: var(--control-height);
-  padding: 0 var(--space-3);
-  border: 1px solid var(--color-input-border);
-  border-radius: var(--radius);
-  font: inherit;
-  font-family: var(--font-serif);
-  color: var(--color-text);
-  background: var(--color-bg);
-}
-
 .buttons {
   display: flex;
   flex-wrap: wrap;

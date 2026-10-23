@@ -212,6 +212,27 @@ test("a move chosen in the explorer is added and shown", async () => {
   );
 });
 
+test("a move typed in is added, for keyboards and screen readers", async () => {
+  simulateAuth(alice, { loggedIn: true });
+  const received = simulateRepertoire([]);
+  renderApp("/repertoires/4");
+  const user = userEvent.setup();
+
+  const field = await screen.findByRole("textbox", { name: "Play a move" });
+  await user.type(field, "Nf6");
+  await user.click(screen.getByRole("button", { name: "Play" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("That move isn't possible here.");
+
+  await user.clear(field);
+  await user.type(field, "Nf3{Enter}");
+
+  expect(await screen.findByRole("heading", { name: "1. Nf3" })).toBeInTheDocument();
+  expect(received.added).toEqual([
+    { fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", move_uci: "g1f3" },
+  ]);
+  expect(field).toHaveValue("");
+});
+
 test("a move already in the repertoire is followed, not added again", async () => {
   simulateAuth(alice, { loggedIn: true });
   const received = simulateRepertoire(movesOf([["d4", "d5"]]));

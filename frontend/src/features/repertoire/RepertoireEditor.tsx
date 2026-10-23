@@ -20,6 +20,7 @@ import { ExplorerPanel, type Source } from "../explorer";
 import { MoveList, type MoveNode, useNotation, withFigurines } from "../games";
 import { boardMove, legalDests, turnOf } from "../training";
 import { errorMessage } from "./errors";
+import { MoveForm } from "./MoveForm";
 import {
   type Repertoire,
   type RepertoireMove,
@@ -152,6 +153,12 @@ export function RepertoireEditor({ repertoire, moves }: RepertoireEditorProps) {
             <FlipIcon />
           </Button>
         </div>
+        <MoveForm
+          label={t("repertoire.typeMove")}
+          fen={fen}
+          onMove={play}
+          isDisabled={addMove.isPending}
+        />
         <p className={styles.hint}>{t("repertoire.boardHint")}</p>
         {addMove.error && (
           <p className={styles.error} role="alert">
