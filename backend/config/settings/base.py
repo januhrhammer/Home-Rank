@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "homerank.games",
     "homerank.sync",
     "homerank.analysis",
+    "homerank.training",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
