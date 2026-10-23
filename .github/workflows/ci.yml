@@ -53,6 +53,8 @@ jobs:
           HTTPS: "true"
           DATABASE_URL: postgres://homerank:homerank@localhost:5432/homerank
         run: SECRET_KEY="$(openssl rand -hex 32)" uv run python manage.py check --deploy --fail-level WARNING
+      - name: Download Stockfish, for the engine tests
+        run: just stockfish
       - name: Tests with coverage
         run: just test-backend --cov
 

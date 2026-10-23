@@ -117,6 +117,7 @@ strict = true
 # Turn warnings into errors, so deprecations in our dependencies surface while they're easy to
 # fix. A warning we can't fix gets a specific "ignore:..." entry here, with the reason.
 filterwarnings = ["error"]
+markers = ["engine: runs Stockfish (`just stockfish` downloads it)"]
 
 [tool.coverage.run]
 # Measured with `just test-backend --cov` (CI does). Tests and migrations aren't code under test.

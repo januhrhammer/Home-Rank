@@ -80,9 +80,13 @@ pre-commit:
 
 # Install the backend dependencies and the git hooks
 [working-directory('backend')]
-setup-backend:
+setup-backend: stockfish
     uv sync
     uv run pre-commit install
+
+# Download Stockfish, the chess engine, into .tools/stockfish (for the dev server and tests)
+stockfish:
+    docker/get-stockfish.sh .tools/stockfish
 
 # Format the backend code
 [working-directory('backend')]

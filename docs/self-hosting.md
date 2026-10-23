@@ -13,7 +13,9 @@ worker for background jobs, and PostgreSQL.
 - git, to download Home-Rank. There are no published images yet, so Compose builds one from the
   source code.
 - About 2 GB of disk for the images, plus your data, and about 250 MB of memory. Engine analysis
-  and reference databases will need more once they arrive.
+  and reference databases will need more once they arrive. The image includes Stockfish, the
+  chess engine, with its source code (it is GPL-licensed); `/usr/share/doc/stockfish` in the
+  image holds both.
 
 Tested on x86-64 Linux.
 
