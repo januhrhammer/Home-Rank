@@ -515,6 +515,205 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/repertoires": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Repertoires
+         * @description Your repertoires by name.
+         */
+        get: operations["homerank_repertoire_api_list_repertoires"];
+        put?: never;
+        /**
+         * Create Repertoire
+         * @description Create an empty repertoire; 409 if you already have one with that name.
+         */
+        post: operations["homerank_repertoire_api_create_repertoire"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repertoires/{repertoire_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Repertoire */
+        get: operations["homerank_repertoire_api_get_repertoire"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Repertoire
+         * @description Delete a repertoire with its moves and their training history.
+         */
+        delete: operations["homerank_repertoire_api_delete_repertoire"];
+        options?: never;
+        head?: never;
+        /**
+         * Rename Repertoire
+         * @description Rename a repertoire. Its colour can't change.
+         */
+        patch: operations["homerank_repertoire_api_rename_repertoire"];
+        trace?: never;
+    };
+    "/api/v1/repertoires/{repertoire_id}/drill/line": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Drill Line
+         * @description A line from the start to the end of the repertoire, through the move with the id given,
+         *     or else through the card due longest. Answer each of your moves with POST
+         *     /training/reviews.
+         */
+        get: operations["homerank_repertoire_api_drill_line"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repertoires/{repertoire_id}/drill/next": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Next Card
+         * @description The card due longest. Answer it with POST /training/reviews.
+         */
+        get: operations["homerank_repertoire_api_next_card"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repertoires/{repertoire_id}/gaps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Gaps
+         * @description Where your games left the repertoire, most frequent first.
+         */
+        get: operations["homerank_repertoire_api_gaps"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repertoires/{repertoire_id}/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Pgn
+         * @description Add the moves of PGN games, variations and comments included. Games that don't start
+         *     from the starting position are skipped.
+         */
+        post: operations["homerank_repertoire_api_import_pgn"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repertoires/{repertoire_id}/moves": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Moves
+         * @description All of the repertoire's moves, in the order they were added. The tree is drawn from
+         *     the starting position by following each move's to_position.
+         */
+        get: operations["homerank_repertoire_api_list_moves"];
+        put?: never;
+        /**
+         * Add Move
+         * @description Add a move in a position the repertoire reaches; a move it already has is returned.
+         */
+        post: operations["homerank_repertoire_api_add_move"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repertoires/{repertoire_id}/moves/{move_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove Move
+         * @description Remove a move and the moves only it led to.
+         */
+        delete: operations["homerank_repertoire_api_remove_move"];
+        options?: never;
+        head?: never;
+        /** Comment Move */
+        patch: operations["homerank_repertoire_api_comment_move"];
+        trace?: never;
+    };
+    "/api/v1/repertoires/{repertoire_id}/seed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Seed
+         * @description Add what you play in your games with this colour: your most played moves and the
+         *     replies you met in at least min_games games. Moves already there stay.
+         */
+        post: operations["homerank_repertoire_api_seed"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/settings": {
         parameters: {
             query?: never;
@@ -733,8 +932,9 @@ export interface paths {
         put?: never;
         /**
          * Review
-         * @description Record a solve: the rating follows from it (wrong move: Again; solved: by the time per
-         *     move) and the puzzle is scheduled again. Change the rating with PATCH if you disagree.
+         * @description Record an answer to a card: a puzzle (wrong move: Again; solved: by the time per move)
+         *     or a repertoire move (right on the first try: Good, else Again). The card is scheduled
+         *     again; change the rating with PATCH if you disagree.
          */
         post: operations["homerank_training_api_review"];
         delete?: never;
@@ -758,7 +958,7 @@ export interface paths {
         head?: never;
         /**
          * Change Rating
-         * @description Change the rating of a puzzle's latest review; 409 for an earlier one.
+         * @description Change the rating of a card's latest review; 409 for an earlier one.
          */
         patch: operations["homerank_training_api_change_rating"];
         trace?: never;
@@ -927,6 +1127,33 @@ export interface components {
          * @enum {string}
          */
         DatabaseStatus: "empty" | "importing" | "ready" | "failed";
+        /** DrillStepOut */
+        DrillStepOut: {
+            /** Card Id */
+            card_id: number | null;
+            /** Comment */
+            comment: string;
+            /** Due */
+            due: boolean;
+            /** Fen */
+            fen: string;
+            /** Move Id */
+            move_id: number;
+            /** Move San */
+            move_san: string;
+            /** Move Uci */
+            move_uci: string;
+            /** Other Moves */
+            other_moves: string[];
+        };
+        /** DueDrillOut */
+        DueDrillOut: {
+            /** Due */
+            due: number;
+            /** Last Move Uci */
+            last_move_uci: string;
+            step: components["schemas"]["DrillStepOut"] | null;
+        };
         /** ExplorerOut */
         ExplorerOut: {
             /** Filtered */
@@ -1118,6 +1345,23 @@ export interface components {
             /** White Elo */
             white_elo: number | null;
         };
+        /** GapOut */
+        GapOut: {
+            /** By User */
+            by_user: boolean;
+            /** Fen */
+            fen: string;
+            /** Game Ids */
+            game_ids: number[];
+            /** Games */
+            games: number;
+            /** Last Played */
+            last_played: string | null;
+            /** Move San */
+            move_san: string;
+            /** Move Uci */
+            move_uci: string;
+        };
         /** ImportErrorOut */
         ImportErrorOut: {
             /** Line */
@@ -1220,6 +1464,47 @@ export interface components {
          * @enum {string}
          */
         MoveClass: "good" | "inaccuracy" | "mistake" | "blunder";
+        /** MoveIn */
+        MoveIn: {
+            /**
+             * Fen
+             * @description The position the move is played from
+             */
+            fen: string;
+            /**
+             * Move Uci
+             * @example e2e4
+             */
+            move_uci: string;
+        };
+        /**
+         * MoveOut
+         * @description A move from one position to the next. Positions are named by their hash, as a string:
+         *     a move continues another when its from_position is the other's to_position.
+         */
+        MoveOut: {
+            /** Card Id */
+            card_id: number | null;
+            /** Comment */
+            comment: string;
+            /** From Fen */
+            from_fen: string;
+            /** From Position */
+            from_position: string;
+            /** Id */
+            id: number;
+            /** Move San */
+            move_san: string;
+            /** Move Uci */
+            move_uci: string;
+            /** To Position */
+            to_position: string;
+        };
+        /** MovePatch */
+        MovePatch: {
+            /** Comment */
+            comment: string;
+        };
         /** MoveStatsOut */
         MoveStatsOut: {
             /** Average Rating */
@@ -1381,6 +1666,20 @@ export interface components {
             items: components["schemas"]["TagOut"][];
             /** Total */
             total: number;
+        };
+        /** PgnImportOut */
+        PgnImportOut: {
+            /** Games Read */
+            games_read: number;
+            /** Games Skipped */
+            games_skipped: number;
+            /** Moves Added */
+            moves_added: number;
+        };
+        /** PgnIn */
+        PgnIn: {
+            /** Pgn */
+            pgn: string;
         };
         /**
          * Platform
@@ -1653,6 +1952,34 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** RemovedOut */
+        RemovedOut: {
+            /** Removed */
+            removed: number;
+        };
+        /** RepertoireIn */
+        RepertoireIn: {
+            color: components["schemas"]["Side"];
+            /** Name */
+            name: string;
+        };
+        /** RepertoireOut */
+        RepertoireOut: {
+            color: components["schemas"]["Side"];
+            /** Due */
+            due: number;
+            /** Id */
+            id: number;
+            /** Move Count */
+            move_count: number;
+            /** Name */
+            name: string;
+        };
+        /** RepertoirePatch */
+        RepertoirePatch: {
+            /** Name */
+            name: string;
+        };
         /** ReviewIn */
         ReviewIn: {
             /** Card Id */
@@ -1674,6 +2001,26 @@ export interface components {
              */
             next_due_at: string;
             rating: components["schemas"]["Rating"];
+        };
+        /** SeedIn */
+        SeedIn: {
+            /**
+             * Depth
+             * @description Plies from the start
+             * @default 12
+             */
+            depth: number;
+            /**
+             * Min Games
+             * @description Games an opponent's reply needs
+             * @default 2
+             */
+            min_games: number;
+        };
+        /** SeedOut */
+        SeedOut: {
+            /** Moves Added */
+            moves_added: number;
         };
         /**
          * SettingsOut
@@ -2584,6 +2931,336 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CopyOut"];
+                };
+            };
+        };
+    };
+    homerank_repertoire_api_list_repertoires: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RepertoireOut"][];
+                };
+            };
+        };
+    };
+    homerank_repertoire_api_create_repertoire: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RepertoireIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RepertoireOut"];
+                };
+            };
+        };
+    };
+    homerank_repertoire_api_get_repertoire: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repertoire_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RepertoireOut"];
+                };
+            };
+        };
+    };
+    homerank_repertoire_api_delete_repertoire: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repertoire_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    homerank_repertoire_api_rename_repertoire: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repertoire_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RepertoirePatch"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RepertoireOut"];
+                };
+            };
+        };
+    };
+    homerank_repertoire_api_drill_line: {
+        parameters: {
+            query?: {
+                through?: number | null;
+            };
+            header?: never;
+            path: {
+                repertoire_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DrillStepOut"][];
+                };
+            };
+        };
+    };
+    homerank_repertoire_api_next_card: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repertoire_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DueDrillOut"];
+                };
+            };
+        };
+    };
+    homerank_repertoire_api_gaps: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repertoire_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GapOut"][];
+                };
+            };
+        };
+    };
+    homerank_repertoire_api_import_pgn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repertoire_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PgnIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PgnImportOut"];
+                };
+            };
+        };
+    };
+    homerank_repertoire_api_list_moves: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repertoire_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MoveOut"][];
+                };
+            };
+        };
+    };
+    homerank_repertoire_api_add_move: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repertoire_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MoveIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MoveOut"];
+                };
+            };
+        };
+    };
+    homerank_repertoire_api_remove_move: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repertoire_id: number;
+                move_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RemovedOut"];
+                };
+            };
+        };
+    };
+    homerank_repertoire_api_comment_move: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repertoire_id: number;
+                move_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MovePatch"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MoveOut"];
+                };
+            };
+        };
+    };
+    homerank_repertoire_api_seed: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repertoire_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SeedIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeedOut"];
                 };
             };
         };

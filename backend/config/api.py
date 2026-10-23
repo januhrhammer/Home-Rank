@@ -14,6 +14,7 @@ from homerank.explorer.api import router as explorer_router
 from homerank.games.api import collections_router, tags_router
 from homerank.games.api import router as games_router
 from homerank.reference.api import router as reference_router
+from homerank.repertoire.api import router as repertoire_router
 from homerank.sync.api import router as sync_router
 from homerank.training.api import router as training_router
 
@@ -33,3 +34,4 @@ api.add_router("/analysis", analysis_router)
 api.add_router("/training", training_router)
 api.add_router("/reference", reference_router)
 api.add_router("/explorer", explorer_router)
+api.add_router("/repertoires", repertoire_router)

@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
 
 from django.db import connection
-from django.db.models import Count, QuerySet
+from django.db.models import Count, Q, QuerySet
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
@@ -22,10 +22,11 @@ MAX_REACH = 200
 
 
 def repertoires(*, user: User) -> QuerySet[Repertoire]:
-    """The user's repertoires by name, each with its number of moves."""
+    """The user's repertoires by name, each with its number of moves and of cards due now."""
+    due = Q(moves__card__due_at__lte=timezone.now())
     return (
         Repertoire.objects.filter(user=user)
-        .annotate(move_count=Count("moves"))
+        .annotate(move_count=Count("moves"), due=Count("moves__card", filter=due))
         .order_by("name", "pk")
     )
 
