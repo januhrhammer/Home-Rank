@@ -6,6 +6,7 @@ look at every position of a game and stores what it found. See ADR 0013.
 
 import io
 from collections.abc import Iterable
+from datetime import datetime
 from http import HTTPStatus
 
 import chess
@@ -14,6 +15,7 @@ import chess.pgn
 import structlog
 from django.conf import settings
 from django.db import transaction
+from django.db.models import F
 from django.utils import timezone
 from procrastinate.contrib.django import app
 
@@ -30,6 +32,8 @@ logger = structlog.get_logger(__name__)
 # Positions saved per database write; the progress moves on with each.
 SAVE_EVERY = 8
 ACTIVE = (AnalysisRun.Status.QUEUED, AnalysisRun.Status.RUNNING)
+# Automatic analyses waiting per user at most; the periodic job tops them up.
+AUTO_QUEUE_PER_USER = 10
 
 
 class DepthTooLargeError(DomainError):
@@ -198,6 +202,42 @@ def _sum_up(game: Game, *, white_first: bool) -> None:
             "analysed_at": timezone.now(),
         },
     )
+
+
+def within_analysis_hours(now: datetime) -> bool:
+    """Whether automatic analyses may run now (ANALYSIS_HOURS, in the server's time zone)."""
+    if settings.ANALYSIS_HOURS is None:
+        return True
+    start, end = settings.ANALYSIS_HOURS
+    local = timezone.localtime(now).time()
+    if start < end:
+        return start <= local < end
+    return local >= start or local < end  # the window passes midnight
+
+
+def queue_auto_analyses() -> int:
+    """Queue analyses of games the users played and nobody analysed yet, newest first.
+
+    For users with automatic analysis on (the default). Only a few per user wait at a time,
+    so a large import is analysed bit by bit, and each run of this job tops them up. Games
+    with an analysis that failed are left alone. Returns how many analyses were queued.
+    """
+    if not within_analysis_hours(timezone.now()):
+        return 0
+    queued = 0
+    for user in User.objects.exclude(analysissettings__auto_analyse=False).order_by("pk"):
+        waiting = AnalysisRun.objects.filter(user=user, status__in=ACTIVE).count()
+        room = AUTO_QUEUE_PER_USER - waiting
+        if room <= 0:
+            continue
+        games = (
+            Game.objects.filter(user=user, analysis_runs__isnull=True)
+            .exclude(user_color="")
+            .order_by(F("date").desc(nulls_last=True), "-pk")[:room]
+        )
+        queued += len(start_analysis(user=user, games=games))
+    logger.info("Automatic analyses queued", count=queued)
+    return queued
 
 
 def games_of(user: User, game_ids: Iterable[int]) -> list[Game]:

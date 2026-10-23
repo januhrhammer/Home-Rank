@@ -27,6 +27,8 @@ x-homerank-environment: &homerank-environment
   ENGINE_HASH_MB: ${ENGINE_HASH_MB:-}
   ANALYSIS_DEPTH: ${ANALYSIS_DEPTH:-}
   ANALYSIS_CONCURRENCY: ${ANALYSIS_CONCURRENCY:-}
+  ANALYSIS_HOURS: ${ANALYSIS_HOURS:-}
+  TIME_ZONE: ${TIME_ZONE:-}
 
 services:
   db:
