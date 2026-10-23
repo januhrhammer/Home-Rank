@@ -13,7 +13,7 @@ from datetime import date
 import chess
 import chess.pgn
 import chess.polyglot
-from django.db.models import Avg, Case, Count, F, Max, Q, QuerySet, When
+from django.db.models import Avg, Case, Count, F, Max, Min, Q, QuerySet, Subquery, When
 
 from homerank.accounts.models import User
 from homerank.chesslib.packed import decode_move, unpack_moves
@@ -109,14 +109,16 @@ def my_explorer(*, user: User, fen: str, filters: MyGameFilters) -> Explorer:
         When(game__user_color="white", then=F("game__black_elo")),
         When(game__user_color="black", then=F("game__white_elo")),
     )
+    # Counted per occurrence: a game that reaches the position twice (a repetition) counts
+    # twice. Rare, and counting distinct games took twice as long (100,000 games: 106 ms).
     rows = (
         positions.exclude(move_uci="")
         .values("move_uci")
         .annotate(
-            games=Count("game", distinct=True),
-            white=Count("game", distinct=True, filter=Q(game__result="1-0")),
-            draws=Count("game", distinct=True, filter=Q(game__result="1/2-1/2")),
-            black=Count("game", distinct=True, filter=Q(game__result="0-1")),
+            games=Count("pk"),
+            white=Count("pk", filter=Q(game__result="1-0")),
+            draws=Count("pk", filter=Q(game__result="1/2-1/2")),
+            black=Count("pk", filter=Q(game__result="0-1")),
             average_rating=Avg(opponent_rating),
             last_played=Max("game__date"),
         )
@@ -135,7 +137,7 @@ def my_explorer(*, user: User, fen: str, filters: MyGameFilters) -> Explorer:
         )
         for row in rows
     ]
-    return Explorer(games=positions.values("game").distinct().count(), moves=moves)
+    return Explorer(games=positions.count(), moves=moves)
 
 
 @dataclass
@@ -150,32 +152,53 @@ def search_my_games(
     """The user's games reaching the position, newest first, a page at a time, each with the
     ply it reached it at; and how many there are."""
     board = board_of(fen)
-    plies = dict(
-        GamePosition.objects.filter(user=user, zobrist=hash_of(board))
-        .values("game_id")
-        .annotate(first=Max("ply"))
-        .values_list("game_id", "first")
-    )
+    at_position = GamePosition.objects.filter(user=user, zobrist=hash_of(board))
+    # A subquery, not a list of ids: the start position is in every one of the user's games.
     games: QuerySet[Game] = (
-        Game.objects.filter(_my_games(user, filters), pk__in=plies)
+        Game.objects.filter(
+            _my_games(user, filters), pk__in=Subquery(at_position.values("game_id"))
+        )
         .prefetch_related("tags")
         .order_by(F("date").desc(nulls_last=True), "-pk")
     )
     total = games.count()
+    page_games = list(games[(page - 1) * PAGE_SIZE : page * PAGE_SIZE])
+    plies = dict(
+        at_position.filter(game__in=page_games)
+        .values("game_id")
+        .annotate(first=Min("ply"))
+        .values_list("game_id", "first")
+    )
+    moves = _stored_moves(page_games, plies)
     found = []
-    for game in games[(page - 1) * PAGE_SIZE : page * PAGE_SIZE]:
-        if _reaches(game, board, plies[game.pk]):
+    for game in page_games:
+        if _reaches(game, moves.get(game.pk, []), board):
             found.append((game, plies[game.pk]))
     return found, total
 
 
-def _reaches(game: Game, board: chess.Board, ply: int) -> bool:
-    parsed = chess.pgn.read_game(io.StringIO(game.pgn))
-    if parsed is None:
-        return False
-    position = parsed.board()
-    for move in list(parsed.mainline_moves())[:ply]:
-        position.push(move)
+def _stored_moves(games: list[Game], plies: dict[int, int]) -> dict[int, list[str]]:
+    """The moves of each game up to the ply it reached the position at, from GamePosition: much
+    quicker than reading each game's PGN again."""
+    wanted = Q()
+    for game in games:
+        wanted |= Q(game_id=game.pk, ply__lt=plies[game.pk])
+    moves: dict[int, list[str]] = {}
+    if not games:
+        return moves
+    rows = GamePosition.objects.filter(wanted).order_by("game_id", "ply")
+    for game_id, uci in rows.values_list("game_id", "move_uci"):
+        moves.setdefault(game_id, []).append(uci)
+    return moves
+
+
+def _reaches(game: Game, moves: list[str], board: chess.Board) -> bool:
+    """Whether the game's moves lead to the position (and not to another with the same hash)."""
+    headers = chess.pgn.read_headers(io.StringIO(game.pgn)) if "[FEN " in game.pgn else None
+    fen = headers.get("FEN") if headers else None
+    position = chess.Board(fen) if fen else chess.Board()
+    for uci in moves:
+        position.push_uci(uci)
     return _same_position(position, board)
 
 

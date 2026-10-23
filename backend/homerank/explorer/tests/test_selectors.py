@@ -92,14 +92,15 @@ def test_searches_my_games_reaching_a_position_newest_first(me: User) -> None:
 
 
 def test_a_hash_collision_isnt_shown(me: User) -> None:
-    # Pretend another position had the same hash: the replay check drops the game.
-    position = GamePosition.objects.filter(user=me, ply=1, move_san="e5").get()
-    GamePosition.objects.filter(game=position.game, ply=2).update(zobrist=position.zobrist)
+    # Pretend the position after 1. d4 in Cid's game had the hash of 1. e4's: the replay check
+    # drops that game.
+    after_e4 = GamePosition.objects.filter(user=me, ply=1, move_san="e5").get().zobrist
+    GamePosition.objects.filter(game__black="Cid", ply=1).update(zobrist=after_e4)
 
     found, total = search_my_games(user=me, fen=AFTER_E4, filters=MyGameFilters())
 
-    assert total == 2  # noqa: PLR2004 - counted by hash...
-    assert [game.black for game, _ in found] == ["me"]  # ...but only true matches shown
+    assert total == 3  # noqa: PLR2004 - counted by hash...
+    assert [game.black for game, _ in found] == ["me", "Ann"]  # ...but only true matches shown
 
 
 def test_an_invalid_position_is_refused(me: User) -> None:
