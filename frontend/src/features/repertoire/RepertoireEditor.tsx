@@ -18,6 +18,7 @@ import { t } from "../../lib/i18n";
 import { useKeyboard } from "../../lib/useKeyboard";
 import { ExplorerPanel, type Source } from "../explorer";
 import { MoveList, type MoveNode, useNotation, withFigurines } from "../games";
+import { StartGameDialog } from "../play";
 import { boardMove, legalDests, turnOf } from "../training";
 import { errorMessage } from "./errors";
 import { MoveForm } from "./MoveForm";
@@ -160,6 +161,17 @@ export function RepertoireEditor({ repertoire, moves }: RepertoireEditorProps) {
           isDisabled={addMove.isPending}
         />
         <p className={styles.hint}>{t("repertoire.boardHint")}</p>
+        <StartGameDialog
+          startFen={fen}
+          startLabel={
+            current
+              ? t("play.labelAfter", { start: repertoire.name, line: lineTo(current) })
+              : repertoire.name
+          }
+          side={repertoire.color}
+          triggerLabel={t("play.newFrom")}
+          triggerClassName={styles.control}
+        />
         {addMove.error && (
           <p className={styles.error} role="alert">
             {errorMessage(addMove.error)}

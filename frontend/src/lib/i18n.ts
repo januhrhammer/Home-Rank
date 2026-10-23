@@ -264,6 +264,10 @@ const messages = {
     "Play an opening out, from the start or any position: against Maia, which plays like people of a rating, or against Stockfish at a limited strength.",
   "play.new": "New game",
   "play.newFrom": "Play from here",
+  "play.labelAfter": "{start}, after {line}",
+  "play.leftByYou": "You left your repertoire “{repertoire}” with {move}; it has {expected}.",
+  "play.leftByBot":
+    "{name} left your repertoire “{repertoire}” with {move}: you have no reply prepared.",
   "play.startTitle": "Play against a bot",
   "play.yourSide": "Your side",
   "play.white": "White",

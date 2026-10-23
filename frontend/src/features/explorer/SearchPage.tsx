@@ -16,6 +16,7 @@ import { Board } from "../../components/Board";
 import { t } from "../../lib/i18n";
 import { useUrlParams } from "../../lib/useUrlParams";
 import { formatGameDate, useNotation, withFigurines } from "../games";
+import { StartGameDialog } from "../play";
 import { mySearchQuery, referenceSearchQuery, type Source } from "./explorer";
 import { ExplorerPanel } from "./ExplorerPanel";
 import { EMPTY_BOARD, fullFen, isLegalPosition, putPiece, readFen, START_BOARD } from "./position";
@@ -95,6 +96,14 @@ export function SearchPage() {
             >
               {t("search.clear")}
             </Button>
+            {legal && (
+              <StartGameDialog
+                startFen={fen}
+                side={turn}
+                triggerLabel={t("play.newFrom")}
+                triggerClassName={styles.button}
+              />
+            )}
           </div>
           <FenField
             fen={fen}
