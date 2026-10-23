@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Button,
   Form,
@@ -42,8 +42,15 @@ export function DrillQuestion({
   const [answer, setAnswer] = useState<Answer | null>(null);
   const done = answer === "right" || answer === "wrong";
 
+  // Set at once, not on the next render: a second move arriving before that is ignored.
+  const answeredRef = useRef(false);
+
   const play = (uci: string) => {
+    if (answeredRef.current) {
+      return;
+    }
     const result = judge(step, uci);
+    answeredRef.current = result !== "other";
     setAnswer(result);
     if (result !== "other") {
       onAnswered(result === "right", Date.now() - startedAt);
@@ -134,7 +141,7 @@ export function MoveText({ san, figurines }: { san: string; figurines: boolean }
   return (
     <span className={styles.move}>
       <span aria-hidden="true">{shown}</span>
-      <VisuallyHidden>{san}</VisuallyHidden>
+      <VisuallyHidden elementType="span">{san}</VisuallyHidden>
     </span>
   );
 }
