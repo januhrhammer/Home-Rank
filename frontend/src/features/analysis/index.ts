@@ -7,6 +7,6 @@ export {
   useGameAnalysis,
   useSaveAnalysisSettings,
 } from "./analysis";
-export { AnalysisPanel } from "./AnalysisPanel";
+export { AnalysisPanel, sanLine } from "./AnalysisPanel";
 export { EvalBar } from "./EvalBar";
 export { EvalGraph } from "./EvalGraph";

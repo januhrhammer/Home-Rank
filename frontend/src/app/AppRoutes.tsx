@@ -5,6 +5,7 @@ import { GameListPage, GamePage, LabelsPage } from "../features/games";
 import { HomePage } from "../features/home";
 import { ImportPage } from "../features/imports";
 import { SettingsPage } from "../features/settings";
+import { TrainPage } from "../features/training";
 import { Layout } from "./Layout";
 import { NotFoundPage } from "./NotFoundPage";
 
@@ -25,6 +26,7 @@ export function AppRoutes() {
           <Route path="labels" element={<LabelsPage />} />
           <Route path="import" element={<ImportPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="train" element={<TrainPage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Route>

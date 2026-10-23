@@ -1,1 +1,1 @@
-export { Board, type BoardProps } from "./Board";
+export { Board, type BoardProps, type Movable } from "./Board";
