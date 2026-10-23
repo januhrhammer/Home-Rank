@@ -35,6 +35,10 @@ afterEach(() => {
   localStorage.clear(); // e.g. the viewer's notation
 });
 
-afterAll(() => {
+afterAll(async () => {
   server.close();
+  // React Aria announces some changes to screen readers 100 ms late when Testing Library is
+  // waiting (findBy…, waitFor). Let such an announcement happen before jsdom goes away, or it
+  // fails the run with "document is not defined".
+  await new Promise((resolve) => setTimeout(resolve, 150));
 });

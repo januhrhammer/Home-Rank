@@ -47,6 +47,8 @@ const RepertoireListPage = lazyPage(() => import("../features/repertoire"), "Rep
 const RepertoirePage = lazyPage(() => import("../features/repertoire"), "RepertoirePage");
 const DrillPage = lazyPage(() => import("../features/repertoire"), "DrillPage");
 const GapsPage = lazyPage(() => import("../features/repertoire"), "GapsPage");
+const PlayListPage = lazyPage(() => import("../features/play"), "PlayListPage");
+const PlayPage = lazyPage(() => import("../features/play"), "PlayPage");
 const SearchPage = lazyPage(() => import("../features/explorer"), "SearchPage");
 const ReferencePage = lazyPage(() => import("../features/explorer"), "ReferencePage");
 const ReferenceGamePage = lazyPage(() => import("../features/explorer"), "ReferenceGamePage");
@@ -73,6 +75,8 @@ export function AppRoutes() {
           <Route path="repertoires/:repertoireId" element={<RepertoirePage />} />
           <Route path="repertoires/:repertoireId/drill" element={<DrillPage />} />
           <Route path="repertoires/:repertoireId/gaps" element={<GapsPage />} />
+          <Route path="play" element={<PlayListPage />} />
+          <Route path="play/:gameId" element={<PlayPage />} />
           <Route path="search" element={<SearchPage />} />
           <Route path="reference" element={<ReferencePage />} />
           <Route path="reference/:databaseId/games/:gameId" element={<ReferenceGamePage />} />
