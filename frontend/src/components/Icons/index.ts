@@ -1,1 +1,1 @@
-export { BackIcon, EndIcon, FlipIcon, ForwardIcon, StartIcon } from "./Icons";
+export { BackIcon, EndIcon, FlipIcon, ForwardIcon, MenuIcon, StartIcon } from "./Icons";
