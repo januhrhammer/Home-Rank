@@ -4,8 +4,8 @@ Moves are stored by the position they are played from, with hashes as signed 64-
 like GamePosition's. Each of the user's own moves gets a review card when it is added.
 """
 
-import io
 from collections import defaultdict, deque
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from datetime import date
 from http import HTTPStatus
@@ -33,7 +33,8 @@ from homerank.repertoire.models import Repertoire, RepertoireMove
 from homerank.training.services import new_repertoire_cards
 
 MAX_REPERTOIRES = 50  # per user
-MAX_MOVES = 5_000  # per repertoire
+MAX_MOVES = 20_000  # per repertoire
+MAX_PGN_BYTES = 20 * 1024 * 1024  # per imported file
 SEED_DEPTH = 12  # plies seeded from the user's games, unless they choose another depth
 SEED_MIN_GAMES = 2  # games an opponent's reply needs to be seeded, unless the user chooses
 
@@ -46,6 +47,11 @@ class TooManyRepertoiresError(DomainError):
 class TooManyMovesError(DomainError):
     status = HTTPStatus.CONFLICT
     detail = f"A repertoire can have at most {MAX_MOVES:,} moves."
+
+
+class PgnTooLargeError(DomainError):
+    status = HTTPStatus.REQUEST_ENTITY_TOO_LARGE
+    detail = f"PGN files for a repertoire can be at most {MAX_PGN_BYTES // (1024 * 1024)} MB."
 
 
 class InvalidPositionError(DomainError):
@@ -122,24 +128,36 @@ class PgnImport:
     games_skipped: int  # unreadable, or not from the starting position
 
 
-def import_pgn(repertoire: Repertoire, *, text: str) -> PgnImport:
-    """Add every move of the PGN's games, variations included, that the repertoire doesn't
+def import_pgn(repertoire: Repertoire, *, lines: Iterable[bytes]) -> PgnImport:
+    """Add every move of a PGN file's games, variations included, that the repertoire doesn't
     have yet; each with the comment after it in the PGN. Moves already there stay as they are.
-    """
+    The file comes as its lines, e.g. an uploaded file, and is read one game at a time."""
+    seen: set[tuple[int, str]] = set()
     edges: list[Edge] = []
     read = skipped = 0
-    for item in read_pgn(io.BytesIO(text.encode())):
+    for item in read_pgn(_limited(lines)):
         if not isinstance(item, PgnGame):
             skipped += 1
             continue
         try:
-            edges.extend(pgn_edges(item.game))
+            edges.extend(pgn_edges(item.game, seen))
         except NotFromStartError:
             skipped += 1
             continue
         read += 1
+        if len(edges) > MAX_MOVES:  # too many for any repertoire: no need to read on
+            raise TooManyMovesError
     added = _add_edges(repertoire, edges)
     return PgnImport(moves_added=len(added), games_read=read, games_skipped=skipped)
+
+
+def _limited(lines: Iterable[bytes]) -> Iterator[bytes]:
+    size = 0
+    for line in lines:
+        size += len(line)
+        if size > MAX_PGN_BYTES:
+            raise PgnTooLargeError
+        yield line
 
 
 # ---------------------------------------------------------------- seeding from games

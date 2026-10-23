@@ -637,8 +637,8 @@ export interface paths {
         put?: never;
         /**
          * Import Pgn
-         * @description Add the moves of PGN games, variations and comments included. Games that don't start
-         *     from the starting position are skipped.
+         * @description Upload a PGN file (at most 20 MB) and add its moves, variations and comments included.
+         *     Games that don't start from the starting position are skipped.
          */
         post: operations["homerank_repertoire_api_import_pgn"];
         delete?: never;
@@ -1675,11 +1675,6 @@ export interface components {
             games_skipped: number;
             /** Moves Added */
             moves_added: number;
-        };
-        /** PgnIn */
-        PgnIn: {
-            /** Pgn */
-            pgn: string;
         };
         /**
          * Platform
@@ -3126,7 +3121,13 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PgnIn"];
+                "multipart/form-data": {
+                    /**
+                     * File
+                     * Format: binary
+                     */
+                    file: string;
+                };
             };
         };
         responses: {

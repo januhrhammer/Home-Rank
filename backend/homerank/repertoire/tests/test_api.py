@@ -6,6 +6,7 @@ from typing import Any
 
 import chess
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client
 
 from homerank.accounts.models import User
@@ -34,7 +35,7 @@ def alice_client(client: Client, alice: User) -> Client:
 @pytest.fixture
 def white(alice: User) -> Repertoire:
     repertoire = create_repertoire(user=alice, name="Queen's Gambit", color="white")
-    import_pgn(repertoire, text="1. d4 d5 2. c4 e6 (2... c6 3. Nf3) 3. Nc3 *")
+    import_pgn(repertoire, lines=io.BytesIO(b"1. d4 d5 2. c4 e6 (2... c6 3. Nf3) 3. Nc3 *"))
     return repertoire
 
 
@@ -114,7 +115,9 @@ def test_an_illegal_move_is_refused(alice_client: Client, white: Repertoire) -> 
 
 
 def test_import_pgn(alice_client: Client, white: Repertoire) -> None:
-    response = post(alice_client, f"{URL}/{white.pk}/import", {"pgn": "1. d4 Nf6 2. c4 *"})
+    upload = SimpleUploadedFile("course.pgn", b"1. d4 Nf6 2. c4 *\n")
+
+    response = alice_client.post(f"{URL}/{white.pk}/import", {"file": upload})
 
     assert response.json() == {"moves_added": 2, "games_read": 1, "games_skipped": 0}
 
@@ -179,7 +182,7 @@ def test_someone_elses_repertoire_is_not_found(white: Repertoire, client: Client
         post(client, f"{base}/moves", {"fen": chess.STARTING_FEN, "move_uci": "e2e4"}),
         client.patch(f"{base}/moves/{move.pk}", {"comment": "mine"}, content_type=AS_JSON),
         client.delete(f"{base}/moves/{move.pk}"),
-        post(client, f"{base}/import", {"pgn": "1. e4 *"}),
+        client.post(f"{base}/import", {"file": SimpleUploadedFile("a.pgn", b"1. e4 *")}),
         post(client, f"{base}/seed", {}),
         client.get(f"{base}/gaps"),
         client.get(f"{base}/drill/next"),

@@ -1,5 +1,7 @@
 """Building repertoires: moves, transpositions, cards, PGN import, and who may see what."""
 
+import io
+
 import chess
 import pytest
 from django.http import Http404
@@ -11,6 +13,7 @@ from homerank.repertoire.models import Repertoire, RepertoireMove
 from homerank.repertoire.services import (
     IllegalMoveError,
     InvalidPositionError,
+    PgnTooLargeError,
     PositionNotInRepertoireError,
     TooManyMovesError,
     TooManyRepertoiresError,
@@ -189,7 +192,7 @@ def test_a_pgn_import_adds_every_line_and_comment(white: Repertoire) -> None:
         "1. d4 Nf6 2. c4 *\n"
     )
 
-    result = import_pgn(white, text=text)
+    result = import_pgn(white, lines=io.BytesIO(text.encode()))
 
     assert result == services.PgnImport(moves_added=7, games_read=2, games_skipped=1)
     assert sans(white) == ["d4", "d5", "c4", "Nf3", "e6", "Nf6", "Nf6", "c4"]
@@ -205,7 +208,18 @@ def test_a_pgn_import_over_the_limit_adds_nothing(
     monkeypatch.setattr(services, "MAX_MOVES", 3)
 
     with pytest.raises(TooManyMovesError):
-        import_pgn(white, text="1. d4 d5 2. c4 e6 *")
+        import_pgn(white, lines=io.BytesIO(b"1. d4 d5 2. c4 e6 *"))
+
+    assert not RepertoireMove.objects.exists()
+
+
+def test_a_pgn_file_over_the_size_limit_is_refused(
+    white: Repertoire, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(services, "MAX_PGN_BYTES", 20)
+
+    with pytest.raises(PgnTooLargeError):
+        import_pgn(white, lines=io.BytesIO(b"1. d4 d5 2. c4 e6\n3. Nc3 Nf6 *\n"))
 
     assert not RepertoireMove.objects.exists()
 

@@ -46,19 +46,45 @@ def edge(board: chess.Board, move: chess.Move, comment: str = "") -> Edge:
     )
 
 
-def pgn_edges(game: chess.pgn.Game) -> list[Edge]:
-    """Every move of the game, its variations included. A move's comment is the one after it
-    in the PGN. The game must start from the starting position."""
+def pgn_edges(game: chess.pgn.Game, seen: set[tuple[int, str]] | None = None) -> list[Edge]:
+    """Every move of the game, its variations included, once. A move's comment is the one
+    after it in the PGN. The game must start from the starting position.
+
+    Moves whose (from_zobrist, move_uci) is in seen are left out, and those returned are added
+    to it: reading many games, such as a course whose chapters replay their lines from the
+    first move, then skips what is known without working out its FEN and SAN again.
+    """
     if game.board() != chess.Board():
         raise NotFromStartError
+    seen = set() if seen is None else seen
     edges = []
-    stack: list[chess.pgn.GameNode] = [game]
+    # Each node with the board after it and its hash, so that nothing is worked out twice.
+    start = game.board()
+    stack: list[tuple[chess.pgn.GameNode, chess.Board, int]] = [
+        (game, start, chess.polyglot.zobrist_hash(start))
+    ]
     while stack:
-        node = stack.pop()
-        board = node.board()
+        node, board, zobrist = stack.pop()
+        children: list[tuple[chess.pgn.GameNode, chess.Board, int]] = []
         for child in node.variations:
-            edges.append(edge(board, child.move, child.comment.strip()))
-        stack.extend(reversed(node.variations))  # the main line first
+            after = board.copy(stack=False)
+            after.push(child.move)
+            after_zobrist = chess.polyglot.zobrist_hash(after)
+            children.append((child, after, after_zobrist))
+            key = (zobrist, child.move.uci())
+            if key not in seen:
+                seen.add(key)
+                edges.append(
+                    Edge(
+                        from_zobrist=zobrist,
+                        from_fen=board.fen(),
+                        move_uci=key[1],
+                        move_san=board.san(child.move),
+                        to_zobrist=after_zobrist,
+                        comment=child.comment.strip(),
+                    )
+                )
+        stack.extend(reversed(children))  # the main line first
     return edges
 
 

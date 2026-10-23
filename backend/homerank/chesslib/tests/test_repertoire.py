@@ -61,3 +61,20 @@ def test_reachable_moves_follow_the_graph_from_the_start() -> None:
     edges = [(1, "a", 2), (2, "b", 3), (3, "c", 2), (7, "d", 8)]
 
     assert reachable(edges, start=1) == {(1, "a"), (2, "b"), (3, "c")}
+
+
+def test_moves_seen_before_are_left_out() -> None:
+    seen: set[tuple[int, str]] = set()
+    first = pgn_edges(parse("1. d4 d5 2. c4 *"), seen)
+
+    second = pgn_edges(parse("1. d4 d5 2. c4 e6 (2... c6) *"), seen)
+
+    assert [e.move_san for e in first] == ["d4", "d5", "c4"]
+    assert [e.move_san for e in second] == ["e6", "c6"]
+    assert len(seen) == 5  # noqa: PLR2004
+
+
+def test_a_move_repeated_in_a_game_is_read_once() -> None:
+    edges = pgn_edges(parse("1. Nf3 Nf6 2. Ng1 Ng8 3. Nf3 *"))
+
+    assert [e.move_san for e in edges] == ["Nf3", "Nf6", "Ng1", "Ng8"]

@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
-from ninja import Query, Router, Status
+from ninja import File, Query, Router, Status, UploadedFile
 
 from homerank.accounts.auth import AuthenticatedRequest
 from homerank.repertoire import selectors, services
@@ -15,7 +15,6 @@ from homerank.repertoire.schemas import (
     MoveOut,
     MovePatch,
     PgnImportOut,
-    PgnIn,
     RemovedOut,
     RepertoireIn,
     RepertoireOut,
@@ -98,10 +97,12 @@ def remove_move(request: AuthenticatedRequest, repertoire_id: int, move_id: int)
 
 
 @router.post("/{int:repertoire_id}/import", response=PgnImportOut)
-def import_pgn(request: AuthenticatedRequest, repertoire_id: int, data: PgnIn) -> PgnImport:
-    """Add the moves of PGN games, variations and comments included. Games that don't start
-    from the starting position are skipped."""
-    return services.import_pgn(_repertoire(request, repertoire_id), text=data.pgn)
+def import_pgn(
+    request: AuthenticatedRequest, repertoire_id: int, file: File[UploadedFile]
+) -> PgnImport:
+    """Upload a PGN file (at most 20 MB) and add its moves, variations and comments included.
+    Games that don't start from the starting position are skipped."""
+    return services.import_pgn(_repertoire(request, repertoire_id), lines=file)
 
 
 @router.post("/{int:repertoire_id}/seed", response=SeedOut)

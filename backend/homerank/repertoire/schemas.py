@@ -64,10 +64,6 @@ class RemovedOut(Schema):
     removed: int  # the move and those only it led to
 
 
-class PgnIn(Schema):
-    pgn: str = Field(max_length=1_000_000)
-
-
 class PgnImportOut(Schema):
     moves_added: int
     games_read: int
