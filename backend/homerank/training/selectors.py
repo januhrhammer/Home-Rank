@@ -78,8 +78,9 @@ def stats(*, user: User) -> TrainingStats:
         timezone.localdate(now) + timedelta(days=1), datetime.min.time(), tzinfo=now.tzinfo
     )
     start_of_today = end_of_today - timedelta(days=1)
-    cards = ReviewCard.objects.filter(user=user)
-    logs = ReviewLog.objects.filter(card__user=user)
+    # Puzzles only: repertoire cards have their own statistics.
+    cards = ReviewCard.objects.filter(user=user, card_type=ReviewCard.CardType.PUZZLE)
+    logs = ReviewLog.objects.filter(card__in=cards)
     weeks = (
         logs.filter(reviewed_at__gte=now - timedelta(weeks=STATS_WEEKS))
         .annotate(week=TruncWeek("reviewed_at"))

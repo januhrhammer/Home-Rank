@@ -19,13 +19,13 @@ from django.utils import timezone
 from procrastinate import exceptions as procrastinate_exceptions
 from procrastinate.contrib.django import app
 
-from homerank.accounts.models import User
 from homerank.analysis.models import PositionEval
 from homerank.analysis.services import within_analysis_hours
 from homerank.core.errors import DomainError
 from homerank.engine.tactics import find_candidates, solve, themes
 from homerank.engine.uci import open_engine
 from homerank.games.models import Game
+from homerank.repertoire.models import RepertoireMove
 from homerank.training.models import Puzzle, PuzzleScan, ReviewCard, ReviewLog
 
 logger = structlog.get_logger(__name__)
@@ -145,6 +145,21 @@ def _new_card(puzzle: Puzzle) -> ReviewCard:
     )
 
 
+def new_repertoire_cards(moves: list[RepertoireMove]) -> None:
+    """Cards for the user's own moves in a repertoire (ADR 0016), due now."""
+    card = fsrs.Card()
+    ReviewCard.objects.bulk_create(
+        ReviewCard(
+            user_id=move.repertoire.user_id,
+            card_type=ReviewCard.CardType.REPERTOIRE,
+            repertoire_move=move,
+            fsrs_state=card.to_dict(),
+            due_at=card.due,
+        )
+        for move in moves
+    )
+
+
 # ---------------------------------------------------------------- training
 
 
@@ -162,11 +177,16 @@ def suggested_rating(*, correct: bool, elapsed_ms: int, solver_moves: int) -> in
 
 
 def review(card: ReviewCard, *, correct: bool, elapsed_ms: int) -> ReviewLog:
-    """Record a solve of the card's puzzle and schedule it again with the suggested rating."""
-    solution = card.puzzle.solution if card.puzzle else []  # every card is a puzzle's for now
-    rating = suggested_rating(
-        correct=correct, elapsed_ms=elapsed_ms, solver_moves=(len(solution) + 1) // 2
-    )
+    """Record an answer to the card and schedule it again with the suggested rating. A
+    repertoire move is "Good" when right on the first try, else "Again" (ADR 0016)."""
+    if card.puzzle is not None:
+        rating = suggested_rating(
+            correct=correct,
+            elapsed_ms=elapsed_ms,
+            solver_moves=(len(card.puzzle.solution) + 1) // 2,
+        )
+    else:
+        rating = ReviewLog.Rating.GOOD if correct else ReviewLog.Rating.AGAIN
     with transaction.atomic():
         log = ReviewLog(
             card=card,
@@ -182,7 +202,7 @@ def review(card: ReviewCard, *, correct: bool, elapsed_ms: int) -> ReviewLog:
 
 class NotLatestReviewError(DomainError):
     status = HTTPStatus.CONFLICT
-    detail = "Only the latest review of a puzzle can be changed."
+    detail = "Only the latest review of a card can be changed."
 
 
 def change_rating(log: ReviewLog, *, rating: int) -> ReviewLog:
@@ -208,8 +228,3 @@ def _schedule(card: ReviewCard, log: ReviewLog) -> None:
     card.fsrs_state = state.to_dict()
     card.due_at = state.due
     card.save(update_fields=["fsrs_state", "due_at"])
-
-
-def due_cards(user: User) -> int:
-    """How many of the user's cards are due now."""
-    return ReviewCard.objects.filter(user=user, due_at__lte=timezone.now()).count()
