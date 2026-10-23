@@ -145,3 +145,41 @@
     transition: none;
   }
 }
+
+/* The opening explorer, folded away until asked for. */
+.explorerHeading {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.explorerButton {
+  padding: 0;
+  border: none;
+  font: inherit;
+  color: var(--color-text);
+  background: none;
+  cursor: pointer;
+}
+
+.chevron {
+  display: inline-block;
+  margin-right: var(--space-2);
+  transition: transform 0.15s;
+}
+
+.explorer[data-expanded] .chevron {
+  transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    transition: none;
+  }
+}
+
+.searchLink {
+  display: inline-block;
+  margin-top: var(--space-2);
+  font-size: 0.875rem;
+  color: var(--color-accent);
+}

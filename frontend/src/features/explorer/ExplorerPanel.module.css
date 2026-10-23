@@ -1,0 +1,80 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.empty {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.table {
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.caption {
+  text-align: left;
+  color: var(--color-text-muted);
+  padding-bottom: var(--space-1);
+}
+
+.table th,
+.table td {
+  padding: var(--space-1) var(--space-2) var(--space-1) 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.table thead th {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.table th:first-child,
+.table td:nth-child(3) {
+  text-align: left;
+}
+
+.move {
+  font-family: var(--font-serif);
+  font-weight: 600;
+}
+
+.moveButton {
+  padding: 0 var(--space-1);
+  border: none;
+  border-radius: var(--radius);
+  font: inherit;
+  color: var(--color-accent);
+  background: none;
+  cursor: pointer;
+}
+
+.moveButton[data-hovered] {
+  background: var(--color-surface);
+}
+
+/* White's wins, draws and Black's wins as one bar, like Lichess's explorer. */
+.bar {
+  display: flex;
+  width: 8rem;
+  height: 0.875rem;
+  overflow: hidden;
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+}
+
+.white {
+  background: var(--eval-white);
+}
+
+.draw {
+  background: var(--color-input-border);
+}
+
+.black {
+  background: var(--eval-black);
+}

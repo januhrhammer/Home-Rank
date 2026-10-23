@@ -1,0 +1,168 @@
+/* The board and its tools on the left, the explorer and games on the right. */
+.layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
+.setup {
+  flex: 0 1 34rem;
+  min-width: min(22rem, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.results {
+  flex: 1 1 20rem;
+  max-width: 36rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+/* A piece to put on the board, drawn by chessground's own piece images on a light square, so
+   that black pieces show in the dark theme too. */
+.tool {
+  position: relative;
+  min-width: 2.5rem;
+  height: 2.5rem;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 0.875rem;
+  color: #1d2329; /* "Remove", on the light square */
+  background: var(--board-light);
+  cursor: pointer;
+}
+
+/* chessground sizes pieces as one square of its board (12.5%); here a piece fills its button. */
+.tool :global(piece) {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(100% - 4px);
+  height: calc(100% - 4px);
+  background-size: cover;
+}
+
+.tool[aria-pressed="true"] {
+  border-color: var(--color-accent);
+  outline: 2px solid var(--color-accent);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.turn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.radio {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  cursor: pointer;
+}
+
+.radio::before {
+  content: "";
+  box-sizing: border-box;
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid var(--color-input-border);
+  border-radius: 50%;
+  background: var(--color-bg);
+}
+
+.radio[data-selected]::before {
+  border: 5px solid var(--color-accent);
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.button {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  background: var(--color-bg);
+  cursor: pointer;
+}
+
+.button[data-disabled] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.fen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.input {
+  height: var(--control-height);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+  font: inherit;
+  font-family: ui-monospace, monospace;
+  font-size: 0.8125rem;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+.input[data-invalid] {
+  border-color: var(--color-danger);
+}
+
+.heading {
+  margin: 0 0 var(--space-2);
+  font-size: 1.125rem;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.list a {
+  color: var(--color-accent);
+}
+
+.meta,
+.note {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  font-size: 0.875rem;
+}

@@ -1,7 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { Button, SwitchButton, SwitchField } from "react-aria-components";
-import { useParams } from "react-router";
+import {
+  Button,
+  Disclosure,
+  DisclosurePanel,
+  Heading,
+  SwitchButton,
+  SwitchField,
+} from "react-aria-components";
+import { Link, useParams } from "react-router";
 
 import { ApiError } from "../../api/errors";
 import { Board } from "../../components/Board";
@@ -9,6 +16,7 @@ import { BackIcon, EndIcon, FlipIcon, ForwardIcon, StartIcon } from "../../compo
 import { t } from "../../lib/i18n";
 import type { PositionEval } from "../analysis";
 import { AnalysisPanel, EvalBar, EvalGraph, useGameAnalysis } from "../analysis";
+import { ExplorerPanel, type Source } from "../explorer";
 import styles from "./GamePage.module.css";
 import { type Game, gameQuery } from "./games";
 import { formatGameDate } from "./GameTable";
@@ -58,6 +66,7 @@ function Viewer({ game, tree }: { game: Game; tree: MoveTree }) {
   // The user's side is at the bottom unless they flip the board.
   const [flipped, setFlipped] = useState(false);
   const [notation, setNotation] = useNotation();
+  const [explorerSource, setExplorerSource] = useState<Source>({ kind: "mine" });
   const orientation = (game.user_color === "black") !== flipped ? "black" : "white";
   const analysis = useGameAnalysis(game.id);
   const engine = useEngineView(tree, analysis.data?.positions ?? [], current);
@@ -158,6 +167,38 @@ function Viewer({ game, tree }: { game: Game; tree: MoveTree }) {
             notation={notation}
             weakMoves={engine.weakMoves}
           />
+          <Disclosure className={styles.explorer}>
+            <Heading level={2} className={styles.explorerHeading}>
+              <Button slot="trigger" className={styles.explorerButton}>
+                <span className={styles.chevron} aria-hidden="true">
+                  ▸
+                </span>
+                {t("explorer.title")}
+              </Button>
+            </Heading>
+            <DisclosurePanel>
+              <ExplorerPanel
+                fen={current?.fen ?? tree.startFen}
+                source={explorerSource}
+                onSourceChange={setExplorerSource}
+                formatMove={(san) => (notation === "figurines" ? withFigurines(san) : san)}
+                onMove={(move) => {
+                  // Step forward if the game (or one of its variations) goes on with the move.
+                  const next = current ? current.children : tree.firstMoves;
+                  const found = next.find((child) => child.san === move.san);
+                  if (found) {
+                    setCurrent(found);
+                  }
+                }}
+              />
+              <Link
+                className={styles.searchLink}
+                to={`/search?${new URLSearchParams({ fen: current?.fen ?? tree.startFen }).toString()}`}
+              >
+                {t("explorer.searchPosition")}
+              </Link>
+            </DisclosurePanel>
+          </Disclosure>
           <SwitchField
             isSelected={notation === "figurines"}
             onChange={(on) => {
