@@ -12,8 +12,9 @@ worker for background jobs, and PostgreSQL.
   `docker compose version` must work.
 - git, to download Home-Rank. There are no published images yet, so Compose builds one from the
   source code.
-- About 2 GB of disk for the images, plus your data, and about 250 MB of memory. Engine analysis
-  and reference databases will need more once they arrive. The image includes Stockfish, the
+- About 2 GB of disk for the images, plus your data, and about 250 MB of memory, plus about
+  300 MB while a game is analysed ([Engine analysis](#engine-analysis)). Reference databases
+  will need more once they arrive. The image includes Stockfish, the
   chess engine, with its source code (it is GPL-licensed); `/usr/share/doc/stockfish` in the
   image holds both.
 
@@ -91,6 +92,32 @@ to reach `lichess.org` and `api.chess.com` over HTTPS. Both sites like to know w
 consider setting `SYNC_CONTACT` to your email address, so they can contact you rather than block
 your server if something goes wrong. A first sync of a long Lichess history takes a while:
 Lichess sends about 20 games a second.
+
+### Engine analysis
+
+The worker analyses games with Stockfish, which the image contains. Games users played are
+analysed automatically soon after they arrive, a few at a time (users can turn this off in
+their settings), and anyone can analyse a game from its page. Analysis takes CPU time: at the
+default depth of 18, a game of 30 moves took 11 seconds on one core of a recent desktop PC;
+expect several times that on a Raspberry Pi. These settings in `.env` tune it:
+
+| Setting | Default | What it does |
+|---|---|---|
+| `ENGINE_THREADS` | 1 | CPU threads Stockfish uses per analysed game |
+| `ENGINE_HASH_MB` | 64 | Memory for Stockfish's hash table per analysed game, in MB |
+| `ANALYSIS_DEPTH` | 18 | How deep Stockfish searches each position. Each step deeper costs about half again as much time. Users can ask for up to 30 for a single game. |
+| `ANALYSIS_CONCURRENCY` | 1 | How many games are analysed at the same time |
+| `ANALYSIS_HOURS` | (any time) | When automatic analyses may run, e.g. `23:00-07:00`; analyses users start run at once |
+| `TIME_ZONE` | UTC | The server's time zone, for `ANALYSIS_HOURS`, e.g. `Europe/Berlin` |
+
+Keep `ENGINE_THREADS` × `ANALYSIS_CONCURRENCY` below the number of CPU cores, so the website stays
+responsive while games are analysed. On a 4-core Raspberry Pi, for example, `ENGINE_THREADS=2`
+and `ANALYSIS_HOURS=00:00-07:00` analyse quickly at night and leave the days quiet. Memory:
+Stockfish needs about 250 MB plus its hash table per game analysed at the same time (about
+300 MB with the defaults), only while it analyses.
+
+Someone who imports thousands of their games gets all of them analysed eventually, which can
+take days on a small server; the website shows each game's analysis as soon as it is done.
 
 ### Changing the database password
 

@@ -182,6 +182,8 @@ e2e *args:
         echo "ALLOWED_HOSTS=localhost"
         echo "HTTPS=false"
         echo "HOMERANK_PORT=127.0.0.1:8104"
+        # Shallow analyses: the tests check that Stockfish runs, not how well.
+        echo "ANALYSIS_DEPTH=10"
     } > "$env_file"
     # Start from an empty database, even if an earlier run didn't get to clean up.
     "${compose[@]}" down --volumes --remove-orphans
