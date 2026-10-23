@@ -28,7 +28,7 @@ explorer.
 > - every page works on a phone, with the keyboard alone and with screen readers, in a light and
 >   a dark theme.
 >
-> Next: 1.0.
+> Next: more features before 1.0.
 
 ## Screenshots
 
