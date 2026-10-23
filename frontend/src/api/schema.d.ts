@@ -4,6 +4,72 @@
  */
 
 export interface paths {
+    "/api/v1/analysis": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Analyse
+         * @description Analyse games, by id or a whole collection; 404 if one of them isn't yours.
+         *
+         *     Returns the analyses that will run, newly queued or already waiting. Games analysed at
+         *     least this deep get none. Poll GET /analysis/games/{id} for the progress.
+         */
+        post: operations["homerank_analysis_api_analyse"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analysis/games/{game_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Game Analysis
+         * @description A game's analysis: every analysed position, the moves classified with your
+         *     thresholds, both players' accuracy and mistakes, and the latest analysis job.
+         */
+        get: operations["homerank_analysis_api_game_analysis"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analysis/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Settings */
+        get: operations["homerank_analysis_api_get_settings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Settings
+         * @description Turn automatic analysis on or off, or change the thresholds (in percentage points of
+         *     winning chances a move loses); 422 unless inaccuracy < mistake < blunder.
+         */
+        patch: operations["homerank_analysis_api_update_settings"];
+        trace?: never;
+    };
     "/api/v1/auth/csrf": {
         parameters: {
             query?: never;
@@ -459,6 +525,90 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AnalysisRequest
+         * @description Games to analyse: some by id, or a whole collection.
+         */
+        AnalysisRequest: {
+            /** Collection */
+            collection?: number | null;
+            /**
+             * Depth
+             * @description Default: the server's ANALYSIS_DEPTH
+             */
+            depth?: number | null;
+            /** Game Ids */
+            game_ids?: number[];
+        };
+        /**
+         * AnalysisRunOut
+         * @description An analysis and its progress. The frontend polls it while it is queued or running.
+         */
+        AnalysisRunOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Depth */
+            depth: number;
+            /** Error */
+            error: string;
+            /** Finished At */
+            finished_at: string | null;
+            /** Game Id */
+            game_id: number;
+            /** Id */
+            id: number;
+            /** Positions Done */
+            positions_done: number;
+            /** Positions Total */
+            positions_total: number;
+            /** Started At */
+            started_at: string | null;
+            status: components["schemas"]["Status"];
+        };
+        /** AnalysisSettingsOut */
+        AnalysisSettingsOut: {
+            /** Auto Analyse */
+            auto_analyse: boolean;
+            /** Blunder */
+            blunder: number;
+            /** Inaccuracy */
+            inaccuracy: number;
+            /** Mistake */
+            mistake: number;
+        };
+        /**
+         * AnalysisSettingsPatch
+         * @description The settings to change; those left out stay as they are.
+         */
+        AnalysisSettingsPatch: {
+            /** Auto Analyse */
+            auto_analyse?: boolean | null;
+            /** Blunder */
+            blunder?: number | null;
+            /** Inaccuracy */
+            inaccuracy?: number | null;
+            /** Mistake */
+            mistake?: number | null;
+        };
+        /** AnalysisSummaryOut */
+        AnalysisSummaryOut: {
+            /** Accuracy Black */
+            accuracy_black: number | null;
+            /** Accuracy White */
+            accuracy_white: number | null;
+            /**
+             * Analysed At
+             * Format: date-time
+             */
+            analysed_at: string;
+            /** Depth */
+            depth: number;
+            /** Engine */
+            engine: string;
+        };
         /** CollectionIn */
         CollectionIn: {
             /**
@@ -494,6 +644,18 @@ export interface components {
             description?: string | null;
             /** Name */
             name?: string | null;
+        };
+        /**
+         * GameAnalysisOut
+         * @description A game's analysis: the latest job, the summary, and every position.
+         */
+        GameAnalysisOut: {
+            black: components["schemas"]["MistakesOut"];
+            /** Positions */
+            positions: components["schemas"]["PositionEvalOut"][];
+            run: components["schemas"]["AnalysisRunOut"] | null;
+            summary: components["schemas"]["AnalysisSummaryOut"] | null;
+            white: components["schemas"]["MistakesOut"];
         };
         /**
          * GameFilters
@@ -753,6 +915,20 @@ export interface components {
             /** Username */
             username: string;
         };
+        /** MistakesOut */
+        MistakesOut: {
+            /** Blunders */
+            blunders: number;
+            /** Inaccuracies */
+            inaccuracies: number;
+            /** Mistakes */
+            mistakes: number;
+        };
+        /**
+         * MoveClass
+         * @enum {string}
+         */
+        MoveClass: "good" | "inaccuracy" | "mistake" | "blunder";
         /**
          * NamedRef
          * @description A collection or tag as other objects mention it.
@@ -803,6 +979,27 @@ export interface components {
          * @enum {string}
          */
         Platform: "lichess" | "chesscom";
+        /**
+         * PositionEvalOut
+         * @description The engine's view of a position, from White's point of view.
+         */
+        PositionEvalOut: {
+            /** Best Move Uci */
+            best_move_uci: string;
+            /** Depth */
+            depth: number;
+            move_class: components["schemas"]["MoveClass"] | null;
+            /** Ply */
+            ply: number;
+            /** Pv */
+            pv: string[];
+            /** Score Cp */
+            score_cp: number | null;
+            /** Score Mate */
+            score_mate: number | null;
+            /** Win Percent */
+            win_percent: number;
+        };
         /**
          * SettingsOut
          * @description The logged-in user's settings.
@@ -913,6 +1110,96 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    homerank_analysis_api_analyse: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnalysisRequest"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisRunOut"][];
+                };
+            };
+        };
+    };
+    homerank_analysis_api_game_analysis: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                game_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GameAnalysisOut"];
+                };
+            };
+        };
+    };
+    homerank_analysis_api_get_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisSettingsOut"];
+                };
+            };
+        };
+    };
+    homerank_analysis_api_update_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnalysisSettingsPatch"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisSettingsOut"];
+                };
+            };
+        };
+    };
     homerank_accounts_api_csrf: {
         parameters: {
             query?: never;
