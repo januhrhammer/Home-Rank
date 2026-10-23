@@ -1,0 +1,39 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate "Home" %}</a>
+  &rsaquo; <a href="{% url 'admin:reference_referencedatabase_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+  &rsaquo; <a href="{% url 'admin:reference_referencedatabase_change' database.pk %}">{{ database }}</a>
+  &rsaquo; {% translate "Import files" %}
+</div>
+{% endblock %}
+
+{% block content %}
+<p>PGN files (.pgn, .gz, .bz2, .zst, .7z) in <code>{{ folder }}</code>. The import runs in the
+  background on the worker; follow it under <a href="{% url 'admin:reference_referenceimport_changelist' %}">imports</a>.
+  Estimates are rough, from the files' sizes.</p>
+{% if not estimates %}
+<p>No PGN files there yet. Put them into that folder (in Docker: HOMERANK_IMPORT_DIR on the host).</p>
+{% else %}
+<form method="post">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  <table>
+    <thead><tr><th></th><th>File</th><th>About</th><th>Disk space</th></tr></thead>
+    <tbody>
+    {% for name, estimate in estimates.items %}
+      <tr>
+        <td><input type="checkbox" name="chosen" value="{{ name }}" id="file-{{ forloop.counter }}"></td>
+        <td><label for="file-{{ forloop.counter }}">{{ name }}</label></td>
+        <td>{{ estimate.games }} games</td>
+        <td>{% widthratio estimate.disk_bytes 1000000000 1 %} GB</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <div class="submit-row"><input type="submit" value="Import" class="default"></div>
+</form>
+{% endif %}
+{% endblock %}

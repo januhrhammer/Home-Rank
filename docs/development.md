@@ -45,6 +45,7 @@ Run `just` to list all tasks. The ones you need most:
 |---|---|
 | `just dev` | Start the database, Django on <http://localhost:8100> and the frontend on <http://localhost:5173>. Ctrl+C stops both. |
 | `just worker` | Run the background job worker, which also starts recurring jobs on schedule. PGN imports and Lichess/Chess.com syncs only run while it does; uploads wait in `data/` until then. Syncs make real requests to the two sites. |
+| `just manage import_reference FILE --name NAME` | Import a large PGN file from `data/import/` (or `REFERENCE_IMPORT_DIR`) as a reference database, e.g. a month of [the Lichess database](https://database.lichess.org). Keep such files out of the repository. |
 | `just test` | Run all tests. Tests marked `engine` run Stockfish. |
 | `just stockfish` | Download Stockfish to `.tools/stockfish/`, where the dev server and tests find it. `just setup` does this too. |
 | `just fmt` | Format all code |
