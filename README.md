@@ -18,14 +18,15 @@ explorer.
 > - syncing your games from Lichess and Chess.com, every few hours or at the press of a button;
 > - analysis by Stockfish: an evaluation bar and graph, inaccuracies, mistakes and blunders, and
 >   each player's accuracy, computed like on Lichess; new games are analysed automatically.
-;
 > - training with puzzles from your own games: positions where you or your opponent missed a
 >   winning move, repeated with spaced repetition (FSRS) until they stick.
->
 > - reference databases such as Lumbra's GigaBase (millions of games, imported from compressed
 >   PGN), position search across your games and them, and an opening explorer comparing both.
+> - opening repertoires for White and Black: built on the board, imported from PGN (a course or a
+>   Lichess study) or started from what you play in your games; a report of where your games
+>   left them; and drills of your moves, card by card or whole lines, with spaced repetition.
 >
-> The repertoire trainer comes next.
+> Next: polish for 1.0 (phones, accessibility, backups).
 
 ## Quick start
 
