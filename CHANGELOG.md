@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.7.0](https://github.com/januhrhammer/Home-Rank/compare/v0.6.0...v0.7.0) (2026-10-23)
+
+
+### Features
+
+* **repertoire:** build repertoires move by move or from PGN ([#63](https://github.com/januhrhammer/Home-Rank/issues/63)) ([3f9250c](https://github.com/januhrhammer/Home-Rank/commit/3f9250ce61ad5ddd18429a065af343920da7a6eb))
+* **repertoire:** seed from games, gap report, drills and the API ([#64](https://github.com/januhrhammer/Home-Rank/issues/64)) ([3dabb60](https://github.com/januhrhammer/Home-Rank/commit/3dabb6051ff4505524e4a708d268f6d34bb398db))
+* **repertoire:** store repertoires as moves keyed by position ([#61](https://github.com/januhrhammer/Home-Rank/issues/61)) ([0be5a77](https://github.com/januhrhammer/Home-Rank/commit/0be5a7771e2022d178b146285f51bc2de0260370))
+* **ui:** build repertoires on the board ([#65](https://github.com/januhrhammer/Home-Rank/issues/65)) ([1e96594](https://github.com/januhrhammer/Home-Rank/commit/1e96594cb962e809e5c8bc3270f632a9ca8977ae))
+* **ui:** drill repertoires and see where my games left them ([#66](https://github.com/januhrhammer/Home-Rank/issues/66)) ([80c205d](https://github.com/januhrhammer/Home-Rank/commit/80c205d6e4a4e2e7d30f0bf88952ec11db4ec6f6))
+
 ## [0.6.0](https://github.com/januhrhammer/Home-Rank/compare/v0.5.0...v0.6.0) (2026-10-23)
 
 
