@@ -223,6 +223,14 @@ jobs:
           --env SECRET_KEY="$(openssl rand -hex 32)" --env ALLOWED_HOSTS=chess.example.org
           --env HTTPS=true --env DATABASE_URL=postgres://homerank@db/homerank
           home-rank:ci python manage.py check --deploy --fail-level WARNING
+      # Both bots play a move in the image: Maia's model and onnxruntime, and Stockfish, on this
+      # architecture (arm64 included, natively).
+      - name: Bots
+        run: >-
+          docker run --rm
+          --env SECRET_KEY="$(openssl rand -hex 32)" --env ALLOWED_HOSTS=chess.example.org
+          --env HTTPS=true --env DATABASE_URL=postgres://homerank@db/homerank
+          home-rank:ci python manage.py check_bots
       # Known vulnerabilities in the image. Fails only on serious ones that have a fix, which a
       # rebuild or a dependency update can pick up; the base image's unfixed ones can't be acted
       # on. Trivy runs as its image pinned by digest, not via trivy-action, whose tags were
