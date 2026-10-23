@@ -12,6 +12,7 @@ dependencies = [
     "django-environ>=0.14.0",
     "django-ninja>=1.7.1",
     "gunicorn>=26.2.0",
+    "httpx>=0.28.1",
     "procrastinate[django]>=3.10.0",
     "psycopg[binary]>=3.3.6",
     "structlog>=26.1.0",
@@ -99,6 +100,15 @@ forbidden_modules = ["django", "ninja", "procrastinate", "axes", "environ", "con
 broken_contract_guidance = """
 chesslib and engine must work without Django. Keep the Django part (models, settings, tasks)
 in a Django app and pass plain Python data into chesslib/engine instead."""
+
+[[tool.importlinter.contracts]]
+name = "The chess sites' clients work without Django"
+type = "forbidden"
+source_modules = ["homerank.sync.http", "homerank.sync.lichess", "homerank.sync.chesscom"]
+forbidden_modules = ["django", "ninja", "procrastinate", "axes", "environ", "config"]
+broken_contract_guidance = """
+The Lichess and Chess.com clients only make HTTP requests; the sync service passes in what they
+need (user agent, cursor), so they can be tested with recorded answers alone."""
 
 [tool.pytest]
 DJANGO_SETTINGS_MODULE = "config.settings.test"
