@@ -34,6 +34,9 @@ const TIME_CLASSES: Option[] = [
 ];
 
 export function GameFilters({ params, setFilter }: GameFiltersProps) {
+  // On narrow screens the filters hide behind a button, so the games come first.
+  const [open, setOpen] = useState(false);
+  const active = [...params.keys()].filter((name) => name !== "sort" && name !== "page").length;
   const tags = useQuery(tagsQuery);
   const collections = useQuery(collectionsQuery);
   const named = (items: { id: number; name: string }[] = []): Option[] =>
@@ -51,31 +54,56 @@ export function GameFilters({ params, setFilter }: GameFiltersProps) {
     />
   );
 
+  const filtersId = useId();
   return (
-    <div className={styles.filters} role="search" aria-label={t("games.filter.label")}>
-      {/* Five to a row on a wide screen: who played and how it ended, the opening; then how
-          fast, when, and the user's own tags and collections. */}
-      <TextFilter name="player" label="games.filter.player" params={params} setFilter={setFilter} />
-      {select("color", "games.filter.color", COLORS)}
-      {select("outcome", "games.filter.outcome", OUTCOMES)}
-      <TextFilter
-        name="opening"
-        label="games.filter.opening"
-        params={params}
-        setFilter={setFilter}
-      />
-      <TextFilter name="eco" label="games.filter.eco" params={params} setFilter={setFilter} />
-      {select("time_class", "games.filter.timeClass", TIME_CLASSES)}
-      <DateFilter
-        name="date_from"
-        label="games.filter.from"
-        params={params}
-        setFilter={setFilter}
-      />
-      <DateFilter name="date_to" label="games.filter.to" params={params} setFilter={setFilter} />
-      {select("tag", "games.filter.tag", named(tags.data))}
-      {select("collection", "games.filter.collection", named(collections.data))}
-    </div>
+    <>
+      <button
+        type="button"
+        className={styles.toggle}
+        aria-expanded={open}
+        aria-controls={filtersId}
+        onClick={() => {
+          setOpen(!open);
+        }}
+      >
+        {active > 0 ? t("games.filter.showActive", { count: active }) : t("games.filter.show")}
+      </button>
+      <div
+        id={filtersId}
+        className={styles.filters}
+        data-open={open || undefined}
+        role="search"
+        aria-label={t("games.filter.label")}
+      >
+        {/* Five to a row on a wide screen: who played and how it ended, the opening; then how
+            fast, when, and the user's own tags and collections. */}
+        <TextFilter
+          name="player"
+          label="games.filter.player"
+          params={params}
+          setFilter={setFilter}
+        />
+        {select("color", "games.filter.color", COLORS)}
+        {select("outcome", "games.filter.outcome", OUTCOMES)}
+        <TextFilter
+          name="opening"
+          label="games.filter.opening"
+          params={params}
+          setFilter={setFilter}
+        />
+        <TextFilter name="eco" label="games.filter.eco" params={params} setFilter={setFilter} />
+        {select("time_class", "games.filter.timeClass", TIME_CLASSES)}
+        <DateFilter
+          name="date_from"
+          label="games.filter.from"
+          params={params}
+          setFilter={setFilter}
+        />
+        <DateFilter name="date_to" label="games.filter.to" params={params} setFilter={setFilter} />
+        {select("tag", "games.filter.tag", named(tags.data))}
+        {select("collection", "games.filter.collection", named(collections.data))}
+      </div>
+    </>
   );
 }
 
