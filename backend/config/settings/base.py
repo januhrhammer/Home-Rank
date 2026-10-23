@@ -132,6 +132,16 @@ IMPORT_MAX_BYTES = env.integer("IMPORT_MAX_MB", default=200) * 1024 * 1024
 # PATH; locally, `just stockfish` downloads it to .tools/, where dev.py and test.py look.
 STOCKFISH_PATH = env.string("STOCKFISH_PATH", default="stockfish")
 
+# Engine analysis (docs/adr/0013-engine-analysis.md). Stockfish's CPU threads and hash table
+# (MB) per analysis, and how deep it searches each position by default. Users may ask for
+# deeper analyses of single games, up to ANALYSIS_MAX_DEPTH.
+ENGINE_THREADS = max(1, env.integer("ENGINE_THREADS", default=1))
+ENGINE_HASH_MB = max(1, env.integer("ENGINE_HASH_MB", default=64))
+ANALYSIS_DEPTH = max(1, env.integer("ANALYSIS_DEPTH", default=18))
+ANALYSIS_MAX_DEPTH = 30
+# How many games the worker analyses at the same time, each with ENGINE_THREADS threads.
+ANALYSIS_CONCURRENCY = max(1, env.integer("ANALYSIS_CONCURRENCY", default=1))
+
 # Syncing games from Lichess and Chess.com (docs/adr/0011-online-account-sync.md). A contact,
 # such as an email address or a URL, added to the User-Agent of requests to the two sites, so
 # they can reach the operator instead of blocking the server. Optional.

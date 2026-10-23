@@ -115,7 +115,7 @@ test-backend *args: db-up
 # Run the background job worker; it also starts recurring jobs on schedule
 [working-directory('backend')]
 worker: db-up
-    uv run python manage.py procrastinate worker
+    uv run python manage.py procrastinate worker --concurrency 3
 
 # Apply migrations to the dev database
 [working-directory('backend')]
