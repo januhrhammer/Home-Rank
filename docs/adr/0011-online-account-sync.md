@@ -37,7 +37,7 @@ says who is asking.
   games with other rules (Chess960, Bughouse, …) are skipped.
 - **Rate limits**: requests are made one at a time. On HTTP 429 the sync waits for the time
   the site names (Retry-After), at least 60 seconds, and tries again, up to three times.
-- Requests carry the User-Agent `Home-Rank/<version> (+<source code URL>)`, plus a contact
+- Requests carry the User-Agent `Home-Rank (+<source code URL>)`, plus a contact
   (an email address or URL) if the operator sets `SYNC_CONTACT`.
 - **Schedule**: a periodic job queues a sync for every enabled account whose last sync is
   older than `SYNC_INTERVAL_HOURS` (default 6; 0 turns scheduled syncs off). Users can also

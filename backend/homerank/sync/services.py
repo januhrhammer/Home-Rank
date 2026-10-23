@@ -13,6 +13,7 @@ import httpx
 import structlog
 from django.conf import settings
 from django.db import IntegrityError, transaction
+from django.db.models import Max, Q
 from django.utils import timezone
 from procrastinate.contrib.django import app
 from procrastinate.contrib.django.models import ProcrastinateJob
@@ -87,6 +88,24 @@ def start_sync(account: LinkedAccount) -> SyncRun:
         run.save(update_fields=["job_id"])
     logger.info("Sync queued", account_id=account.pk, sync_run_id=run.pk)
     return run
+
+
+def queue_due_syncs() -> int:
+    """Queue a sync of every enabled account whose newest sync began SYNC_INTERVAL_HOURS ago
+    or earlier, or that was never synced. Returns how many accounts were due."""
+    if settings.SYNC_INTERVAL_HOURS <= 0:
+        return 0
+    due = timezone.now() - timedelta(hours=settings.SYNC_INTERVAL_HOURS)
+    accounts = list(
+        LinkedAccount.objects.filter(enabled=True)
+        .annotate(last_sync=Max("runs__created_at"))
+        .filter(Q(last_sync__isnull=True) | Q(last_sync__lte=due))
+        .order_by("pk")
+    )
+    for account in accounts:
+        start_sync(account)  # leaves a sync that is still running alone
+    logger.info("Scheduled syncs queued", count=len(accounts))
+    return len(accounts)
 
 
 def _active_run(account: LinkedAccount) -> SyncRun | None:
