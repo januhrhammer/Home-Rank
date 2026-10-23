@@ -23,6 +23,7 @@ const messages = {
   "notFound.title": "Page not found",
   "notFound.backHome": "Back to the start page",
   "nav.label": "Main",
+  "nav.menu": "Menu",
   "nav.games": "Games",
   "nav.labels": "Collections & tags",
   "nav.train": "Train",

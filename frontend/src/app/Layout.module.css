@@ -29,11 +29,75 @@
   text-decoration: none;
 }
 
-/* The pages, next to the app name; the account area stays on the right. */
-.nav {
+/* The pages and the account area, next to the app name. */
+.menu {
   display: flex;
   flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
+
+/* The account area stays on the right, also when it wraps below the pages. */
+.menu > :last-child {
+  margin-inline-start: auto;
+}
+
+/* The pages, next to the app name. */
+.nav {
+  display: flex;
   gap: var(--space-4);
+}
+
+/* Only on narrow screens, see below. */
+.menuButton {
+  display: none;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+  font: inherit;
+  color: var(--color-text);
+  background: transparent;
+  cursor: pointer;
+}
+
+.menuButton[aria-expanded="true"] {
+  background: var(--color-border);
+}
+
+/* Narrow screens (phones): the app name and a menu button; the button shows the pages and
+   the account area below them, one per line, with room for a finger. */
+@media (width < 48rem) {
+  .menuButton {
+    display: inline-flex;
+  }
+
+  .menu[data-collapsible] {
+    flex-basis: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+
+  .menu[data-collapsible] > :last-child {
+    margin-inline-start: 0;
+  }
+
+  .menu[data-collapsible]:not([data-open]) {
+    display: none;
+  }
+
+  .menu[data-collapsible] .nav {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .menu[data-collapsible] .navLink {
+    padding: var(--space-2) 0;
+  }
 }
 
 .navLink {

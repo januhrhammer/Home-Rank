@@ -33,3 +33,8 @@ export function EndIcon() {
 export function FlipIcon() {
   return <Icon path="M7 3l-4.5 5H6v9h2V8h3.5zM17 21l4.5-5H18V7h-2v9h-3.5z" />;
 }
+
+/** Three bars: a menu. */
+export function MenuIcon() {
+  return <Icon path="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z" />;
+}
