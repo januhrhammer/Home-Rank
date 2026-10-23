@@ -35,6 +35,8 @@ test("following a link closes the menu", async () => {
   await user.click(button);
   await user.click(screen.getByRole("link", { name: "Settings" }));
 
+  // Pages load when first shown; until the new one is there, the old one stays, menu and all.
+  expect(await screen.findByRole("heading", { level: 1, name: "Settings" })).toBeInTheDocument();
   expect(button).toHaveAttribute("aria-expanded", "false");
 });
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { RouterProvider } from "react-aria-components";
 import { Link, NavLink, Outlet, useHref, useLocation, useNavigate } from "react-router";
 
@@ -81,7 +81,10 @@ export function Layout() {
           </div>
         </header>
         <main className={styles.main}>
-          <Outlet />
+          {/* Pages are downloaded when first shown (AppRoutes); until then, an empty page. */}
+          <Suspense fallback={null}>
+            <Outlet />
+          </Suspense>
         </main>
         <footer className={styles.footer}>
           <a href={SOURCE_CODE_URL}>{t("footer.sourceCode")}</a>
