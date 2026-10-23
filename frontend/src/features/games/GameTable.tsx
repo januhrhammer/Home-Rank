@@ -37,6 +37,11 @@ export function formatGameDate(datePgn: string): string {
     : fullDates.format(date);
 }
 
+/** CSS Modules class names together; a name missing from the module is left out. */
+function classes(...names: (string | undefined)[]): string {
+  return names.filter(Boolean).join(" ");
+}
+
 /** The sort in the address ("-date") as React Aria's table describes it, and back. */
 function descriptorOf(sort: GameSort): SortDescriptor {
   return {
@@ -82,54 +87,69 @@ export function GameTable(props: GameTableProps) {
         }}
       >
         <TableHeader>
-          <Column className={styles.selectColumn}>
+          <Column className={classes(styles.selectColumn, styles.select)}>
             <SelectionBox />
           </Column>
-          <Column id="date" allowsSorting className={styles.column}>
+          <Column id="date" allowsSorting className={classes(styles.column, styles.date)}>
             {t("games.column.date")}
           </Column>
-          <Column id="white" allowsSorting isRowHeader className={styles.column}>
+          <Column
+            id="white"
+            allowsSorting
+            isRowHeader
+            className={classes(styles.column, styles.white)}
+          >
             {t("games.column.white")}
           </Column>
-          <Column id="black" allowsSorting className={styles.column}>
+          <Column id="black" allowsSorting className={classes(styles.column, styles.black)}>
             {t("games.column.black")}
           </Column>
-          <Column className={styles.column}>{t("games.column.result")}</Column>
-          <Column id="eco" allowsSorting className={styles.column}>
+          <Column className={classes(styles.column, styles.result)}>
+            {t("games.column.result")}
+          </Column>
+          <Column id="eco" allowsSorting className={classes(styles.column, styles.wideOnly)}>
             {t("games.column.opening")}
           </Column>
-          <Column className={styles.column}>{t("games.column.timeClass")}</Column>
-          <Column className={styles.column}>{t("games.column.event")}</Column>
+          <Column className={classes(styles.column, styles.wideOnly)}>
+            {t("games.column.timeClass")}
+          </Column>
+          <Column className={classes(styles.column, styles.wideOnly)}>
+            {t("games.column.event")}
+          </Column>
         </TableHeader>
         <TableBody items={games}>
           {(game) => (
             <Row className={styles.row} id={game.id} href={`/games/${String(game.id)}`}>
-              <Cell className={styles.cell}>
+              <Cell className={classes(styles.cell, styles.select)}>
                 <SelectionBox />
               </Cell>
-              <Cell className={styles.cell}>{formatGameDate(game.date_pgn)}</Cell>
-              <Cell className={styles.cell}>
+              <Cell className={classes(styles.cell, styles.date)}>
+                {formatGameDate(game.date_pgn)}
+              </Cell>
+              <Cell className={classes(styles.cell, styles.white)}>
                 <Player
                   name={game.white}
                   elo={game.white_elo}
                   isUser={game.user_color === "white"}
                 />
               </Cell>
-              <Cell className={styles.cell}>
+              <Cell className={classes(styles.cell, styles.black)}>
                 <Player
                   name={game.black}
                   elo={game.black_elo}
                   isUser={game.user_color === "black"}
                 />
               </Cell>
-              <Cell className={styles.cell}>{game.result === "1/2-1/2" ? "½-½" : game.result}</Cell>
-              <Cell className={styles.cell}>
+              <Cell className={classes(styles.cell, styles.result)}>
+                {game.result === "1/2-1/2" ? "½-½" : game.result}
+              </Cell>
+              <Cell className={classes(styles.cell, styles.wideOnly)}>
                 {game.eco && <span className={styles.eco}>{game.eco}</span>} {game.opening}
               </Cell>
-              <Cell className={styles.cell}>
+              <Cell className={classes(styles.cell, styles.wideOnly)}>
                 {game.time_class === "unknown" ? "" : t(`games.timeClass.${game.time_class}`)}
               </Cell>
-              <Cell className={styles.cell}>
+              <Cell className={classes(styles.cell, styles.wideOnly)}>
                 {game.event}
                 {game.tags.map((tag) => (
                   <span key={tag.id} className={styles.tag}>

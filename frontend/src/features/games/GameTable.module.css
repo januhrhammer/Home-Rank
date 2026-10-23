@@ -1,4 +1,5 @@
-/* Wide tables scroll sideways on narrow screens instead of widening the page. */
+/* Wide tables scroll sideways on narrow screens instead of widening the page. Phones get a
+   layout of their own, see the end. */
 .scroll {
   overflow-x: auto;
 }
@@ -102,4 +103,73 @@
 
 .row[data-selected] {
   background: color-mix(in srgb, var(--color-accent) 12%, var(--color-bg));
+}
+
+/* Phones: each game on two lines, like a list of pairings: White above Black, the result and
+   the date on the right; opening, time control and event hide (the game shows them). Still the
+   same table for keyboards and screen readers, laid out as a grid. */
+@media (width < 48rem) {
+  .table,
+  .table thead,
+  .table tbody {
+    display: block;
+  }
+
+  .table tr {
+    display: grid;
+    grid-template-columns: 2rem 1fr auto;
+    column-gap: var(--space-2);
+    align-items: baseline;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .table thead tr {
+    border-bottom-width: 2px;
+  }
+
+  .column,
+  .cell,
+  .selectColumn {
+    padding: var(--space-1) 0;
+    border-bottom: none;
+  }
+
+  .select {
+    grid-row: span 2;
+    align-self: center;
+    padding-inline-start: var(--space-1);
+  }
+
+  .white {
+    grid-area: 1 / 2;
+  }
+
+  .black {
+    grid-area: 2 / 2;
+  }
+
+  .result {
+    grid-area: 1 / 3;
+    text-align: right;
+  }
+
+  .date {
+    grid-area: 2 / 3;
+    text-align: right;
+    padding-inline-end: var(--space-1);
+  }
+
+  .result {
+    padding-inline-end: var(--space-1);
+  }
+
+  /* Long online handles (GABUZYAN_CHESSMOOD) may break rather than widen the page. */
+  .white,
+  .black {
+    overflow-wrap: anywhere;
+  }
+
+  .wideOnly {
+    display: none;
+  }
 }

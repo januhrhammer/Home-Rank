@@ -299,6 +299,8 @@ const messages = {
   "sync.showGames": "Show games from {platform}",
   "games.title": "Your games",
   "games.filter.label": "Filter games",
+  "games.filter.show": "Filters",
+  "games.filter.showActive": "Filters ({count})",
   "games.filter.any": "Any",
   "games.filter.player": "Player",
   "games.filter.color": "Your side",

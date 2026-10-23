@@ -299,3 +299,25 @@ test("another filter clears the selection", async () => {
     expect(screen.queryByRole("toolbar")).not.toBeInTheDocument();
   });
 });
+
+// The button only shows on narrow screens (CSS, which jsdom doesn't apply); there it shows or
+// hides the filters.
+test("the filters button counts the filters in use and opens the filters", async () => {
+  simulateGames([aGame()]);
+  openGames("/games?outcome=loss&time_class=blitz&sort=white&page=2");
+  const user = userEvent.setup();
+
+  const button = await screen.findByRole("button", { name: "Filters (2)" });
+  expect(button).toHaveAttribute("aria-expanded", "false");
+  expect(screen.getByRole("search")).toHaveAttribute("id", button.getAttribute("aria-controls"));
+
+  await user.click(button);
+  expect(button).toHaveAttribute("aria-expanded", "true");
+});
+
+test("without filters in use the button just says Filters", async () => {
+  simulateGames([aGame()]);
+  openGames("/games?sort=white");
+
+  expect(await screen.findByRole("button", { name: "Filters" })).toBeInTheDocument();
+});
