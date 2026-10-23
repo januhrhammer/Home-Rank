@@ -50,13 +50,17 @@ cards to drill.
   first try is "Good", otherwise "Again" (the user is then shown the move). The user can change
   the rating, as with puzzles. Playing another of the repertoire's own moves in that position
   isn't wrong: the user is asked for the other one.
-- **Limits**: 5,000 moves per repertoire, 50 repertoires per user, so that one user can't fill
-  the disk and a whole repertoire can be sent to the browser at once.
+- **Import from PGN**: an uploaded file of up to 20 MB, read one game at a time; annotated
+  courses whose chapters replay their lines with long comments reach several MB.
+- **Limits**: 20,000 moves per repertoire, enough for a large course, and 50 repertoires per
+  user, so that one user can't fill the disk and a whole repertoire can be sent to the browser
+  at once.
 
 ## Consequences
 
 - The tree is built in Python from all of a repertoire's moves, read in one query; with at most
-  5,000 rows that is fast and keeps the database simple (no recursive queries).
+  20,000 rows that is fast enough (about 150 ms) and keeps the database simple (no recursive
+  queries).
 - Two positions that differ only in the move counters are the same position (the Zobrist hash
   ignores them), as a player would see it.
 - A user's move with several cards (the same position reached in two repertoires) is drilled

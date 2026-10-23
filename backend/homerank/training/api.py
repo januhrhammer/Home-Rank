@@ -33,8 +33,9 @@ def next_puzzle(
 
 @router.post("/reviews", response={HTTPStatus.CREATED: ReviewOut})
 def review(request: AuthenticatedRequest, data: ReviewIn) -> Status[ReviewLog]:
-    """Record a solve: the rating follows from it (wrong move: Again; solved: by the time per
-    move) and the puzzle is scheduled again. Change the rating with PATCH if you disagree."""
+    """Record an answer to a card: a puzzle (wrong move: Again; solved: by the time per move)
+    or a repertoire move (right on the first try: Good, else Again). The card is scheduled
+    again; change the rating with PATCH if you disagree."""
     card = selectors.card(user=request.user, card_id=data.card_id)
     log = services.review(card, correct=data.correct, elapsed_ms=data.elapsed_ms)
     return Status(HTTPStatus.CREATED, log)
@@ -42,7 +43,7 @@ def review(request: AuthenticatedRequest, data: ReviewIn) -> Status[ReviewLog]:
 
 @router.patch("/reviews/{int:review_id}", response=ReviewOut)
 def change_rating(request: AuthenticatedRequest, review_id: int, data: RatingIn) -> ReviewLog:
-    """Change the rating of a puzzle's latest review; 409 for an earlier one."""
+    """Change the rating of a card's latest review; 409 for an earlier one."""
     log = selectors.review_log(user=request.user, log_id=review_id)
     return services.change_rating(log, rating=data.rating)
 
