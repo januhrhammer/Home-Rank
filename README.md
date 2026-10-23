@@ -18,8 +18,11 @@ explorer.
 > - syncing your games from Lichess and Chess.com, every few hours or at the press of a button;
 > - analysis by Stockfish: an evaluation bar and graph, inaccuracies, mistakes and blunders, and
 >   each player's accuracy, computed like on Lichess; new games are analysed automatically.
+;
+> - training with puzzles from your own games: positions where you or your opponent missed a
+>   winning move, repeated with spaced repetition (FSRS) until they stick.
 >
-> Training with puzzles from your own mistakes comes in the next release.
+> Reference databases, position search and an opening explorer come next.
 
 ## Quick start
 

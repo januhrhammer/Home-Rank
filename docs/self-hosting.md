@@ -107,6 +107,7 @@ expect several times that on a Raspberry Pi. These settings in `.env` tune it:
 | `ENGINE_HASH_MB` | 64 | Memory for Stockfish's hash table per analysed game, in MB |
 | `ANALYSIS_DEPTH` | 18 | How deep Stockfish searches each position. Each step deeper costs about half again as much time. Users can ask for up to 30 for a single game. |
 | `ANALYSIS_CONCURRENCY` | 1 | How many games are analysed at the same time |
+| `PUZZLE_DEPTH` | 20 | How deep Stockfish checks positions for puzzles |
 | `ANALYSIS_HOURS` | (any time) | When automatic analyses may run, e.g. `23:00-07:00`; analyses users start run at once |
 | `TIME_ZONE` | UTC | The server's time zone, for `ANALYSIS_HOURS`, e.g. `Europe/Berlin` |
 
@@ -118,6 +119,11 @@ Stockfish needs about 250 MB plus its hash table per game analysed at the same t
 
 Someone who imports thousands of their games gets all of them analysed eventually, which can
 take days on a small server; the website shows each game's analysis as soon as it is done.
+
+Analysed games are then searched for puzzles: positions where one move clearly wins. Stockfish
+compares the best two moves of each candidate at `PUZZLE_DEPTH` (default 20), which takes a few
+seconds per game. The search runs in the same engine slots and hours as automatic analyses, so
+the settings above apply to it as well.
 
 ### Changing the database password
 
