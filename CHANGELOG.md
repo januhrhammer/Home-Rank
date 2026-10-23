@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.0](https://github.com/januhrhammer/Home-Rank/compare/v0.3.0...v0.4.0) (2026-10-23)
+
+
+### Features
+
+* **analysis:** add the analysis app's data ([#40](https://github.com/januhrhammer/Home-Rank/issues/40)) ([b715766](https://github.com/januhrhammer/Home-Rank/commit/b7157661c09f0ea64743fe673c96ee866a8f95d6))
+* **analysis:** analyse games in the background with Stockfish ([#41](https://github.com/januhrhammer/Home-Rank/issues/41)) ([42f50e9](https://github.com/januhrhammer/Home-Rank/commit/42f50e9fd306231950556f7d9a73aa0da22096e8))
+* **analysis:** analyse new games automatically, optionally only at night ([#42](https://github.com/januhrhammer/Home-Rank/issues/42)) ([024b368](https://github.com/januhrhammer/Home-Rank/commit/024b368de03a08c036f85ae8ca9e2e8fbc6bc0f5))
+* **api:** start analyses and read a game's analysis ([#43](https://github.com/januhrhammer/Home-Rank/issues/43)) ([d3f500d](https://github.com/januhrhammer/Home-Rank/commit/d3f500d7759c8d62edd057fb5c8974b252371730))
+* **docker:** bundle Stockfish in the image, CI and dev setup ([#37](https://github.com/januhrhammer/Home-Rank/issues/37)) ([4ef9686](https://github.com/januhrhammer/Home-Rank/commit/4ef9686cd2a6021dfa32442df10d75fdda4b8607))
+* **engine:** analyse games and score moves like Lichess ([#39](https://github.com/januhrhammer/Home-Rank/issues/39)) ([e5e7984](https://github.com/januhrhammer/Home-Rank/commit/e5e798483c0b8ef93a4b86994f8b0344d66b9800))
+* **ui:** show Stockfish's analysis in the game viewer ([#44](https://github.com/januhrhammer/Home-Rank/issues/44)) ([5e0e131](https://github.com/januhrhammer/Home-Rank/commit/5e0e1318ba3f131b20548d5d1a471d697c3b1e30))
+
 ## [0.3.0](https://github.com/januhrhammer/Home-Rank/compare/v0.2.0...v0.3.0) (2026-10-23)
 
 
