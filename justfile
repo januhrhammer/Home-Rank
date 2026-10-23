@@ -80,13 +80,17 @@ pre-commit:
 
 # Install the backend dependencies and the git hooks
 [working-directory('backend')]
-setup-backend: stockfish
+setup-backend: stockfish maia
     uv sync
     uv run pre-commit install
 
 # Download Stockfish, the chess engine, into .tools/stockfish (for the dev server and tests)
 stockfish:
     docker/get-stockfish.sh .tools/stockfish
+
+# Download Maia, the human-like chess model, into .tools/maia (for the dev server and tests)
+maia:
+    docker/get-maia.sh .tools/maia
 
 # Format the backend code
 [working-directory('backend')]
