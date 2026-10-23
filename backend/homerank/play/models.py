@@ -19,7 +19,7 @@ class Opponent(models.TextChoices):
     STOCKFISH = "stockfish"  # Stockfish limited to the rating, on its own engine scale
 
 
-class Status(models.TextChoices):
+class BotGameStatus(models.TextChoices):
     PLAYING = "playing"
     FINISHED = "finished"
 
@@ -68,7 +68,9 @@ class BotGame(models.Model):
     clock_increment_ms = models.PositiveIntegerField(null=True, blank=True)
     turn_started_at = models.DateTimeField(null=True, blank=True)
 
-    status = models.CharField(max_length=8, choices=Status.choices, default=Status.PLAYING)
+    status = models.CharField(
+        max_length=8, choices=BotGameStatus.choices, default=BotGameStatus.PLAYING
+    )
     result = models.CharField(
         max_length=7, choices=[(r, r) for r in RESULTS], blank=True
     )  # empty while playing
@@ -101,9 +103,9 @@ class BotGame(models.Model):
             # A finished game has its result, how it ended and when; a game being played has
             # none of them.
             models.CheckConstraint(
-                condition=models.Q(status=Status.PLAYING, result="", termination="")
+                condition=models.Q(status=BotGameStatus.PLAYING, result="", termination="")
                 & models.Q(finished_at__isnull=True)
-                | models.Q(status=Status.FINISHED, finished_at__isnull=False)
+                | models.Q(status=BotGameStatus.FINISHED, finished_at__isnull=False)
                 & ~models.Q(result="")
                 & ~models.Q(termination=""),
                 name="bot_game_finished_complete",
