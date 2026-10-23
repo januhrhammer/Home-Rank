@@ -142,6 +142,17 @@ export function moveNumber(node: MoveNode): string {
   return node.ply % 2 === 1 ? `${String(fullMove)}.` : `${String(fullMove)}…`;
 }
 
+/** The game's own moves, without variations: the n-th is the position of analysis ply n. */
+export function mainLine(tree: MoveTree): MoveNode[] {
+  const moves: MoveNode[] = [];
+  let next = tree.firstMoves[0];
+  while (next !== undefined) {
+    moves.push(next);
+    next = next.children[0];
+  }
+  return moves;
+}
+
 /** The last move of the line that continues from `node` (or from the start, if null). */
 export function endOfLine(tree: MoveTree, node: MoveNode | null): MoveNode | null {
   let current = node ?? tree.firstMoves[0] ?? null;

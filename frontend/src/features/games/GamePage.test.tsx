@@ -52,6 +52,15 @@ function openGame(game: Game | null) {
     ),
     http.get("*/api/v1/tags", () => HttpResponse.json({ items: [], total: 0 })),
     http.get("*/api/v1/collections", () => HttpResponse.json({ items: [], total: 0 })),
+    http.get("*/api/v1/analysis/games/:gameId", () =>
+      HttpResponse.json({
+        run: null,
+        summary: null,
+        positions: [],
+        white: { inaccuracies: 0, mistakes: 0, blunders: 0 },
+        black: { inaccuracies: 0, mistakes: 0, blunders: 0 },
+      }),
+    ),
   );
   simulateAuth(alice, { loggedIn: true });
   renderApp("/games/7");

@@ -7,13 +7,22 @@ import { ApiError } from "../../api/errors";
 import { Board } from "../../components/Board";
 import { BackIcon, EndIcon, FlipIcon, ForwardIcon, StartIcon } from "../../components/Icons";
 import { t } from "../../lib/i18n";
+import type { PositionEval } from "../analysis";
+import { AnalysisPanel, EvalBar, EvalGraph, useGameAnalysis } from "../analysis";
 import styles from "./GamePage.module.css";
 import { type Game, gameQuery } from "./games";
 import { formatGameDate } from "./GameTable";
 import { LabelPicker } from "./LabelPicker";
-import { MoveList } from "./MoveList";
-import { buildMoveTree, endOfLine, type MoveNode, moveNumber, type MoveTree } from "./moveTree";
-import { useNotation } from "./notation";
+import { MoveList, type WeakMove } from "./MoveList";
+import {
+  buildMoveTree,
+  endOfLine,
+  mainLine,
+  type MoveNode,
+  moveNumber,
+  type MoveTree,
+} from "./moveTree";
+import { useNotation, withFigurines } from "./notation";
 
 export function GamePage() {
   const gameId = Number(useParams().gameId);
@@ -50,6 +59,10 @@ function Viewer({ game, tree }: { game: Game; tree: MoveTree }) {
   const [flipped, setFlipped] = useState(false);
   const [notation, setNotation] = useNotation();
   const orientation = (game.user_color === "black") !== flipped ? "black" : "white";
+  const analysis = useGameAnalysis(game.id);
+  const engine = useEngineView(tree, analysis.data?.positions ?? [], current);
+  const formatMoves = (line: string) =>
+    notation === "figurines" ? line.split(" ").map(withFigurines).join(" ") : line;
 
   const go = {
     start: () => {
@@ -85,12 +98,15 @@ function Viewer({ game, tree }: { game: Game; tree: MoveTree }) {
       <GameHeader game={game} />
       <div className={styles.viewer}>
         <div className={styles.boardColumn}>
-          <Board
-            fen={current?.fen ?? tree.startFen}
-            orientation={orientation}
-            lastMove={current?.squares}
-            label={label}
-          />
+          <div className={styles.boardRow}>
+            {engine.analysed && <EvalBar position={engine.position} orientation={orientation} />}
+            <Board
+              fen={current?.fen ?? tree.startFen}
+              orientation={orientation}
+              lastMove={current?.squares}
+              label={label}
+            />
+          </div>
           <div className={styles.controls}>
             <Button className={styles.control} aria-label={t("viewer.start")} onPress={go.start}>
               <StartIcon />
@@ -118,10 +134,30 @@ function Viewer({ game, tree }: { game: Game; tree: MoveTree }) {
               <FlipIcon />
             </Button>
           </div>
+          <EvalGraph
+            positions={engine.positions}
+            current={engine.index}
+            onSelect={(index) => {
+              setCurrent(engine.line[index - 1] ?? null);
+            }}
+          />
           <p className={styles.hint}>{t("viewer.keys")}</p>
         </div>
         <div className={styles.sideColumn}>
-          <MoveList tree={tree} current={current} onSelect={setCurrent} notation={notation} />
+          <AnalysisPanel
+            gameId={game.id}
+            analysis={analysis.data}
+            position={engine.position}
+            fen={current?.fen ?? tree.startFen}
+            formatMoves={formatMoves}
+          />
+          <MoveList
+            tree={tree}
+            current={current}
+            onSelect={setCurrent}
+            notation={notation}
+            weakMoves={engine.weakMoves}
+          />
           <SwitchField
             isSelected={notation === "figurines"}
             onChange={(on) => {
@@ -142,6 +178,34 @@ function Viewer({ game, tree }: { game: Game; tree: MoveTree }) {
       </div>
     </>
   );
+}
+
+/**
+ * The engine's results lined up with the moves: the main line's evaluations (variations have
+ * none), the shown position's, and the weak moves for the move list.
+ */
+function useEngineView(tree: MoveTree, positions: PositionEval[], current: MoveNode | null) {
+  return useMemo(() => {
+    const line = mainLine(tree);
+    const byPly = new Map(positions.map((position) => [position.ply, position]));
+    const weakMoves = new Map<number, WeakMove>();
+    line.forEach((move, i) => {
+      const moveClass = byPly.get(i + 1)?.move_class;
+      if (moveClass && moveClass !== "good") {
+        weakMoves.set(move.id, moveClass);
+      }
+    });
+    // 0 for the starting position, n for the position after the n-th move of the main line.
+    const index = current === null ? 0 : line.indexOf(current) + 1 || null;
+    return {
+      line,
+      positions,
+      weakMoves,
+      index,
+      position: index === null ? undefined : byPly.get(index),
+      analysed: positions.length > 0,
+    };
+  }, [tree, positions, current]);
 }
 
 function GameHeader({ game }: { game: Game }) {

@@ -76,3 +76,23 @@
 .variation > .number:first-child {
   margin-left: 0;
 }
+
+/* The engine's marks for weak moves, after the move in their colour. */
+.inaccuracy,
+.mistake,
+.blunder {
+  margin-left: 1px;
+  font-weight: 600;
+}
+
+.inaccuracy {
+  color: var(--color-inaccuracy);
+}
+
+.mistake {
+  color: var(--color-mistake);
+}
+
+.blunder {
+  color: var(--color-blunder);
+}
