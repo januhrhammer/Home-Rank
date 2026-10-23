@@ -280,27 +280,44 @@ doesn't matter.
 ## Backup and restore
 
 All of Home-Rank's data lives in its database. (The `home-rank_data` volume only holds uploads
-that haven't been imported yet.) To back it up into one file:
+that haven't been imported yet.) To back it up into one file, in Home-Rank's folder:
 
 ```sh
 docker compose exec -T db pg_dump --username=homerank --format=custom homerank > home-rank-$(date +%F).dump
 ```
 
-Keep the backup somewhere other than this machine, together with a copy of `.env` and
-`compose.yaml`: without the same `SECRET_KEY`, everyone has to log in again.
+It takes seconds and needs no downtime. A thousand games take about 2.5 MB; a reference database
+about 1 GB per million games. Keep the backup somewhere other than this machine, together with a
+copy of `.env` and `compose.yaml`: without the same `SECRET_KEY`, everyone has to log in again.
 
-To restore a backup, stop Home-Rank, replace the database's contents, and start it again:
+### Backing up every night
+
+With cron, e.g. at 3:00, keeping 30 days of backups in a `backups` folder (`crontab -e`, and the
+path to Home-Rank's folder instead of `/srv/home-rank`; cron needs the `%` written as `\%`):
+
+```sh
+0 3 * * * cd /srv/home-rank && docker compose exec -T db pg_dump --username=homerank --format=custom homerank > backups/home-rank-$(date +\%F).dump && find backups -name "home-rank-*.dump" -mtime +30 -delete
+```
+
+### Restoring
+
+Restoring replaces everything with the backup's contents, including what was added after it.
+Stop Home-Rank, empty its database, restore the backup into it and start Home-Rank again:
 
 ```sh
 docker compose stop web worker
-docker compose exec -T db pg_restore --username=homerank --dbname=homerank --clean --if-exists < home-rank-2026-10-22.dump
+docker compose exec -T db dropdb --username=homerank --force homerank
+docker compose exec -T db createdb --username=homerank homerank
+docker compose exec -T db pg_restore --username=homerank --dbname=homerank --exit-on-error < home-rank-2026-10-22.dump
 docker compose up -d
 ```
 
-This replaces everything, including what was added after the backup. On a new machine, install
-Home-Rank with the saved `.env` and `compose.yaml`, start only the database with `docker compose up -d db`, then run
-the last two commands. Restore with the same version of Home-Rank as the backup, or a newer one:
-the website updates an older database when it starts.
+Restore with the version of Home-Rank the backup was made with, or a newer one: the website
+updates an older database when it starts. To go back to the version before an update, see
+[Updating](#updating).
+
+On a new machine, put the saved `.env` and `compose.yaml` in a folder, start only the database
+with `docker compose up -d db`, and then run the commands above.
 
 ## Updating
 
@@ -313,11 +330,14 @@ docker compose pull    # the new version, and the newest PostgreSQL 18 release
 docker compose up -d   # restart what changed
 ```
 
+If you installed Home-Rank with `git clone`, from before there were published images, run
+`git pull` instead of the `curl` command; your data stays where it is.
+
 Your `.env` stays as it is. The [release notes](https://github.com/januhrhammer/Home-Rank/releases)
 list new settings; the release's `.env.example` explains them. The version to run is in the
 `x-homerank-image` line of `compose.yaml`. To go back to an older one, put its version there and
-[restore](#backup-and-restore) the backup made before the update: an older version can't read a
-database that a newer one has updated.
+[restore](#restoring) the backup made before the update: an older version can't read a database
+that a newer one has updated.
 
 When the website starts, it updates the database to the new version before it accepts requests,
 and the worker waits until it has. Each update leaves the previous image behind;
