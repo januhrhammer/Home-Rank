@@ -9,6 +9,16 @@ import { server } from "./server";
 // jsdom lays nothing out, so it lacks scrolling; components may still ask for it.
 Element.prototype.scrollIntoView = () => undefined;
 
+// Nor does it know media queries: none matches, as on a plain desktop browser. (The board asks
+// whether the system prefers reduced motion.)
+window.matchMedia = (query: string) =>
+  ({
+    matches: false,
+    media: query,
+    addEventListener: () => undefined,
+    removeEventListener: () => undefined,
+  }) as unknown as MediaQueryList;
+
 // A request without a registered answer fails the test instead of going out to the network.
 // (MSW's default only warns and then lets the request through.)
 beforeAll(() => {
