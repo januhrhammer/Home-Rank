@@ -10,6 +10,8 @@ A setting without a default is required: if it's missing, Django refuses to star
 """
 
 import os
+import re
+from datetime import time
 from pathlib import Path
 from typing import Any
 
@@ -105,6 +107,24 @@ def choice(name: str, choices: list[str], default: str) -> str:
         if value.lower() == allowed.lower():
             return allowed
     raise InvalidValueError(name, value, f"one of {', '.join(choices)}")
+
+
+def time_window(name: str) -> tuple[time, time] | None:
+    """A daily time window such as "23:00-07:00" (it may pass midnight); None if unset."""
+    value = _read(name)
+    if value is None:
+        return None
+    match = re.fullmatch(r"(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})", value)
+    try:
+        if match is None:
+            raise ValueError  # noqa: TRY301 - handled right below, like an impossible time
+        start = time(int(match[1]), int(match[2]))
+        end = time(int(match[3]), int(match[4]))
+    except ValueError:
+        raise InvalidValueError(name, value, 'a time window such as "23:00-07:00"') from None
+    if start == end:
+        raise InvalidValueError(name, value, "a window with different start and end times")
+    return start, end
 
 
 def database(name: str, default: str | None = None) -> dict[str, Any]:

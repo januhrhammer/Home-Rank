@@ -1,5 +1,6 @@
 """Reading settings from environment variables (config/env.py)."""
 
+import datetime
 from pathlib import Path
 
 import pytest
@@ -149,3 +150,23 @@ def test_a_value_outside_the_choices_is_an_error_listing_them(
 
     with pytest.raises(ImproperlyConfigured, match="INFO, WARNING"):
         env.choice("HR_TEST", ["INFO", "WARNING"], default="INFO")
+
+
+def test_a_time_window_may_pass_midnight(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("HR_TEST", "23:30 - 7:00")
+
+    assert env.time_window("HR_TEST") == (datetime.time(23, 30), datetime.time(7, 0))
+
+
+def test_no_time_window_is_none(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("HR_TEST", "")
+
+    assert env.time_window("HR_TEST") is None
+
+
+@pytest.mark.parametrize("value", ["night", "23:00", "25:00-07:00", "23:00-07:60", "8:00-8:00"])
+def test_an_impossible_time_window_is_an_error(monkeypatch: pytest.MonkeyPatch, value: str) -> None:
+    monkeypatch.setenv("HR_TEST", value)
+
+    with pytest.raises(env.InvalidValueError, match="HR_TEST must be"):
+        env.time_window("HR_TEST")

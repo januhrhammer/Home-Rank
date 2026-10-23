@@ -141,6 +141,9 @@ ANALYSIS_DEPTH = max(1, env.integer("ANALYSIS_DEPTH", default=18))
 ANALYSIS_MAX_DEPTH = 30
 # How many games the worker analyses at the same time, each with ENGINE_THREADS threads.
 ANALYSIS_CONCURRENCY = max(1, env.integer("ANALYSIS_CONCURRENCY", default=1))
+# When automatic analyses may run, e.g. "23:00-07:00" for nights only (TIME_ZONE); unset: any
+# time. Analyses users start themselves always run at once.
+ANALYSIS_HOURS = env.time_window("ANALYSIS_HOURS")
 
 # Syncing games from Lichess and Chess.com (docs/adr/0011-online-account-sync.md). A contact,
 # such as an email address or a URL, added to the User-Agent of requests to the two sites, so
@@ -156,7 +159,8 @@ LANGUAGE_CODE = "en-us"
 USE_I18N = True
 
 # Store and process all timestamps in UTC; the frontend converts to the user's local time.
-TIME_ZONE = "UTC"
+# The server's time zone, e.g. "Europe/Berlin": times in the admin and ANALYSIS_HOURS use it.
+TIME_ZONE = env.string("TIME_ZONE", default="UTC")
 USE_TZ = True
 
 # One JSON object per log line, for log tools; dev.py and test.py switch to readable lines.
