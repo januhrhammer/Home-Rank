@@ -25,8 +25,37 @@ explorer.
 > - opening repertoires for White and Black: built on the board, imported from PGN (a course or a
 >   Lichess study) or started from what you play in your games; a report of where your games
 >   left them; and drills of your moves, card by card or whole lines, with spaced repetition.
+> - every page works on a phone, with the keyboard alone and with screen readers, in a light and
+>   a dark theme.
 >
-> Next: polish for 1.0 (phones, accessibility, backups).
+> Next: 1.0.
+
+## Screenshots
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/viewer-dark.webp">
+  <img src="docs/screenshots/viewer-light.webp" alt="The game viewer: the board with the evaluation graph below it, the engine analysis and the moves set like a chess book">
+</picture>
+
+Tal's sixth game against Botvinnik, World Championship 1960, analysed by Stockfish: the moment
+of 21… ♘f4.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/train-dark.webp">
+  <img src="docs/screenshots/train-light.webp" alt="A puzzle from one of your games: find the best move for White" width="49%">
+</picture>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/repertoire-dark.webp">
+  <img src="docs/screenshots/repertoire-light.webp" alt="The repertoire editor: the board and the repertoire's moves as a tree with variations" width="49%">
+</picture>
+
+Puzzles from your own games, and a repertoire for Black started from the games played with it.
+
+<img src="docs/screenshots/phone-light.webp" alt="The game viewer on a phone, light theme" width="30%">
+<img src="docs/screenshots/phone-dark.webp" alt="The game viewer on a phone, dark theme" width="30%">
+
+On a phone, in both themes. (The games are Mikhail Tal's, from
+[PGN Mentor](https://www.pgnmentor.com/).)
 
 ## Quick start
 
