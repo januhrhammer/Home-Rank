@@ -18,11 +18,15 @@ MAX_DEPTH = 255
 
 
 class ReferenceDatabase(models.Model):
-    class Status(models.TextChoices):
+    # Named apart from the other models' Status: the API's types are named after the class, and
+    # these values differ from the imports' and syncs'.
+    class DatabaseStatus(models.TextChoices):
         EMPTY = "empty"  # created, nothing imported yet
         IMPORTING = "importing"
         READY = "ready"
         FAILED = "failed"  # the last import failed; the games imported before it remain
+
+    Status = DatabaseStatus
 
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
@@ -48,12 +52,14 @@ class ReferenceDatabase(models.Model):
 class ReferenceImport(models.Model):
     """An import of one or more files into a reference database, run by a background job."""
 
-    class Status(models.TextChoices):
+    class ImportStatus(models.TextChoices):
         QUEUED = "queued"
         READING = "reading"  # reading the files' games
         INDEXING = "indexing"  # building the explorer and position index
         DONE = "done"
         FAILED = "failed"
+
+    Status = ImportStatus
 
     database = models.ForeignKey(
         ReferenceDatabase, on_delete=models.CASCADE, related_name="imports"

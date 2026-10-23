@@ -9,6 +9,7 @@ import struct
 from collections.abc import Iterable
 
 import chess
+import chess.pgn
 
 _MOVE = struct.Struct("<H")
 
@@ -38,3 +39,14 @@ def san_moves(data: bytes, board: chess.Board | None = None) -> list[str]:
         sans.append(board.san(move))
         board.push(move)
     return sans
+
+
+def to_pgn(headers: dict[str, str], moves: bytes, start_fen: str = "") -> str:
+    """A PGN text from headers and packed moves (from `start_fen` if not the usual start)."""
+    game = chess.pgn.Game(headers=headers)
+    if start_fen:
+        game.setup(start_fen)
+    node: chess.pgn.GameNode = game
+    for move in unpack_moves(moves):
+        node = node.add_main_variation(move)
+    return str(game) + "\n"
