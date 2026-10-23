@@ -39,13 +39,16 @@ interface RepertoireEditorProps {
  * repertoire, moves already there are followed. The move list shows the whole tree.
  */
 export function RepertoireEditor({ repertoire, moves }: RepertoireEditorProps) {
-  const tree = useMemo(() => buildRepertoireTree(moves), [moves]);
+  const [notation] = useNotation();
+  const tree = useMemo(
+    () => buildRepertoireTree(moves, notation === "figurines" ? withFigurines : undefined),
+    [moves, notation],
+  );
   // The move whose position is shown, by id, so it survives the tree being rebuilt after a
   // change; null is the starting position.
   const [currentId, setCurrentId] = useState<number | null>(null);
   const current = currentId === null ? null : (tree.byId.get(currentId) ?? null);
   const [flipped, setFlipped] = useState(false);
-  const [notation] = useNotation();
   const [explorerSource, setExplorerSource] = useState<Source>({ kind: "mine" });
   const addMove = useAddMove(repertoire.id);
 

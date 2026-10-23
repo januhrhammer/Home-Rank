@@ -25,8 +25,14 @@ export interface RepertoireTree extends MoveTree {
   transposesTo: Map<number, MoveNode>;
 }
 
-/** The moves as a tree, from the starting position; moves that it doesn't reach are left out. */
-export function buildRepertoireTree(moves: RepertoireMove[]): RepertoireTree {
+/**
+ * The moves as a tree, from the starting position; moves that it doesn't reach are left out.
+ * `format` writes the moves in the transposition notes, e.g. with figurines.
+ */
+export function buildRepertoireTree(
+  moves: RepertoireMove[],
+  format: (san: string) => string = (san) => san,
+): RepertoireTree {
   const byPosition = new Map<string, RepertoireMove[]>();
   for (const move of moves) {
     const list = byPosition.get(move.from_position) ?? [];
@@ -68,7 +74,8 @@ export function buildRepertoireTree(moves: RepertoireMove[]): RepertoireTree {
     }
   }
   for (const [id, shown] of tree.transposesTo) {
-    tree.byId.get(id)?.commentsAfter.push(t("repertoire.transposes", { line: lineTo(shown) }));
+    const line = lineTo(shown, format);
+    tree.byId.get(id)?.commentsAfter.push(t("repertoire.transposes", { line }));
   }
   return tree;
 }

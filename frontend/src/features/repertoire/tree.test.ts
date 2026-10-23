@@ -53,6 +53,19 @@ test("a position is shown where the fewest moves reach it", () => {
   expect(longWay?.commentsAfter).toEqual(["Same position as after 1. e4 e5."]);
 });
 
+test("transposition notes are written in the notation asked for", () => {
+  const tree = buildRepertoireTree(
+    movesOf([
+      ["Nf3", "d5", "d4"],
+      ["d4", "d5", "Nf3"],
+    ]),
+    (san) => san.replace("N", "♘"),
+  );
+
+  const notes = [...tree.byId.values()].flatMap((node) => node.commentsAfter);
+  expect(notes).toEqual(["Same position as after 1. ♘f3 d5 2. d4."]);
+});
+
 test("comments come with their moves", () => {
   const tree = buildRepertoireTree(movesOf([["d4", "d5"]], { comments: { d5: "Solid." } }));
 
