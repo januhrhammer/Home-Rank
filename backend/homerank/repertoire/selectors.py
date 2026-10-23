@@ -17,8 +17,6 @@ from homerank.training.models import ReviewCard
 
 # Games listed per gap at most; the count covers all of them.
 GAP_GAMES = 20
-# Plies a repertoire can reach at most, for the gap report's search.
-MAX_REACH = 200
 
 
 def repertoires(*, user: User) -> QuerySet[Repertoire]:
@@ -77,10 +75,12 @@ WITH first_out AS (
     FROM games_gameposition p
     JOIN games_game g ON g.id = p.game_id
     WHERE p.user_id = %(user)s AND g.user_color = %(color)s AND p.ply <= %(reach)s
-      AND NOT EXISTS (
-          SELECT 1 FROM repertoire_repertoiremove m
-          WHERE m.repertoire_id = %(repertoire)s
-            AND m.from_zobrist = p.zobrist AND m.move_uci = p.move_uci
+      -- NOT IN, not NOT EXISTS: it is always looked up in a hash table of the repertoire's
+      -- moves. With NOT EXISTS, a repertoire just imported (no statistics yet: "1 row") was
+      -- compared with every position one by one, 14 s instead of 0.2 s for 100,000 games.
+      AND (p.zobrist, p.move_uci) NOT IN (
+          SELECT from_zobrist, move_uci FROM repertoire_repertoiremove
+          WHERE repertoire_id = %(repertoire)s
       )
     ORDER BY p.game_id, p.ply
 )
@@ -130,19 +130,32 @@ def gaps(repertoire: Repertoire) -> list[Gap]:
 
 
 def _reach(moves: list[tuple[int, int]]) -> int:
-    """The deepest ply at which a move of the repertoire can be played, following its moves
-    (from, to) from the starting position; at most MAX_REACH."""
+    """The deepest ply at which a game can play a move of the repertoire, following its moves
+    (from, to) from the starting position. Moves that lead back to a position on the way there
+    are left out: a game going round such a circle is followed only that far."""
     moves_from = defaultdict(list)
     for from_zobrist, to_zobrist in moves:
         moves_from[from_zobrist].append(to_zobrist)
-    deepest = 0
-    level = {as_bigint(START_ZOBRIST)}
-    for ply in range(MAX_REACH):
-        level = {after for position in level for after in moves_from[position]}
-        if not level:
-            break
-        deepest = ply
-    return deepest
+    start = as_bigint(START_ZOBRIST)
+    # Depth first, without recursion: how many plies the repertoire goes on from each position.
+    longest: dict[int, int] = {}
+    on_path = {start}
+    stack = [(start, iter(moves_from[start]))]
+    while stack:
+        position, unvisited = stack[-1]
+        for after in unvisited:
+            if after not in on_path and after not in longest:
+                on_path.add(after)
+                stack.append((after, iter(moves_from[after])))
+                break
+        else:
+            stack.pop()
+            on_path.discard(position)
+            longest[position] = max(
+                (longest[after] + 1 for after in moves_from[position] if after in longest),
+                default=0,
+            )
+    return longest[start] - 1
 
 
 # ---------------------------------------------------------------- drill
