@@ -26,7 +26,7 @@ from homerank.engine.bots import STOCKFISH_MAX_ELO, STOCKFISH_MIN_ELO, Bot, Maia
 from homerank.engine.maia import load
 from homerank.games.models import Game
 from homerank.games.services import new_game, store_games
-from homerank.play.models import BotGame, Opponent, Status, Termination
+from homerank.play.models import BotGame, BotGameStatus, Opponent, Termination
 
 # The ratings offered (ADR 0017): Maia's are Lichess ratings, Stockfish's its own engine scale.
 ELO_RANGES = {
@@ -117,7 +117,7 @@ def clock_at(game: BotGame, now: datetime) -> Clock | None:
     for ply, took in enumerate(game.move_ms):
         side = first if ply % 2 == 0 else not first
         left[side] += game.clock_increment_ms - took
-    if game.status == Status.PLAYING and game.turn_started_at is not None:
+    if game.status == BotGameStatus.PLAYING and game.turn_started_at is not None:
         to_move = first if len(game.moves) % 2 == 0 else not first
         left[to_move] -= _ms_between(game.turn_started_at, now)
     return Clock(white_ms=left[chess.WHITE], black_ms=left[chess.BLACK])
@@ -128,7 +128,7 @@ def _ms_between(start: datetime, end: datetime) -> int:
 
 
 def _finish(game: BotGame, *, result: str, termination: str, now: datetime) -> None:
-    game.status = Status.FINISHED
+    game.status = BotGameStatus.FINISHED
     game.result = result
     game.termination = termination
     game.finished_at = now
@@ -158,7 +158,7 @@ def settle_clock(game: BotGame, *, now: datetime) -> BotGame:
     """End a game whose side to move has run out of time; the game is saved if it changed.
     Without this, a user who stops playing would keep a game "being played" forever."""
     clock = clock_at(game, now)
-    if game.status != Status.PLAYING or clock is None:
+    if game.status != BotGameStatus.PLAYING or clock is None:
         return game
     board = board_of(game)
     left = clock.white_ms if board.turn == chess.WHITE else clock.black_ms
@@ -182,7 +182,7 @@ def _bot(game: BotGame) -> Bot:
 def _bot_moves(game: BotGame, board: chess.Board, now: datetime) -> None:
     """The bot's move at `now`, if it is the bot's turn and the game goes on. The time it
     took to compute counts against its clock."""
-    if game.status != Status.PLAYING or _users_turn(game, board):
+    if game.status != BotGameStatus.PLAYING or _users_turn(game, board):
         return
     started = time.monotonic()
     move = _bot(game).move(board)
@@ -252,7 +252,7 @@ def play_move(game: BotGame, *, move_uci: str, now: datetime | None = None) -> B
         # One move at a time per game, even if the user clicks twice.
         game = BotGame.objects.select_for_update().get(pk=game.pk)
         now = now or timezone.now()
-        if game.status != Status.PLAYING:
+        if game.status != BotGameStatus.PLAYING:
             raise GameFinishedError
         board = board_of(game)
         if not _users_turn(game, board):
@@ -284,7 +284,7 @@ def take_back(game: BotGame) -> BotGame:
     are still being played."""
     with transaction.atomic():
         game = BotGame.objects.select_for_update().get(pk=game.pk)
-        if game.status != Status.PLAYING or game.clock_base_ms is not None:
+        if game.status != BotGameStatus.PLAYING or game.clock_base_ms is not None:
             raise NoTakeBackError
         # While a game goes on, the bot has always answered: undo its answer and the user's
         # move before it, back to the user's turn.
@@ -300,7 +300,7 @@ def take_back(game: BotGame) -> BotGame:
 def resign(game: BotGame) -> BotGame:
     with transaction.atomic():
         game = BotGame.objects.select_for_update().get(pk=game.pk)
-        if game.status != Status.PLAYING:
+        if game.status != BotGameStatus.PLAYING:
             raise GameFinishedError
         result = "0-1" if game.user_color == Side.WHITE else "1-0"
         _finish(game, result=result, termination=Termination.RESIGNATION, now=timezone.now())

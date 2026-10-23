@@ -13,6 +13,7 @@ from homerank.core.errors import register_problem_handlers
 from homerank.explorer.api import router as explorer_router
 from homerank.games.api import collections_router, tags_router
 from homerank.games.api import router as games_router
+from homerank.play.api import router as play_router
 from homerank.reference.api import router as reference_router
 from homerank.repertoire.api import router as repertoire_router
 from homerank.sync.api import router as sync_router
@@ -35,3 +36,4 @@ api.add_router("/training", training_router)
 api.add_router("/reference", reference_router)
 api.add_router("/explorer", explorer_router)
 api.add_router("/repertoires", repertoire_router)
+api.add_router("/play", play_router)

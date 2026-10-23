@@ -286,3 +286,13 @@ def test_a_timed_game_keeps_its_time_control(alice: User) -> None:
     game = services.resign(start(alice, clock_base_ms=600_000, clock_increment_ms=5_000))
 
     assert '[TimeControl "600+5"]' in services.save_to_games(game).pgn
+
+
+@pytest.mark.engine
+def test_stockfish_plays_too(alice: User) -> None:
+    game = start(alice, user_color=Side.BLACK, opponent=Opponent.STOCKFISH, opponent_elo=1320)
+
+    game = services.play_move(game, move_uci=next(iter(services.board_of(game).legal_moves)).uci())
+
+    # Stockfish, the user, Stockfish.
+    assert (len(game.moves), len(game.move_ms), game.status) == (3, 3, "playing")

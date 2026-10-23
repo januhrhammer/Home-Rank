@@ -434,6 +434,152 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/play/games": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Games
+         * @description Your latest 100 games against bots, newest first.
+         */
+        get: operations["homerank_play_api_list_games"];
+        put?: never;
+        /**
+         * Start Game
+         * @description Start a game from a position. If the bot is to move there, it has moved already.
+         */
+        post: operations["homerank_play_api_start_game"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/play/games/{game_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Game
+         * @description A game; one whose clock ran out meanwhile is finished first.
+         */
+        get: operations["homerank_play_api_get_game"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Game
+         * @description Delete a game against a bot. A copy saved among your games stays.
+         */
+        delete: operations["homerank_play_api_delete_game"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/play/games/{game_id}/moves": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Play Move
+         * @description Play your move; the answer has the bot's reply, unless the game ended.
+         */
+        post: operations["homerank_play_api_play_move"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/play/games/{game_id}/resign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resign */
+        post: operations["homerank_play_api_resign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/play/games/{game_id}/save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Save
+         * @description Add the game to your games, where it is analysed and searched like any other.
+         */
+        post: operations["homerank_play_api_save"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/play/games/{game_id}/take-back": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Take Back
+         * @description Take back your last move and the bot's reply (untimed games only).
+         */
+        post: operations["homerank_play_api_take_back"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/play/opponents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Opponents
+         * @description The bots and the ratings they play at: Maia's are Lichess ratings, Stockfish's are on
+         *     an engine scale (see ADR 0017).
+         */
+        get: operations["homerank_play_api_opponents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reference/databases": {
         parameters: {
             query?: never;
@@ -1071,6 +1217,65 @@ export interface components {
             /** Engine */
             engine: string;
         };
+        /** BotGameOut */
+        BotGameOut: {
+            clock: components["schemas"]["ClockOut"] | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Fen */
+            fen: string;
+            /** Finished At */
+            finished_at: string | null;
+            /** Id */
+            id: number;
+            /** Moves */
+            moves: string[];
+            opponent: components["schemas"]["Opponent"];
+            /** Opponent Elo */
+            opponent_elo: number;
+            /** Opponent Name */
+            opponent_name: string;
+            /** Result */
+            result: string;
+            /** Saved Game Id */
+            saved_game_id: number | null;
+            /** Start Fen */
+            start_fen: string;
+            /** Start Label */
+            start_label: string;
+            status: components["schemas"]["BotGameStatus"];
+            termination: components["schemas"]["Termination"] | null;
+            user_color: components["schemas"]["Side"];
+        };
+        /**
+         * BotGameStatus
+         * @enum {string}
+         */
+        BotGameStatus: "playing" | "finished";
+        /** ClockIn */
+        ClockIn: {
+            /** Base Seconds */
+            base_seconds: number;
+            /** Increment Seconds */
+            increment_seconds: number;
+        };
+        /**
+         * ClockOut
+         * @description Each side's time left when the answer was made; the side to move's is running.
+         */
+        ClockOut: {
+            /** Base Ms */
+            base_ms: number;
+            /** Black Ms */
+            black_ms: number;
+            /** Increment Ms */
+            increment_ms: number;
+            /** White Ms */
+            white_ms: number;
+        };
         /** CollectionIn */
         CollectionIn: {
             /**
@@ -1242,6 +1447,25 @@ export interface components {
         GameIdsIn: {
             /** Game Ids */
             game_ids: number[];
+        };
+        /** GameIn */
+        GameIn: {
+            clock?: components["schemas"]["ClockIn"] | null;
+            opponent: components["schemas"]["Opponent"];
+            /** Opponent Elo */
+            opponent_elo: number;
+            /**
+             * Start Fen
+             * @default rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+             */
+            start_fen: string;
+            /**
+             * Start Label
+             * @default
+             * @example Sicilian, after 1. e4 c5
+             */
+            start_label: string;
+            user_color: components["schemas"]["Side"];
         };
         /**
          * GameListItem
@@ -1467,11 +1691,6 @@ export interface components {
         /** MoveIn */
         MoveIn: {
             /**
-             * Fen
-             * @description The position the move is played from
-             */
-            fen: string;
-            /**
              * Move Uci
              * @example e2e4
              */
@@ -1609,6 +1828,19 @@ export interface components {
             /** Due */
             due: number;
             puzzle: components["schemas"]["PuzzleOut"] | null;
+        };
+        /**
+         * Opponent
+         * @enum {string}
+         */
+        Opponent: "maia" | "stockfish";
+        /** OpponentOut */
+        OpponentOut: {
+            /** Max Elo */
+            max_elo: number;
+            /** Min Elo */
+            min_elo: number;
+            opponent: components["schemas"]["Opponent"];
         };
         /** PageQuery */
         PageQuery: {
@@ -1997,6 +2229,11 @@ export interface components {
             next_due_at: string;
             rating: components["schemas"]["Rating"];
         };
+        /** SavedOut */
+        SavedOut: {
+            /** Game Id */
+            game_id: number;
+        };
         /** SeedIn */
         SeedIn: {
             /**
@@ -2098,6 +2335,12 @@ export interface components {
             /** Name */
             name: string;
         };
+        /**
+         * Termination
+         * @description How a finished game ended.
+         * @enum {string}
+         */
+        Termination: "checkmate" | "stalemate" | "insufficient_material" | "threefold_repetition" | "fifty_moves" | "resignation" | "timeout";
         /**
          * TimeClass
          * @enum {string}
@@ -2815,6 +3058,204 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    homerank_play_api_list_games: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BotGameOut"][];
+                };
+            };
+        };
+    };
+    homerank_play_api_start_game: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GameIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BotGameOut"];
+                };
+            };
+        };
+    };
+    homerank_play_api_get_game: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                game_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BotGameOut"];
+                };
+            };
+        };
+    };
+    homerank_play_api_delete_game: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                game_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    homerank_play_api_play_move: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                game_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MoveIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BotGameOut"];
+                };
+            };
+        };
+    };
+    homerank_play_api_resign: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                game_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BotGameOut"];
+                };
+            };
+        };
+    };
+    homerank_play_api_save: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                game_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"];
+                };
+            };
+        };
+    };
+    homerank_play_api_take_back: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                game_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BotGameOut"];
+                };
+            };
+        };
+    };
+    homerank_play_api_opponents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpponentOut"][];
+                };
             };
         };
     };
