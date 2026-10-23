@@ -172,7 +172,7 @@ const messages = {
     "No moves yet. Play the first move on the board, choose one in the explorer, import a PGN file or start from your games.",
   "repertoire.positionAfter": "Position after {line}",
   "repertoire.boardHint":
-    "Moves you play are added to the repertoire, for both sides. ← → step through it, F flips the board.",
+    "Moves you play or type are added to the repertoire, for both sides. ← → step through it, F flips the board.",
   "repertoire.explorerHint": "Choosing a move here adds it to the repertoire.",
   "repertoire.transposes": "Same position as after {line}.",
   "repertoire.continueAt": "Its moves are shown after {line}",
@@ -230,6 +230,7 @@ const messages = {
   "drill.right": "Right:",
   "drill.wrong": "Not that. Your repertoire plays",
   "drill.typeMove": "Your move",
+  "repertoire.typeMove": "Play a move",
   "drill.play": "Play",
   "drill.notLegal": "That move isn't possible here. Write it like Nf3, exd5 or O-O.",
   "drill.opponent": "Your opponent moves…",

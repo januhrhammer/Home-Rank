@@ -1,20 +1,13 @@
 import { useRef, useState } from "react";
-import {
-  Button,
-  Form,
-  type FormProps,
-  Input,
-  Label,
-  TextField,
-  VisuallyHidden,
-} from "react-aria-components";
+import { VisuallyHidden } from "react-aria-components";
 
 import { Board } from "../../components/Board";
 import { t } from "../../lib/i18n";
 import { withFigurines } from "../games";
-import { boardMove, legalDests, squaresOf, turnOf, typedMove } from "../training";
+import { boardMove, legalDests, squaresOf, turnOf } from "../training";
 import { type Answer, type DrillStep, fenAfter, judge } from "./drill";
 import styles from "./DrillPage.module.css";
+import { MoveForm } from "./MoveForm";
 
 interface DrillQuestionProps {
   step: DrillStep;
@@ -90,45 +83,9 @@ export function DrillQuestion({
           </>
         )}
       </p>
-      {!done && <MoveForm fen={step.fen} onMove={play} />}
+      {!done && <MoveForm label={t("drill.typeMove")} fen={step.fen} onMove={play} />}
       {done && step.comment && <p className={styles.comment}>{step.comment}</p>}
     </div>
-  );
-}
-
-/** Moves typed in, for the keyboard and screen readers: "Nf3" or "g1f3". */
-function MoveForm({ fen, onMove }: { fen: string; onMove: (uci: string) => void }) {
-  const [text, setText] = useState("");
-  const [invalid, setInvalid] = useState(false);
-
-  const handleSubmit: FormProps["onSubmit"] = (event) => {
-    event.preventDefault();
-    const uci = typedMove(fen, text);
-    setInvalid(uci === null);
-    if (uci !== null) {
-      setText("");
-      onMove(uci);
-    }
-  };
-
-  return (
-    <Form className={styles.moveForm} onSubmit={handleSubmit}>
-      <TextField
-        className={styles.field}
-        value={text}
-        onChange={(value) => {
-          setText(value);
-          setInvalid(false);
-        }}
-      >
-        <Label className={styles.label}>{t("drill.typeMove")}</Label>
-        <Input className={styles.input} autoComplete="off" spellCheck={false} />
-      </TextField>
-      <Button className={styles.secondary} type="submit">
-        {t("drill.play")}
-      </Button>
-      {invalid && <p className={styles.error}>{t("drill.notLegal")}</p>}
-    </Form>
   );
 }
 
