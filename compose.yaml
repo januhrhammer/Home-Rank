@@ -28,6 +28,7 @@ x-homerank-environment: &homerank-environment
   ANALYSIS_DEPTH: ${ANALYSIS_DEPTH:-}
   ANALYSIS_CONCURRENCY: ${ANALYSIS_CONCURRENCY:-}
   ANALYSIS_HOURS: ${ANALYSIS_HOURS:-}
+  PUZZLE_DEPTH: ${PUZZLE_DEPTH:-}
   TIME_ZONE: ${TIME_ZONE:-}
 
 services:

@@ -142,6 +142,8 @@ ANALYSIS_DEPTH = max(1, env.integer("ANALYSIS_DEPTH", default=18))
 ANALYSIS_MAX_DEPTH = 30
 # How many games the worker analyses at the same time, each with ENGINE_THREADS threads.
 ANALYSIS_CONCURRENCY = max(1, env.integer("ANALYSIS_CONCURRENCY", default=1))
+# How deep Stockfish checks positions for puzzles (comparing the best two moves of each).
+PUZZLE_DEPTH = max(1, env.integer("PUZZLE_DEPTH", default=20))
 # When automatic analyses may run, e.g. "23:00-07:00" for nights only (TIME_ZONE); unset: any
 # time. Analyses users start themselves always run at once.
 ANALYSIS_HOURS = env.time_window("ANALYSIS_HOURS")
