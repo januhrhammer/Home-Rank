@@ -313,6 +313,79 @@ export interface paths {
         patch: operations["homerank_accounts_api_update_settings"];
         trace?: never;
     };
+    "/api/v1/sync/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Accounts
+         * @description Your accounts on Lichess and Chess.com, each with its newest sync.
+         */
+        get: operations["homerank_sync_api_list_accounts"];
+        put?: never;
+        /**
+         * Link Account
+         * @description Link an account and sync its games; 409 if it is linked already.
+         *
+         *     The username is added to your player names, so your side is known in its games.
+         */
+        post: operations["homerank_sync_api_link_account"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sync/accounts/{account_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Account */
+        get: operations["homerank_sync_api_get_account"];
+        put?: never;
+        post?: never;
+        /**
+         * Unlink Account
+         * @description Unlink an account. Its games stay in your database.
+         */
+        delete: operations["homerank_sync_api_unlink_account"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Account
+         * @description Turn the scheduled sync of an account on or off.
+         */
+        patch: operations["homerank_sync_api_update_account"];
+        trace?: never;
+    };
+    "/api/v1/sync/accounts/{account_id}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync Account
+         * @description Sync an account now. If a sync is queued or running already, that one is returned.
+         *
+         *     The sync runs in the background: poll GET /sync/accounts/{id} for its progress.
+         */
+        post: operations["homerank_sync_api_sync_account"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tags": {
         parameters: {
             query?: never;
@@ -644,6 +717,35 @@ export interface components {
              */
             offset: number;
         };
+        /** LinkedAccountIn */
+        LinkedAccountIn: {
+            platform: components["schemas"]["Platform"];
+            /** Username */
+            username: string;
+        };
+        /** LinkedAccountOut */
+        LinkedAccountOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Enabled */
+            enabled: boolean;
+            /** Id */
+            id: number;
+            last_run: components["schemas"]["SyncRunOut"] | null;
+            platform: components["schemas"]["Platform"];
+            /** Synced Until */
+            synced_until: string | null;
+            /** Username */
+            username: string;
+        };
+        /** LinkedAccountPatch */
+        LinkedAccountPatch: {
+            /** Enabled */
+            enabled: boolean;
+        };
         /** LoginIn */
         LoginIn: {
             /** Password */
@@ -682,6 +784,13 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** PagedLinkedAccountOut */
+        PagedLinkedAccountOut: {
+            /** Items */
+            items: components["schemas"]["LinkedAccountOut"][];
+            /** Total */
+            total: number;
+        };
         /** PagedTagOut */
         PagedTagOut: {
             /** Items */
@@ -689,6 +798,11 @@ export interface components {
             /** Total */
             total: number;
         };
+        /**
+         * Platform
+         * @enum {string}
+         */
+        Platform: "lichess" | "chesscom";
         /**
          * SettingsOut
          * @description The logged-in user's settings.
@@ -723,6 +837,39 @@ export interface components {
          * @enum {string}
          */
         Status: "queued" | "running" | "done" | "failed";
+        /** SyncErrorOut */
+        SyncErrorOut: {
+            /** Game */
+            game: string | null;
+            /** Reason */
+            reason: string;
+        };
+        /**
+         * SyncRunOut
+         * @description A sync and what it found. The frontend polls it while it is queued or running.
+         */
+        SyncRunOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Errors */
+            errors: components["schemas"]["SyncErrorOut"][];
+            /** Finished At */
+            finished_at: string | null;
+            /** Games Duplicate */
+            games_duplicate: number;
+            /** Games Failed */
+            games_failed: number;
+            /** Games Imported */
+            games_imported: number;
+            /** Id */
+            id: number;
+            /** Started At */
+            started_at: string | null;
+            status: components["schemas"]["Status"];
+        };
         /** TagIn */
         TagIn: {
             /** Name */
@@ -1260,6 +1407,143 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SettingsOut"];
+                };
+            };
+        };
+    };
+    homerank_sync_api_list_accounts: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedLinkedAccountOut"];
+                };
+            };
+        };
+    };
+    homerank_sync_api_link_account: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkedAccountIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkedAccountOut"];
+                };
+            };
+        };
+    };
+    homerank_sync_api_get_account: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkedAccountOut"];
+                };
+            };
+        };
+    };
+    homerank_sync_api_unlink_account: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    homerank_sync_api_update_account: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkedAccountPatch"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkedAccountOut"];
+                };
+            };
+        };
+    };
+    homerank_sync_api_sync_account: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncRunOut"];
                 };
             };
         };

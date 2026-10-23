@@ -11,6 +11,7 @@ from homerank.accounts.api import settings_router
 from homerank.core.errors import register_problem_handlers
 from homerank.games.api import collections_router, tags_router
 from homerank.games.api import router as games_router
+from homerank.sync.api import router as sync_router
 
 # Every endpoint requires a logged-in session unless it opts out with auth=None.
 # Session auth is also what enforces CSRF: django-ninja exempts all API views from Django's
@@ -23,3 +24,4 @@ api.add_router("/settings", settings_router)
 api.add_router("/games", games_router)
 api.add_router("/collections", collections_router)
 api.add_router("/tags", tags_router)
+api.add_router("/sync", sync_router)
