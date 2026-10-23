@@ -5,7 +5,7 @@ import { ReferenceGamePage, ReferencePage, SearchPage } from "../features/explor
 import { GameListPage, GamePage, LabelsPage } from "../features/games";
 import { HomePage } from "../features/home";
 import { ImportPage } from "../features/imports";
-import { RepertoireListPage, RepertoirePage } from "../features/repertoire";
+import { DrillPage, GapsPage, RepertoireListPage, RepertoirePage } from "../features/repertoire";
 import { SettingsPage } from "../features/settings";
 import { TrainPage } from "../features/training";
 import { Layout } from "./Layout";
@@ -31,6 +31,8 @@ export function AppRoutes() {
           <Route path="train" element={<TrainPage />} />
           <Route path="repertoires" element={<RepertoireListPage />} />
           <Route path="repertoires/:repertoireId" element={<RepertoirePage />} />
+          <Route path="repertoires/:repertoireId/drill" element={<DrillPage />} />
+          <Route path="repertoires/:repertoireId/gaps" element={<GapsPage />} />
           <Route path="search" element={<SearchPage />} />
           <Route path="reference" element={<ReferencePage />} />
           <Route path="reference/:databaseId/games/:gameId" element={<ReferenceGamePage />} />

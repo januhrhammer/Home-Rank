@@ -10,7 +10,7 @@ export type PgnImport = components["schemas"]["PgnImportOut"];
 export type Color = Repertoire["color"];
 
 /** The start of every repertoire query's key, to refresh them all after a change. */
-const REPERTOIRE_KEY = ["repertoires"] as const;
+export const REPERTOIRE_KEY = ["repertoires"] as const;
 
 function unwrap<T>({
   data,

@@ -35,6 +35,12 @@ export function RepertoirePage() {
           {repertoire.data.due > 0 && ` · ${t("repertoire.due", { count: repertoire.data.due })}`}
         </p>
         <div className={styles.actions}>
+          <Link className={styles.primary} to={`/repertoires/${String(repertoireId)}/drill`}>
+            {t("repertoire.drill")}
+          </Link>
+          <Link className={styles.action} to={`/repertoires/${String(repertoireId)}/gaps`}>
+            {t("repertoire.gaps")}
+          </Link>
           <ImportDialog repertoire={repertoire.data} />
           <SeedDialog repertoire={repertoire.data} />
           <RenameDialog repertoire={repertoire.data} />

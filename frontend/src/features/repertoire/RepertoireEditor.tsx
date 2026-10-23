@@ -9,6 +9,7 @@ import {
   TextArea,
   TextField,
 } from "react-aria-components";
+import { Link } from "react-router";
 
 import { Board } from "../../components/Board";
 import { dialogStyles as dialogs, ModalDialog } from "../../components/Dialog";
@@ -273,6 +274,12 @@ function CurrentMove({ repertoireId, node, move, transposesTo, format, onGo }: C
           <Button className={styles.button} type="submit" isPending={save.isPending}>
             {t("repertoire.saveComment")}
           </Button>
+          <Link
+            className={styles.button}
+            to={`/repertoires/${String(repertoireId)}/drill?mode=line&through=${String(node.id)}`}
+          >
+            {t("repertoire.drillHere")}
+          </Link>
           <RemoveDialog
             repertoireId={repertoireId}
             node={node}
