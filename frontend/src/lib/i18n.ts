@@ -185,6 +185,14 @@ const messages = {
   "repertoire.deleteLineText":
     "{count} of its moves are in no other line: they are deleted, with their training history. The rest stays in your other lines.",
   "repertoire.deleteLineShared": "All its moves are in other lines too: they stay there.",
+  "repertoire.drillLine": "Drill this line",
+  "repertoire.drillLines": "Drill several lines…",
+  "repertoire.drillLinesTitle": "Drill which lines?",
+  "repertoire.drillChosen": "Drill {count} lines",
+  "repertoire.conflicts": "Where your lines disagree",
+  "repertoire.conflictsHint":
+    "Your lines play different moves here. All are kept; a drill of the whole repertoire accepts any of them.",
+  "repertoire.conflictMove": "{move} in {lines}",
   "repertoire.otherLines": "Here in other lines",
   "repertoire.otherLinesHint": "Choosing one adds it to this line too.",
   "repertoire.inLines": "{move} ({lines})",
@@ -242,6 +250,8 @@ const messages = {
   "drill.modes": "Drill mode",
   "drill.due": "Due moves",
   "drill.lines": "Whole lines",
+  "drill.onlyLines": "Only the lines {names}.",
+  "drill.allLines": "Drill all lines",
   "drill.board": "Drill position",
   "drill.loadFailed": "The drill couldn't be loaded. Please try again later.",
   "drill.nothingDue": "Nothing is due in this repertoire right now.",

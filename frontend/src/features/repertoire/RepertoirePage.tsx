@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router";
 import { ApiError } from "../../api/errors";
 import { t } from "../../lib/i18n";
 import { useUrlParams } from "../../lib/useUrlParams";
+import { Conflicts } from "./Conflicts";
 import { LinesPanel } from "./LinesPanel";
 import { linesQuery, movesQuery, repertoireQuery } from "./repertoire";
 import { DeleteDialog, ImportDialog, RenameDialog, SeedDialog } from "./RepertoireDialogs";
@@ -63,6 +64,7 @@ export function RepertoirePage() {
           setParam("line", lineId === null ? null : String(lineId));
         }}
       />
+      <Conflicts repertoireId={repertoireId} lines={lines.data} />
       <RepertoireEditor
         repertoire={repertoire.data}
         line={line}

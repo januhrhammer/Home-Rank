@@ -8,6 +8,7 @@ export type Repertoire = components["schemas"]["RepertoireOut"];
 export type RepertoireMove = components["schemas"]["MoveOut"];
 export type PgnImport = components["schemas"]["PgnImportOut"];
 export type RepertoireLine = components["schemas"]["LineOut"];
+export type Conflict = components["schemas"]["ConflictOut"];
 export type Color = Repertoire["color"];
 
 /** The start of every repertoire query's key, to refresh them all after a change. */
@@ -63,6 +64,19 @@ export function linesQuery(repertoireId: number) {
     queryFn: async () =>
       unwrap(
         await api.GET("/api/v1/repertoires/{repertoire_id}/lines", {
+          params: { path: { repertoire_id: repertoireId } },
+        }),
+      ),
+  });
+}
+
+/** Positions where the repertoire's lines play different moves of the user's. */
+export function conflictsQuery(repertoireId: number) {
+  return queryOptions({
+    queryKey: [...REPERTOIRE_KEY, repertoireId, "conflicts"],
+    queryFn: async () =>
+      unwrap(
+        await api.GET("/api/v1/repertoires/{repertoire_id}/conflicts", {
           params: { path: { repertoire_id: repertoireId } },
         }),
       ),
