@@ -75,6 +75,19 @@ def test_lines_share_the_moves_they_have_in_common(ruy: Repertoire) -> None:
     assert line_sans(berlin) == [*BASE, "Nf6", "O-O"]
 
 
+def test_without_a_line_a_move_goes_to_the_first_line_that_reaches_it(ruy: Repertoire) -> None:
+    create_line(ruy, name="Exchange")
+    open_ = create_line(ruy, name="Open")
+    play(ruy, open_, *BASE, "a6")
+    board = chess.Board()
+    for san in (*BASE, "a6"):
+        board.push_san(san)
+
+    ba4 = add_move(ruy, fen=board.fen(), move_uci="b5a4")
+
+    assert [line.name for line in ba4.lines.all()] == ["Open"]
+
+
 def test_a_move_needs_a_position_its_line_reaches(ruy: Repertoire) -> None:
     main = selectors.lines(ruy).get()
     berlin = create_line(ruy, name="Berlin")

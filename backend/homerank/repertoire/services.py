@@ -154,9 +154,15 @@ def delete_line(line: RepertoireLine) -> int:
         return _delete_unlined(repertoire)
 
 
-def _first_line(repertoire: Repertoire) -> RepertoireLine:
-    """Where moves go when no line is named: until the API names lines (ADR 0020, step 2)."""
-    return repertoire.lines.order_by("position", "pk")[0]
+def _first_line(repertoire: Repertoire, *, reaching: int | None = None) -> RepertoireLine:
+    """Where moves go when no line is named: the first line, or the first that reaches the
+    position (the first line if none does: adding the move then fails)."""
+    lines = repertoire.lines.order_by("position", "pk")
+    if reaching is not None and reaching != as_bigint(START_ZOBRIST):
+        line = lines.filter(moves__to_zobrist=reaching).first()
+        if line is not None:
+            return line
+    return lines[0]
 
 
 def _delete_unlined(repertoire: Repertoire) -> int:
@@ -173,9 +179,9 @@ def _delete_unlined(repertoire: Repertoire) -> int:
 def add_move(
     repertoire: Repertoire, *, fen: str, move_uci: str, line: RepertoireLine | None = None
 ) -> RepertoireMove:
-    """Add a move to a line, in a position the line reaches. A move the line already has is
-    returned as it is; one another line has joins this one."""
-    line = line or _first_line(repertoire)
+    """Add a move to a line, in a position the line reaches; without a line, to the first line
+    that reaches it (as from the gap report). A move the line already has is returned as it is;
+    one another line has joins this one."""
     try:
         board = chess.Board(fen)
     except ValueError as error:
@@ -183,6 +189,7 @@ def add_move(
     if not board.is_valid():
         raise InvalidPositionError
     zobrist = chess.polyglot.zobrist_hash(board)
+    line = line or _first_line(repertoire, reaching=as_bigint(zobrist))
     existing = line.moves.filter(from_zobrist=as_bigint(zobrist), move_uci=move_uci).first()
     if existing is not None:
         return existing

@@ -56,7 +56,9 @@ class ConflictOut(Schema):
 class MoveIn(Schema):
     fen: str = Field(max_length=100, description="The position the move is played from")
     move_uci: str = Field(max_length=5, examples=["e2e4"])
-    line_id: int | None = Field(None, description="The line to add it to; default: the first")
+    line_id: int | None = Field(
+        None, description="The line to add it to; default: the first that reaches the position"
+    )
 
 
 class MovePatch(Schema):
