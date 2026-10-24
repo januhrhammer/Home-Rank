@@ -16,6 +16,7 @@ import { dialogStyles as dialogs, ModalDialog } from "../../components/Dialog";
 import { BackIcon, EndIcon, FlipIcon, ForwardIcon, StartIcon } from "../../components/Icons";
 import { t } from "../../lib/i18n";
 import { useKeyboard } from "../../lib/useKeyboard";
+import { arrowsOf, EnginePanel, useLiveAnalysis } from "../engine";
 import { ExplorerPanel, type Source } from "../explorer";
 import { MoveList, type MoveNode, useNotation, withFigurines } from "../games";
 import { StartGameDialog } from "../play";
@@ -57,6 +58,7 @@ export function RepertoireEditor({ repertoire, moves }: RepertoireEditorProps) {
 
   const fen = current?.fen ?? START_FEN;
   const orientation = (repertoire.color === "black") !== flipped ? "black" : "white";
+  const live = useLiveAnalysis(fen);
   const format = (san: string) => (notation === "figurines" ? withFigurines(san) : san);
   // The moves from the shown position, wherever the tree shows them (a transposition's are
   // shown under the other way there).
@@ -114,6 +116,7 @@ export function RepertoireEditor({ repertoire, moves }: RepertoireEditorProps) {
           fen={fen}
           orientation={orientation}
           lastMove={current?.squares}
+          arrows={arrowsOf(live.lines)}
           label={
             current
               ? t("repertoire.positionAfter", { line: lineTo(current) })
@@ -179,6 +182,7 @@ export function RepertoireEditor({ repertoire, moves }: RepertoireEditorProps) {
         )}
       </div>
       <div className={styles.sideColumn}>
+        <EnginePanel fen={fen} analysis={live} />
         <section aria-labelledby="moves-heading">
           <h2 id="moves-heading" className={styles.heading}>
             {t("repertoire.moves")}

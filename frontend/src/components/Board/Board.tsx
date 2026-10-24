@@ -34,6 +34,8 @@ export interface BoardProps {
    * called with a clicked square, e.g. to put a piece there.
    */
   editable?: { onChange: (boardFen: string) => void; onSquare: (square: Key) => void };
+  /** Arrows to draw, e.g. the engine's best moves; the best one stands out. */
+  arrows?: { from: Key; to: Key; best: boolean }[];
 }
 
 /**
@@ -49,6 +51,7 @@ export function Board({
   label,
   movable,
   editable,
+  arrows,
 }: BoardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<Api | null>(null);
@@ -118,6 +121,17 @@ export function Board({
       selectable: { enabled: movable !== undefined || editable !== undefined },
     });
   }, [fen, orientation, lastMove, movable, editable]);
+
+  // Arrows are chessground's "auto shapes", drawn over the board and replaced as a whole.
+  useEffect(() => {
+    boardRef.current?.setAutoShapes(
+      (arrows ?? []).map(({ from, to, best }) => ({
+        orig: from,
+        dest: to,
+        brush: best ? "green" : "paleGrey",
+      })),
+    );
+  }, [arrows]);
 
   return (
     <div

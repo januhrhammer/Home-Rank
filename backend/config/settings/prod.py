@@ -6,6 +6,7 @@ a missing variable stops Django at startup instead of running with an insecure f
 
 from config import env
 from config.logging_config import build_logging
+from homerank.core.isolation import add_static_headers
 
 from .base import *
 from .base import FRONTEND_DIR, MIDDLEWARE
@@ -37,6 +38,8 @@ MIDDLEWARE = [
     *MIDDLEWARE[1:],
 ]
 WHITENOISE_ROOT = FRONTEND_DIR
+# The static files need the cross-origin isolation header too (see homerank/core/isolation.py).
+WHITENOISE_ADD_HEADERS_FUNCTION = add_static_headers
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     # Adds a content hash to each file name and stores compressed copies.
