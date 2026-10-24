@@ -31,6 +31,8 @@
   --board-light: #dee3e6;
   --board-dark: #8ca2ad;
   --board-last-move: rgb(45 106 79 / 32%);
+  /* The piece picked up, and the squares it can go to (dots; rings where it captures). */
+  --board-move-hint: rgb(45 106 79 / 50%);
 
   /* Engine analysis: the evaluation bar's two sides, and the marks for weak moves, which
      meet AA contrast as text on the page. */

@@ -18,6 +18,26 @@
   background-color: var(--board-last-move);
 }
 
+/* A picked-up piece and where it can go, as chessground's own themes show them: a dot on each
+   empty square, a ring on each capture, the square filled while the pointer is over it. Without
+   these, moving by clicking a piece and then a square works but shows nothing. */
+.board :global(cg-board square.selected) {
+  background-color: var(--board-move-hint);
+}
+
+.board :global(cg-board square.move-dest) {
+  background: radial-gradient(var(--board-move-hint) 22%, transparent 0);
+}
+
+.board :global(cg-board square.oc.move-dest) {
+  background: radial-gradient(transparent 0%, transparent 80%, var(--board-move-hint) 80%);
+}
+
+.board :global(cg-board square.move-dest:hover),
+.board :global(cg-board square.move-dest.hover) {
+  background: var(--board-move-hint);
+}
+
 /* Coordinates in the colour of the other kind of square, so they show on either. These
    selectors are chessground's own (its brown theme): they find the labels on light squares. */
 .board :global(.orientation-white .ranks :nth-child(odd)),
