@@ -28,10 +28,12 @@ explorer.
 > - playing openings out against a bot, from any position: Maia, which plays like people of a
 >   chosen rating, or Stockfish at a limited strength; with or without a clock, a note where
 >   the game left your repertoire, and the game saved to your games if you like.
+> - live engine analysis on the board: Stockfish in your browser, with the best three lines
+>   and arrows, in the viewer, the repertoire editor and the position search.
+> - annotating your games: comments, move and position marks, and variations played on the
+>   board or taken from the engine; the game's own moves stay as they are.
 > - every page works on a phone, with the keyboard alone and with screen readers, in a light and
 >   a dark theme.
->
-> Next: annotating your own games, and live engine analysis on the board.
 
 ## Screenshots
 
