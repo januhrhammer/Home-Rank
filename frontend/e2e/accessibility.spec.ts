@@ -13,6 +13,7 @@ const PAGES = [
   "/games",
   "/train",
   "/repertoires",
+  "/play",
   "/search",
   "/reference",
   "/labels",
