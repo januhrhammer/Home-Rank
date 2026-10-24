@@ -69,3 +69,18 @@ test("analyse a game with Stockfish and see each player's accuracy", async ({ pa
   await expect(page.getByRole("button", { name: "g4 (blunder)" })).toBeVisible();
   await expect(page.getByRole("meter", { name: "Evaluation" })).toBeVisible();
 });
+
+test("annotate a move, and find the comment again after reloading", async ({ page }) => {
+  await page.goto("/games");
+  await page.getByRole("row").filter({ hasText: "Morphy, Paul" }).click();
+  await page.getByText("Annotate", { exact: true }).click();
+
+  const moves = page.getByRole("group", { name: "Moves" });
+  await moves.getByRole("button", { name: "Qb8+" }).click();
+  await page.getByRole("textbox", { name: /^Comment on 16\. / }).fill("The queen sacrifice.");
+  await page.getByRole("button", { name: "Save comment" }).click();
+  await expect(moves).toContainText("The queen sacrifice.");
+
+  await page.reload();
+  await expect(page.getByRole("group", { name: "Moves" })).toContainText("The queen sacrifice.");
+});

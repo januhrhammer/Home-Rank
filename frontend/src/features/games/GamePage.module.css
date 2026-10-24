@@ -183,3 +183,21 @@
   font-size: 0.875rem;
   color: var(--color-accent);
 }
+
+/* Annotation mode: its switch, and the tools while it is on. */
+.annotate {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.annotate .notation {
+  margin-top: 0;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.error {
+  margin: 0;
+  color: var(--color-danger);
+}

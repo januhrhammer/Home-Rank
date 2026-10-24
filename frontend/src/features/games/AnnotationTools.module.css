@@ -1,0 +1,87 @@
+.tools {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* buttons as wide as their text */
+  gap: var(--space-3);
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.comment {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100%;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.textArea {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+  font: inherit;
+  font-family: var(--font-serif);
+  color: var(--color-text);
+  background: var(--color-bg);
+  resize: vertical;
+}
+
+/* The marks as a row of small buttons; the chosen one in the accent. */
+.marks {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.mark {
+  min-width: 2.5rem;
+  height: 2.25rem;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+  font: inherit;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  color: var(--color-text);
+  background: var(--color-bg);
+  cursor: pointer;
+}
+
+.mark[data-selected] {
+  border-color: var(--color-accent);
+  color: var(--color-on-accent);
+  background: var(--color-accent);
+}
+
+.mark[data-disabled],
+.button[data-disabled] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.button {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-bg);
+  cursor: pointer;
+}

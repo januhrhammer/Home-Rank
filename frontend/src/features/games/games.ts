@@ -1,7 +1,13 @@
-import { keepPreviousData, queryOptions, useQuery } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 import { api } from "../../api/client";
-import { ApiError } from "../../api/errors";
+import { ApiError, problemDetail } from "../../api/errors";
 import type { components, paths } from "../../api/schema";
 
 export type GameListItem = components["schemas"]["GameListItem"];
@@ -137,4 +143,24 @@ export async function fetchGame(gameId: number): Promise<Game> {
 
 export function gameQuery(gameId: number) {
   return queryOptions({ queryKey: [...GAMES_KEY, gameId], queryFn: () => fetchGame(gameId) });
+}
+
+/** Save the game with new annotations (ADR 0019): the answer is the game as stored. */
+export function useAnnotate(gameId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (pgn: string) => {
+      const { data, error, response } = await api.PUT("/api/v1/games/{game_id}/annotations", {
+        params: { path: { game_id: gameId } },
+        body: { pgn },
+      });
+      if (data === undefined) {
+        throw new ApiError(response.status, problemDetail(error));
+      }
+      return data;
+    },
+    onSuccess: (game) => {
+      queryClient.setQueryData(gameQuery(gameId).queryKey, game);
+    },
+  });
 }
