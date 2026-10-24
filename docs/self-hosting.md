@@ -82,11 +82,10 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/januhrhammer/Home-Rank/m
 
 It asks for the container's ID, host name, cores, memory, disk, storage and network (Enter
 keeps the default), then creates an unprivileged Debian 13 container (Debian 12 on a Proxmox VE
-too old for 13) with Docker, puts
-Home-Rank in `/opt/home-rank` with random passwords, `ALLOWED_HOSTS` set to the container's
-address and `HTTPS=false`, and starts it. At the end it shows the address and how to create
-your account (step 4). [The script](../docker/proxmox-lxc.sh) explains each step; read it
-before running it.
+too old for 13) with Docker, puts Home-Rank in `/opt/home-rank` with random passwords,
+`ALLOWED_HOSTS` set to the container's address and `HTTPS=false`, and starts it. At the end it
+shows the address and how to create your account (step 4). [The script](../docker/proxmox-lxc.sh)
+explains each step; read it before running it.
 
 A container rather than a virtual machine: Stockfish sees the host's CPU as it is and uses its
 fastest instructions. In a virtual machine, set the CPU type to `host` for the same reason; the
