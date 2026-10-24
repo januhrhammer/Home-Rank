@@ -71,6 +71,26 @@ Tested on x86-64 Linux.
    uses them to find your side in each game, and so whether you won. Changing them later
    updates all your games in the background.
 
+### On Proxmox VE
+
+On a [Proxmox VE](https://www.proxmox.com/en/products/proxmox-virtual-environment/overview)
+host, one command does steps 1 to 3 in a new container. Run it as root in the host's shell:
+
+```sh
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/januhrhammer/Home-Rank/main/docker/proxmox-lxc.sh)"
+```
+
+It asks for the container's ID, host name, cores, memory, disk, storage and network (Enter
+keeps the default), then creates an unprivileged Debian 13 container with Docker, puts
+Home-Rank in `/opt/home-rank` with random passwords, `ALLOWED_HOSTS` set to the container's
+address and `HTTPS=false`, and starts it. At the end it shows the address and how to create
+your account (step 4). [The script](../docker/proxmox-lxc.sh) explains each step; read it
+before running it.
+
+A container rather than a virtual machine: Stockfish sees the host's CPU as it is and uses its
+fastest instructions. In a virtual machine, set the CPU type to `host` for the same reason; the
+default types hide them and Stockfish gets slower.
+
 ## Configuration
 
 All settings live in `.env`, and `.env.example` explains each of them. After changing `.env`,
