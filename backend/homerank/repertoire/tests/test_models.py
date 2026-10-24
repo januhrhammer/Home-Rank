@@ -5,7 +5,12 @@ import pytest
 from django.db import IntegrityError, connection, transaction
 
 from homerank.accounts.models import User
-from homerank.repertoire.models import Repertoire, RepertoireMove
+from homerank.repertoire.models import (
+    Repertoire,
+    RepertoireLine,
+    RepertoireLineMove,
+    RepertoireMove,
+)
 from homerank.training.models import ReviewCard, ReviewLog
 
 pytestmark = pytest.mark.django_db
@@ -87,3 +92,5 @@ def test_no_extra_indexes_on_the_foreign_keys() -> None:
 
     assert indexes(Repertoire._meta.db_table) == [["user_id", "name"]]
     assert indexes(RepertoireMove._meta.db_table) == [["repertoire_id", "from_zobrist", "move_uci"]]
+    assert indexes(RepertoireLine._meta.db_table) == [["repertoire_id", "name"]]
+    assert indexes(RepertoireLineMove._meta.db_table) == [["line_id", "move_id"], ["move_id"]]
