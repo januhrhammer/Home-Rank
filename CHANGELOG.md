@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.10.0](https://github.com/januhrhammer/Home-Rank/compare/v0.9.0...v0.10.0) (2026-10-24)
+
+
+### Features
+
+* **games:** save annotations, never changing a game's moves ([#96](https://github.com/januhrhammer/Home-Rank/issues/96)) ([aeae2e9](https://github.com/januhrhammer/Home-Rank/commit/aeae2e9d8d159bcf71677ab7f863c6f86378ca3c))
+* **ui:** annotate games in the viewer ([#97](https://github.com/januhrhammer/Home-Rank/issues/97)) ([5bea10c](https://github.com/januhrhammer/Home-Rank/commit/5bea10c7d2a0a9f4a35126f7e099a60480d00961))
+* **ui:** live engine analysis on the board ([#94](https://github.com/januhrhammer/Home-Rank/issues/94)) ([84f24fd](https://github.com/januhrhammer/Home-Rank/commit/84f24fd3253917980577b1de7000830bef9be847))
+
 ## [0.9.0](https://github.com/januhrhammer/Home-Rank/compare/v0.8.0...v0.9.0) (2026-10-24)
 
 
