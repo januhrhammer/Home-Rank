@@ -20,11 +20,17 @@ GAP_GAMES = 20
 
 
 def repertoires(*, user: User) -> QuerySet[Repertoire]:
-    """The user's repertoires by name, each with its number of moves and of cards due now."""
+    """The user's repertoires by name, each with its number of lines, of moves and of cards
+    due now."""
     due = Q(moves__card__due_at__lte=timezone.now())
     return (
         Repertoire.objects.filter(user=user)
-        .annotate(move_count=Count("moves"), due=Count("moves__card", filter=due))
+        .annotate(
+            # distinct: joining lines and moves at once repeats each row per pair.
+            line_count=Count("lines", distinct=True),
+            move_count=Count("moves", distinct=True),
+            due=Count("moves__card", filter=due, distinct=True),
+        )
         .order_by("name", "pk")
     )
 
@@ -245,17 +251,19 @@ class DueDrill:
     due: int  # how many of the repertoire's cards are due now
 
 
-def next_due(repertoire: Repertoire) -> DueDrill:
-    """The repertoire's card due longest, in its position."""
+def next_due(repertoire: Repertoire, *, line_ids: list[int] | None = None) -> DueDrill:
+    """The card due longest, in its position: of the repertoire, or of the given lines."""
     due = ReviewCard.objects.filter(
-        repertoire_move__repertoire=repertoire, due_at__lte=timezone.now()
+        repertoire_move__in=_drilled(repertoire, line_ids), due_at__lte=timezone.now()
     ).select_related("repertoire_move")
     card = due.order_by("due_at", "pk").first()
     if card is None or card.repertoire_move is None:
         return DueDrill(step=None, last_move_uci="", due=0)
     move = card.repertoire_move
-    before = repertoire.moves.filter(to_zobrist=move.from_zobrist).order_by("pk").first()
-    graph = _Graph(repertoire)
+    before = (
+        _drilled(repertoire, line_ids).filter(to_zobrist=move.from_zobrist).order_by("pk").first()
+    )
+    graph = _Graph(repertoire, line_ids)
     return DueDrill(
         step=graph.step(move),
         last_move_uci=before.move_uci if before is not None else "",
@@ -263,11 +271,17 @@ def next_due(repertoire: Repertoire) -> DueDrill:
     )
 
 
-def drill_line(repertoire: Repertoire, *, through: RepertoireMove | None = None) -> list[DrillStep]:
-    """A line from the starting position to the end of the repertoire: through the given move,
-    or else through the card due longest. From there on it follows, at each position, the
-    move whose card (or, for the opponent's moves, the next card) is due first."""
-    graph = _Graph(repertoire)
+def drill_line(
+    repertoire: Repertoire,
+    *,
+    through: RepertoireMove | None = None,
+    line_ids: list[int] | None = None,
+) -> list[DrillStep]:
+    """A line from the starting position to the end of the repertoire, or of the given lines:
+    through the given move, or else through the card due longest. From there on it follows, at
+    each position, the move whose card (or, for the opponent's moves, the next card) is due
+    first."""
+    graph = _Graph(repertoire, line_ids)
     if through is None:
         through = graph.most_urgent()
     path = graph.path_to(through) if through is not None else []
@@ -283,16 +297,23 @@ def drill_line(repertoire: Repertoire, *, through: RepertoireMove | None = None)
     return [graph.step(m) for m in path]
 
 
+def _drilled(repertoire: Repertoire, line_ids: list[int] | None) -> QuerySet[RepertoireMove]:
+    """The moves a drill asks for: the repertoire's, or only those of the given lines."""
+    if not line_ids:
+        return repertoire.moves.all()
+    return repertoire.moves.filter(pk__in=RepertoireMove.objects.filter(lines__in=line_ids))
+
+
 _NEVER = datetime.max.replace(tzinfo=UTC)
 
 
 class _Graph:
     """A repertoire's moves, by the positions they join, with their cards."""
 
-    def __init__(self, repertoire: Repertoire) -> None:
+    def __init__(self, repertoire: Repertoire, line_ids: list[int] | None = None) -> None:
         self.moves_from: defaultdict[int, list[RepertoireMove]] = defaultdict(list)
         self.cards: dict[int, ReviewCard] = {}  # by move id
-        for move in repertoire.moves.select_related("card").order_by("pk"):
+        for move in _drilled(repertoire, line_ids).select_related("card").order_by("pk"):
             self.moves_from[move.from_zobrist].append(move)
             card = getattr(move, "card", None)
             if card is not None:

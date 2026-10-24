@@ -20,6 +20,7 @@ const QUEENS_GAMBIT: Repertoire = {
   id: 4,
   name: "Queen's Gambit",
   color: "white",
+  line_count: 1,
   move_count: 0,
   due: 0,
 };
@@ -112,6 +113,7 @@ function played(fen: string, uci: string, id: number): RepertoireMove {
     to_position: name(makeFen(position.toSetup())),
     comment: "",
     card_id: userToMove ? 100 + id : null,
+    line_ids: [1],
   };
 }
 

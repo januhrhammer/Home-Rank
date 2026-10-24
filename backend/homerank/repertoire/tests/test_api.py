@@ -57,6 +57,7 @@ def test_create_list_rename_and_delete(alice_client: Client) -> None:
         "id": repertoire_id,
         "name": "Sicilian",
         "color": "black",
+        "line_count": 1,
         "move_count": 0,
         "due": 0,
     }
@@ -119,7 +120,12 @@ def test_import_pgn(alice_client: Client, white: Repertoire) -> None:
 
     response = alice_client.post(f"{URL}/{white.pk}/import", {"file": upload})
 
-    assert response.json() == {"moves_added": 2, "games_read": 1, "games_skipped": 0}
+    assert response.json() == {
+        "moves_added": 2,
+        "games_read": 1,
+        "games_skipped": 0,
+        "lines_created": 0,
+    }
 
 
 def test_seed_and_gaps(alice_client: Client, alice: User, white: Repertoire) -> None:
@@ -171,6 +177,7 @@ def test_someone_elses_repertoire_is_not_found(white: Repertoire, client: Client
     bob = User.objects.create_user(username="bob")
     client.force_login(bob)
     move = white.moves.first()
+    line = white.lines.get()
     assert move is not None
     base = f"{URL}/{white.pk}"
 
@@ -187,6 +194,12 @@ def test_someone_elses_repertoire_is_not_found(white: Repertoire, client: Client
         client.get(f"{base}/gaps"),
         client.get(f"{base}/drill/next"),
         client.get(f"{base}/drill/line"),
+        client.get(f"{base}/lines"),
+        post(client, f"{base}/lines", {"name": "mine"}),
+        client.put(f"{base}/lines/order", {"line_ids": [line.pk]}, content_type=AS_JSON),
+        client.patch(f"{base}/lines/{line.pk}", {"name": "mine"}, content_type=AS_JSON),
+        client.delete(f"{base}/lines/{line.pk}"),
+        client.get(f"{base}/conflicts"),
     ]
 
     assert {r.status_code for r in responses} == {HTTPStatus.NOT_FOUND}
@@ -204,6 +217,125 @@ def test_a_move_of_another_repertoire_is_not_found(
     response = alice_client.get(f"{URL}/{other.pk}/drill/line", {"through": move.pk})
 
     assert response.status_code == HTTPStatus.NOT_FOUND
+
+
+def test_a_line_of_another_repertoire_is_not_found(
+    alice_client: Client, alice: User, white: Repertoire
+) -> None:
+    other = create_repertoire(user=alice, name="London", color="white")
+    foreign = other.lines.get()
+    base = f"{URL}/{white.pk}"
+
+    responses = [
+        alice_client.patch(f"{base}/lines/{foreign.pk}", {"name": "x"}, content_type=AS_JSON),
+        alice_client.delete(f"{base}/lines/{foreign.pk}"),
+        post(alice_client, f"{base}/moves", {**E4, "line_id": foreign.pk}),
+        alice_client.get(f"{base}/drill/next", {"line": foreign.pk}),
+    ]
+
+    assert {r.status_code for r in responses} == {HTTPStatus.NOT_FOUND}
+
+
+E4 = {"fen": chess.STARTING_FEN, "move_uci": "e2e4"}
+
+
+def test_lines_are_created_listed_renamed_reordered_and_deleted(
+    alice_client: Client, white: Repertoire
+) -> None:
+    base = f"{URL}/{white.pk}/lines"
+    main = white.lines.get()
+
+    created = post(alice_client, base, {"name": "Slav"})
+    slav = created.json()["id"]
+    alice_client.patch(f"{base}/{slav}", {"name": "Semi-Slav"}, content_type=AS_JSON)
+    ordered = alice_client.put(
+        f"{base}/order", {"line_ids": [slav, main.pk]}, content_type=AS_JSON
+    ).json()
+    taken = post(alice_client, base, {"name": "Semi-Slav"})
+    deleted = alice_client.delete(f"{base}/{slav}")
+    last = alice_client.delete(f"{base}/{main.pk}")
+
+    assert created.status_code == HTTPStatus.CREATED
+    assert created.json() == {"id": slav, "name": "Slav", "position": 1, "move_count": 0}
+    assert [(line["name"], line["move_count"]) for line in ordered] == [
+        ("Semi-Slav", 0),
+        ("Main line", 7),
+    ]
+    assert taken.status_code == HTTPStatus.CONFLICT
+    assert deleted.json() == {"removed": 0}
+    assert last.status_code == HTTPStatus.CONFLICT
+
+
+def test_moves_are_added_to_and_removed_from_a_line(
+    alice_client: Client, white: Repertoire
+) -> None:
+    main = white.lines.get()
+    london = post(alice_client, f"{URL}/{white.pk}/lines", {"name": "London"}).json()["id"]
+
+    added = post(alice_client, f"{URL}/{white.pk}/moves", {**E4, "line_id": london}).json()
+    d4 = post(
+        alice_client,
+        f"{URL}/{white.pk}/moves",
+        {"fen": chess.STARTING_FEN, "move_uci": "d2d4", "line_id": london},
+    ).json()
+    removed = alice_client.delete(f"{URL}/{white.pk}/moves/{d4['id']}?line_id={london}").json()
+    moves = {
+        m["move_san"]: m["line_ids"] for m in alice_client.get(f"{URL}/{white.pk}/moves").json()
+    }
+
+    assert added["line_ids"] == [london]
+    assert d4["line_ids"] == [main.pk, london]  # 1.d4 was the main line's already
+    assert removed == {"removed": 1}
+    assert moves["d4"] == [main.pk]
+    assert moves["e4"] == [london]
+
+
+def test_a_pgn_imports_as_one_line_per_chapter(alice_client: Client, white: Repertoire) -> None:
+    pgn = (
+        b'[Event "QGD: Exchange"]\n\n1. d4 d5 2. c4 e6 3. cxd5 *\n\n'
+        b'[ChapterName "Slav"]\n\n1. d4 d5 2. c4 c6 *\n'
+    )
+    upload = SimpleUploadedFile("course.pgn", pgn)
+
+    response = alice_client.post(f"{URL}/{white.pk}/import?chapters=true", {"file": upload})
+    lines = alice_client.get(f"{URL}/{white.pk}/lines").json()
+
+    assert response.json() == {
+        "moves_added": 1,  # only 3.cxd5 is new to the repertoire
+        "games_read": 2,
+        "games_skipped": 0,
+        "lines_created": 2,
+    }
+    assert [(line["name"], line["move_count"]) for line in lines] == [
+        ("Main line", 7),
+        ("QGD: Exchange", 5),
+        ("Slav", 4),
+    ]
+
+
+def test_a_drill_asks_only_for_the_chosen_lines(alice_client: Client, white: Repertoire) -> None:
+    london = post(alice_client, f"{URL}/{white.pk}/lines", {"name": "London"}).json()["id"]
+    post(alice_client, f"{URL}/{white.pk}/moves", {**E4, "line_id": london})
+
+    line = alice_client.get(f"{URL}/{white.pk}/drill/line", {"line": london}).json()
+    due = alice_client.get(f"{URL}/{white.pk}/drill/next", {"line": london}).json()
+
+    assert [s["move_san"] for s in line] == ["e4"]
+    assert due["step"]["move_san"] == "e4"
+    assert due["due"] == 1
+
+
+def test_conflicts_name_the_lines(alice_client: Client, white: Repertoire) -> None:
+    london = post(alice_client, f"{URL}/{white.pk}/lines", {"name": "London"}).json()["id"]
+    post(alice_client, f"{URL}/{white.pk}/moves", {**E4, "line_id": london})
+
+    (conflict,) = alice_client.get(f"{URL}/{white.pk}/conflicts").json()
+
+    assert conflict["fen"] == chess.STARTING_FEN
+    assert sorted((c["move_san"], c["lines"]) for c in conflict["choices"]) == [
+        ("d4", ["Main line"]),
+        ("e4", ["London"]),
+    ]
 
 
 def test_logged_out_is_unauthorized(client: Client) -> None:

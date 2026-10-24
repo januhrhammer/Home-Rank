@@ -731,6 +731,26 @@ export interface paths {
         patch: operations["homerank_repertoire_api_rename_repertoire"];
         trace?: never;
     };
+    "/api/v1/repertoires/{repertoire_id}/conflicts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Conflicts
+         * @description Positions where lines of the repertoire play different moves of yours.
+         */
+        get: operations["homerank_repertoire_api_conflicts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/repertoires/{repertoire_id}/drill/line": {
         parameters: {
             query?: never;
@@ -740,9 +760,9 @@ export interface paths {
         };
         /**
          * Drill Line
-         * @description A line from the start to the end of the repertoire, through the move with the id given,
-         *     or else through the card due longest. Answer each of your moves with POST
-         *     /training/reviews.
+         * @description A line from the start to the end of the repertoire, or of the lines given, through the
+         *     move with the id given, or else through the card due longest. Answer each of your moves
+         *     with POST /training/reviews.
          */
         get: operations["homerank_repertoire_api_drill_line"];
         put?: never;
@@ -762,7 +782,8 @@ export interface paths {
         };
         /**
          * Next Card
-         * @description The card due longest. Answer it with POST /training/reviews.
+         * @description The card due longest, of the repertoire or of the lines given (line=1&line=2). Answer it
+         *     with POST /training/reviews.
          */
         get: operations["homerank_repertoire_api_next_card"];
         put?: never;
@@ -804,14 +825,81 @@ export interface paths {
         put?: never;
         /**
          * Import Pgn
-         * @description Upload a PGN file (at most 20 MB) and add its moves, variations and comments included.
-         *     Games that don't start from the starting position are skipped.
+         * @description Upload a PGN file (at most 20 MB) and add its moves, variations and comments included:
+         *     to a line (default: the first), or with chapters=true each game as a new line, named after
+         *     its ChapterName or Event. Games that don't start from the starting position are skipped.
          */
         post: operations["homerank_repertoire_api_import_pgn"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repertoires/{repertoire_id}/lines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Lines
+         * @description The repertoire's lines in their order. A new repertoire has one, "Main line".
+         */
+        get: operations["homerank_repertoire_api_list_lines"];
+        put?: never;
+        /**
+         * Create Line
+         * @description Add an empty line after the others; 409 if the repertoire has one with that name.
+         */
+        post: operations["homerank_repertoire_api_create_line"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repertoires/{repertoire_id}/lines/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Reorder Lines
+         * @description Put the lines in this order, naming each of them once.
+         */
+        put: operations["homerank_repertoire_api_reorder_lines"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repertoires/{repertoire_id}/lines/{line_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Line
+         * @description Delete a line, and the moves no other line has (with their training history); 409 for
+         *     the repertoire's last line.
+         */
+        delete: operations["homerank_repertoire_api_delete_line"];
+        options?: never;
+        head?: never;
+        /** Rename Line */
+        patch: operations["homerank_repertoire_api_rename_line"];
         trace?: never;
     };
     "/api/v1/repertoires/{repertoire_id}/moves": {
@@ -823,14 +911,15 @@ export interface paths {
         };
         /**
          * List Moves
-         * @description All of the repertoire's moves, in the order they were added. The tree is drawn from
-         *     the starting position by following each move's to_position.
+         * @description All of the repertoire's moves, in the order they were added, with their lines. The tree
+         *     is drawn from the starting position by following each move's to_position.
          */
         get: operations["homerank_repertoire_api_list_moves"];
         put?: never;
         /**
          * Add Move
-         * @description Add a move in a position the repertoire reaches; a move it already has is returned.
+         * @description Add a move to a line, in a position the line reaches. A move the line has is returned;
+         *     one another line has joins this line too.
          */
         post: operations["homerank_repertoire_api_add_move"];
         delete?: never;
@@ -851,7 +940,8 @@ export interface paths {
         post?: never;
         /**
          * Remove Move
-         * @description Remove a move and the moves only it led to.
+         * @description Take a move out of a line, or without line_id out of every line, with the moves the
+         *     line reached only through it. Moves left in no line are deleted.
          */
         delete: operations["homerank_repertoire_api_remove_move"];
         options?: never;
@@ -871,8 +961,8 @@ export interface paths {
         put?: never;
         /**
          * Seed
-         * @description Add what you play in your games with this colour: your most played moves and the
-         *     replies you met in at least min_games games. Moves already there stay.
+         * @description Add to a line what you play in your games with this colour: your most played moves and
+         *     the replies you met in at least min_games games. Moves already there stay.
          */
         post: operations["homerank_repertoire_api_seed"];
         delete?: never;
@@ -1341,6 +1431,25 @@ export interface components {
             /** Name */
             name?: string | null;
         };
+        /** ConflictChoiceOut */
+        ConflictChoiceOut: {
+            /** Lines */
+            lines: string[];
+            /** Move San */
+            move_san: string;
+            /** Move Uci */
+            move_uci: string;
+        };
+        /**
+         * ConflictOut
+         * @description A position where lines play different moves of yours.
+         */
+        ConflictOut: {
+            /** Choices */
+            choices: components["schemas"]["ConflictChoiceOut"][];
+            /** Fen */
+            fen: string;
+        };
         /** CopyIn */
         CopyIn: {
             /**
@@ -1667,6 +1776,30 @@ export interface components {
              */
             offset: number;
         };
+        /** LineIn */
+        LineIn: {
+            /** Name */
+            name: string;
+        };
+        /** LineOrderIn */
+        LineOrderIn: {
+            /**
+             * Line Ids
+             * @description Each of the repertoire's lines once, in the new order
+             */
+            line_ids: number[];
+        };
+        /** LineOut */
+        LineOut: {
+            /** Id */
+            id: number;
+            /** Move Count */
+            move_count: number;
+            /** Name */
+            name: string;
+            /** Position */
+            position: number;
+        };
         /** LinkedAccountIn */
         LinkedAccountIn: {
             platform: components["schemas"]["Platform"];
@@ -1741,6 +1874,8 @@ export interface components {
             from_position: string;
             /** Id */
             id: number;
+            /** Line Ids */
+            line_ids: number[];
             /** Move San */
             move_san: string;
             /** Move Uci */
@@ -1934,6 +2069,8 @@ export interface components {
             games_read: number;
             /** Games Skipped */
             games_skipped: number;
+            /** Lines Created */
+            lines_created: number;
             /** Moves Added */
             moves_added: number;
         };
@@ -2226,6 +2363,8 @@ export interface components {
             due: number;
             /** Id */
             id: number;
+            /** Line Count */
+            line_count: number;
             /** Move Count */
             move_count: number;
             /** Name */
@@ -2271,6 +2410,11 @@ export interface components {
              * @default 12
              */
             depth: number;
+            /**
+             * Line Id
+             * @description The line to add to; default: the first
+             */
+            line_id?: number | null;
             /**
              * Min Games
              * @description Games an opponent's reply needs
@@ -3538,10 +3682,33 @@ export interface operations {
             };
         };
     };
+    homerank_repertoire_api_conflicts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repertoire_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConflictOut"][];
+                };
+            };
+        };
+    };
     homerank_repertoire_api_drill_line: {
         parameters: {
             query?: {
                 through?: number | null;
+                line?: number[] | null;
             };
             header?: never;
             path: {
@@ -3564,7 +3731,9 @@ export interface operations {
     };
     homerank_repertoire_api_next_card: {
         parameters: {
-            query?: never;
+            query?: {
+                line?: number[] | null;
+            };
             header?: never;
             path: {
                 repertoire_id: number;
@@ -3608,7 +3777,10 @@ export interface operations {
     };
     homerank_repertoire_api_import_pgn: {
         parameters: {
-            query?: never;
+            query?: {
+                line_id?: number | null;
+                chapters?: boolean;
+            };
             header?: never;
             path: {
                 repertoire_id: number;
@@ -3634,6 +3806,130 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PgnImportOut"];
+                };
+            };
+        };
+    };
+    homerank_repertoire_api_list_lines: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repertoire_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LineOut"][];
+                };
+            };
+        };
+    };
+    homerank_repertoire_api_create_line: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repertoire_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LineIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LineOut"];
+                };
+            };
+        };
+    };
+    homerank_repertoire_api_reorder_lines: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repertoire_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LineOrderIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LineOut"][];
+                };
+            };
+        };
+    };
+    homerank_repertoire_api_delete_line: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repertoire_id: number;
+                line_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RemovedOut"];
+                };
+            };
+        };
+    };
+    homerank_repertoire_api_rename_line: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repertoire_id: number;
+                line_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LineIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LineOut"];
                 };
             };
         };
@@ -3688,7 +3984,9 @@ export interface operations {
     };
     homerank_repertoire_api_remove_move: {
         parameters: {
-            query?: never;
+            query?: {
+                line_id?: number | null;
+            };
             header?: never;
             path: {
                 repertoire_id: number;

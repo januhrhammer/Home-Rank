@@ -14,6 +14,7 @@ from datetime import date
 from http import HTTPStatus
 
 import chess
+import chess.pgn
 import chess.polyglot
 from django.db import IntegrityError, transaction
 from django.db.models import Count, F, Max
@@ -203,6 +204,7 @@ class PgnImport:
     moves_added: int
     games_read: int
     games_skipped: int  # unreadable, or not from the starting position
+    lines_created: int = 0
 
 
 def import_pgn(
@@ -228,6 +230,46 @@ def import_pgn(
             raise TooManyMovesError
     added = _add_edges(repertoire, edges, into or _first_line(repertoire))
     return PgnImport(moves_added=len(added), games_read=read, games_skipped=skipped)
+
+
+def import_pgn_chapters(repertoire: Repertoire, *, lines: Iterable[bytes]) -> PgnImport:
+    """Add each game of a PGN file as a new line, as courses and Lichess studies come: one
+    chapter per game. A line is named after the game's ChapterName or Event header, or else
+    "Chapter n"; a name the repertoire has already gets a number."""
+    added = read = skipped = 0
+    taken = set(repertoire.lines.values_list("name", flat=True))
+    with transaction.atomic():
+        for item in read_pgn(_limited(lines)):
+            if not isinstance(item, PgnGame):
+                skipped += 1
+                continue
+            try:
+                edges = pgn_edges(item.game)
+            except NotFromStartError:
+                skipped += 1
+                continue
+            read += 1
+            name = _free_name(_chapter_name(item.game.headers, read), taken)
+            taken.add(name)
+            added += len(_add_edges(repertoire, edges, create_line(repertoire, name=name)))
+    return PgnImport(moves_added=added, games_read=read, games_skipped=skipped, lines_created=read)
+
+
+def _chapter_name(headers: chess.pgn.Headers, number: int) -> str:
+    for key in ("ChapterName", "Event"):
+        value = headers.get(key, "").strip()
+        if value and value != "?":
+            return value[:90]  # room for a number if the name is taken
+    return f"Chapter {number}"
+
+
+def _free_name(name: str, taken: set[str]) -> str:
+    number = 2
+    free = name
+    while free in taken:
+        free = f"{name} ({number})"
+        number += 1
+    return free
 
 
 def _limited(lines: Iterable[bytes]) -> Iterator[bytes]:

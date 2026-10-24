@@ -44,6 +44,7 @@ export function movesOf(
           to_position: positionOf(makeFen(position.toSetup())),
           comment: comments[moveSan] ?? "",
           card_id: userToMove ? 100 + id : null,
+          line_ids: [1],
         });
       }
     }
