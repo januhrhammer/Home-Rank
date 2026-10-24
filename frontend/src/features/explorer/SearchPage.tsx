@@ -15,6 +15,7 @@ import { Link } from "react-router";
 import { Board } from "../../components/Board";
 import { t } from "../../lib/i18n";
 import { useUrlParams } from "../../lib/useUrlParams";
+import { arrowsOf, EnginePanel, useLiveAnalysis } from "../engine";
 import { formatGameDate, useNotation, withFigurines } from "../games";
 import { StartGameDialog } from "../play";
 import { mySearchQuery, referenceSearchQuery, type Source } from "./explorer";
@@ -37,6 +38,7 @@ export function SearchPage() {
   const [notation] = useNotation();
   const fen = fullFen(board, turn);
   const legal = isLegalPosition(fen);
+  const live = useLiveAnalysis(legal ? fen : null);
 
   const update = (nextBoard: string, nextTurn: "white" | "black") => {
     setBoard(nextBoard);
@@ -52,6 +54,7 @@ export function SearchPage() {
           <Board
             fen={board}
             label={t("search.board")}
+            arrows={legal ? arrowsOf(live.lines) : undefined}
             editable={{
               onChange: (next) => {
                 update(next, turn);
@@ -115,6 +118,7 @@ export function SearchPage() {
         <div className={styles.results}>
           {legal ? (
             <>
+              <EnginePanel fen={fen} analysis={live} />
               <ExplorerPanel
                 fen={fen}
                 source={source}

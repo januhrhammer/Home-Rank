@@ -17,6 +17,7 @@ import { t } from "../../lib/i18n";
 import { useKeyboard } from "../../lib/useKeyboard";
 import type { PositionEval } from "../analysis";
 import { AnalysisPanel, EvalBar, EvalGraph, useGameAnalysis } from "../analysis";
+import { arrowsOf, EnginePanel, useLiveAnalysis } from "../engine";
 import { ExplorerPanel, type Source } from "../explorer";
 import { StartGameDialog } from "../play";
 import styles from "./GamePage.module.css";
@@ -100,6 +101,9 @@ function Viewer({ game, tree }: { game: Game; tree: MoveTree }) {
     },
   });
 
+  const shownFen = current?.fen ?? tree.startFen;
+  const live = useLiveAnalysis(shownFen);
+
   const label = current
     ? t("viewer.positionAfter", { move: `${moveNumber(current)} ${current.san}` })
     : t("viewer.startingPosition");
@@ -116,6 +120,7 @@ function Viewer({ game, tree }: { game: Game; tree: MoveTree }) {
               orientation={orientation}
               lastMove={current?.squares}
               label={label}
+              arrows={arrowsOf(live.lines)}
             />
           </div>
           <div className={styles.controls}>
@@ -155,6 +160,7 @@ function Viewer({ game, tree }: { game: Game; tree: MoveTree }) {
           <p className={styles.hint}>{t("viewer.keys")}</p>
         </div>
         <div className={styles.sideColumn}>
+          <EnginePanel fen={shownFen} analysis={live} />
           <AnalysisPanel
             gameId={game.id}
             analysis={analysis.data}

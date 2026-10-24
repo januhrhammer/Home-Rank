@@ -259,6 +259,9 @@ const messages = {
   "gaps.addReply": "Add this reply",
   "gaps.latestGame": "Latest game",
   "nav.play": "Play",
+  "engine.title": "Live analysis",
+  "engine.starting": "Starting…",
+  "engine.depth": "Depth {depth}",
   "play.title": "Play against a bot",
   "play.intro":
     "Play an opening out, from the start or any position: against Maia, which plays like people of a rating, or against Stockfish at a limited strength.",

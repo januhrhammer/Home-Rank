@@ -92,6 +92,9 @@ TRUST_PROXY_HEADERS = False
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # With SecurityMiddleware's Cross-Origin-Opener-Policy, lets the browser run live analysis
+    # on several threads (ADR 0018).
+    "homerank.core.isolation.cross_origin_isolation",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
