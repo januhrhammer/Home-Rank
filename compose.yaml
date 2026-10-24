@@ -8,7 +8,7 @@
 name: home-rank
 
 # The published image of this release; each release changes the version here.
-x-homerank-image: &homerank-image ghcr.io/januhrhammer/home-rank:0.8.0 # x-release-please-version
+x-homerank-image: &homerank-image ghcr.io/januhrhammer/home-rank:0.9.0 # x-release-please-version
 
 # Settings for the website and the worker, from .env. Required ones stop `docker compose up`
 # with a message if missing; optional ones arrive empty when unset, which counts as unset.

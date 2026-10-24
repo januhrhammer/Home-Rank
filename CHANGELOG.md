@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.9.0](https://github.com/januhrhammer/Home-Rank/compare/v0.8.0...v0.9.0) (2026-10-24)
+
+
+### Features
+
+* **engine:** bots to play against, Maia and limited Stockfish ([#85](https://github.com/januhrhammer/Home-Rank/issues/85)) ([f64c842](https://github.com/januhrhammer/Home-Rank/commit/f64c842c42f8f87dce2acf45410277a02fb0ee88))
+* **play:** play games against bots, services and API ([#88](https://github.com/januhrhammer/Home-Rank/issues/88)) ([39d3495](https://github.com/januhrhammer/Home-Rank/commit/39d34956413c16fbbe5f97a91f1c7a9db6955f69))
+* **play:** store games against a bot ([#86](https://github.com/januhrhammer/Home-Rank/issues/86)) ([29c80d5](https://github.com/januhrhammer/Home-Rank/commit/29c80d5d2c6fee80177031e1cbfc37a5e6374aa3))
+* **ui:** play against Maia or Stockfish ([#90](https://github.com/januhrhammer/Home-Rank/issues/90)) ([5ba4ca5](https://github.com/januhrhammer/Home-Rank/commit/5ba4ca5bb86f6a72f3a8b7dff547846a0ad0c2d7))
+* **ui:** play from any position, and see where you left your repertoire ([#91](https://github.com/januhrhammer/Home-Rank/issues/91)) ([0e0a81a](https://github.com/januhrhammer/Home-Rank/commit/0e0a81a916ecb00afebe028701a8560f42cc21c8))
+
 ## [0.8.0](https://github.com/januhrhammer/Home-Rank/compare/v0.7.0...v0.8.0) (2026-10-23)
 
 
