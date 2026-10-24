@@ -12,7 +12,7 @@ from django.utils import timezone
 from homerank.accounts.models import User
 from homerank.chesslib.positions import as_bigint
 from homerank.chesslib.repertoire import START_ZOBRIST
-from homerank.repertoire.models import Repertoire, RepertoireMove
+from homerank.repertoire.models import Repertoire, RepertoireLine, RepertoireMove
 from homerank.training.models import ReviewCard
 
 # Games listed per gap at most; the count covers all of them.
@@ -37,6 +37,66 @@ def repertoire(*, user: User, repertoire_id: int) -> Repertoire:
 def moves(repertoire: Repertoire) -> QuerySet[RepertoireMove]:
     """All of the repertoire's moves, in the order they were added."""
     return repertoire.moves.order_by("pk")
+
+
+def lines(repertoire: Repertoire) -> QuerySet[RepertoireLine]:
+    """The repertoire's lines in their order, each with its number of moves."""
+    return repertoire.lines.annotate(move_count=Count("moves")).order_by("position", "pk")
+
+
+def line(*, user: User, repertoire_id: int, line_id: int) -> RepertoireLine:
+    """One line of one of the user's repertoires; 404 for anyone else's."""
+    return get_object_or_404(
+        RepertoireLine.objects.filter(
+            repertoire__user=user, repertoire_id=repertoire_id
+        ).select_related("repertoire"),
+        pk=line_id,
+    )
+
+
+@dataclass(frozen=True)
+class ConflictChoice:
+    move_uci: str
+    move_san: str
+    lines: list[str]  # the lines that play it, in their order
+
+
+@dataclass(frozen=True)
+class Conflict:
+    """A position where lines of the repertoire play different moves of the user's."""
+
+    fen: str
+    choices: list[ConflictChoice]
+
+
+def conflicts(repertoire: Repertoire) -> list[Conflict]:
+    """Positions where one line plays a move of the user's that another line doesn't, and the
+    other line one the first doesn't. Alternatives within a line are no conflict (ADR 0020)."""
+    users_turn = "w" if repertoire.color == "white" else "b"
+    order = {pk: n for n, pk in enumerate(lines(repertoire).values_list("pk", flat=True))}
+    by_position: defaultdict[int, list[RepertoireMove]] = defaultdict(list)
+    for move in repertoire.moves.prefetch_related("lines").order_by("pk"):
+        if move.from_fen.split()[1] == users_turn:
+            by_position[move.from_zobrist].append(move)
+    found = []
+    for moves in by_position.values():
+        played = {m.pk: {line.pk for line in m.lines.all()} for m in moves}
+        if any(
+            played[a.pk] - played[b.pk] and played[b.pk] - played[a.pk]
+            for a in moves
+            for b in moves
+            if a.pk < b.pk
+        ):
+            choices = [
+                ConflictChoice(
+                    move_uci=m.move_uci,
+                    move_san=m.move_san,
+                    lines=[line.name for line in sorted(m.lines.all(), key=lambda x: order[x.pk])],
+                )
+                for m in moves
+            ]
+            found.append(Conflict(fen=moves[0].from_fen, choices=choices))
+    return found
 
 
 def move(*, user: User, repertoire_id: int, move_id: int) -> RepertoireMove:

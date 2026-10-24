@@ -2,8 +2,9 @@
 
 A repertoire is stored as its moves, each keyed by the position it is played from, so a
 position reached by different move orders (a transposition) is one position with one set of
-moves. Every row belongs to one user through its repertoire; queries go through the app's
-selectors and services, which always filter by user. See ADR 0016.
+moves. Its lines are named sets of those moves, each a path from the starting position. Every
+row belongs to one user through its repertoire; queries go through the app's selectors and
+services, which always filter by user. See ADRs 0016 and 0020.
 """
 
 from django.conf import settings
@@ -56,3 +57,43 @@ class RepertoireMove(models.Model):
 
     def __str__(self) -> str:
         return f"{self.move_san} in {self.from_fen}"
+
+
+class RepertoireLine(models.Model):
+    """A named part of a repertoire, e.g. "Open Ruy" in "Ruy Lopez": the moves that belong to it
+    (shared with other lines where they overlap), all reachable from the start through them."""
+
+    # The unique (repertoire, name) index below also serves lookups by repertoire.
+    repertoire = models.ForeignKey(
+        Repertoire, on_delete=models.CASCADE, related_name="lines", db_index=False
+    )
+    name = models.CharField(max_length=100)
+    position = models.PositiveIntegerField(default=0)  # the lines' order in their repertoire
+    moves = models.ManyToManyField(
+        RepertoireMove, through="RepertoireLineMove", related_name="lines"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = (
+            models.UniqueConstraint(fields=["repertoire", "name"], name="repertoire_line_unique"),
+        )
+
+    def __str__(self) -> str:
+        return f"{self.name} in {self.repertoire.name}"
+
+
+class RepertoireLineMove(models.Model):
+    """That a move belongs to a line."""
+
+    # The unique (line, move) index below also serves lookups by line.
+    line = models.ForeignKey(RepertoireLine, on_delete=models.CASCADE, db_index=False)
+    move = models.ForeignKey(RepertoireMove, on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = (
+            models.UniqueConstraint(fields=["line", "move"], name="repertoire_line_move_unique"),
+        )
+
+    def __str__(self) -> str:
+        return f"{self.move} in {self.line}"
