@@ -3,10 +3,11 @@
 #
 #   bash -c "$(curl -fsSL https://raw.githubusercontent.com/januhrhammer/Home-Rank/main/docker/proxmox-lxc.sh)"
 #
-# Creates an unprivileged Debian 13 container with Docker in it, downloads the latest release's
-# compose.yaml and env.example to /opt/home-rank, fills in the required settings and starts
-# Home-Rank. Asks for each setting, with a default; Enter keeps the default. Every setting can
-# also be given beforehand as a variable, e.g. CTID=120 MEMORY=8192 bash -c "$(curl ...)".
+# Creates an unprivileged Debian 13 container (12 where Proxmox VE is too old for 13) with Docker
+# in it, downloads the latest release's compose.yaml and env.example to /opt/home-rank, fills in
+# the required settings and starts Home-Rank. Asks for each setting, with a default; Enter keeps
+# the default. Every setting can also be given beforehand as a variable, e.g.
+# CTID=120 MEMORY=8192 bash -c "$(curl ...)".
 #
 # A container rather than a virtual machine: it sees the host's CPU as it is, so Stockfish uses
 # its fastest instructions, and cores given to it are shared with the host, not reserved.
@@ -49,36 +50,54 @@ if [[ $IP != dhcp ]]; then
     ask GATEWAY "Gateway" "${IP%.*}.1"
 fi
 
-# The newest Debian 13 template, downloaded unless it is there already.
-pveam update > /dev/null
-template=$(pveam available --section system | awk '/debian-13-standard/ {print $2}' | sort -V | tail -n 1)
-if [[ -z $template ]]; then
-    echo "No Debian 13 template found (pveam available --section system)." >&2
-    exit 1
-fi
-if ! pveam list "$TEMPLATE_STORAGE" | grep -F "$template" > /dev/null; then
-    echo "Downloading $template ..."
-    pveam download "$TEMPLATE_STORAGE" "$template"
-fi
+# template VERSION: the name of the newest Debian VERSION template, downloaded unless it is there
+# already. Download messages go to stderr, so that only the name is printed.
+template() {
+    local name
+    name=$(pveam available --section system | awk "/debian-$1-standard/ {print \$2}" | sort -V | tail -n 1)
+    if [[ -z $name ]]; then
+        echo "No Debian $1 template found (pveam available --section system)." >&2
+        exit 1
+    fi
+    if ! pveam list "$TEMPLATE_STORAGE" | grep -F "$name" > /dev/null; then
+        echo "Downloading $name ..." >&2
+        pveam download "$TEMPLATE_STORAGE" "$name" >&2
+    fi
+    echo "$name"
+}
 
 net="name=eth0,bridge=$BRIDGE,ip=$IP"
 if [[ $IP != dhcp ]]; then
     net+=",gw=$GATEWAY"
 fi
 
+# create_container TEMPLATE. nesting and keyctl let Docker run inside an unprivileged container.
+create_container() {
+    pct create "$CTID" "$TEMPLATE_STORAGE:vztmpl/$1" \
+        --hostname "$CT_HOSTNAME" \
+        --cores "$CORES" \
+        --memory "$MEMORY" \
+        --swap 512 \
+        --rootfs "$STORAGE:$DISK" \
+        --net0 "$net" \
+        --unprivileged 1 \
+        --features nesting=1,keyctl=1 \
+        --onboot 1 \
+        --description "Home-Rank: https://github.com/januhrhammer/Home-Rank"
+}
+
+pveam update > /dev/null
 echo "Creating container $CTID ..."
-# nesting and keyctl let Docker run inside an unprivileged container.
-pct create "$CTID" "$TEMPLATE_STORAGE:vztmpl/$template" \
-    --hostname "$CT_HOSTNAME" \
-    --cores "$CORES" \
-    --memory "$MEMORY" \
-    --swap 512 \
-    --rootfs "$STORAGE:$DISK" \
-    --net0 "$net" \
-    --unprivileged 1 \
-    --features nesting=1,keyctl=1 \
-    --onboot 1 \
-    --description "Home-Rank: https://github.com/januhrhammer/Home-Rank"
+# Debian 13, or Debian 12 where Proxmox VE is too old for 13 ("unsupported debian version").
+# Home-Rank runs the same on both.
+if ! output=$(create_container "$(template 13)" 2>&1); then
+    echo "$output" >&2
+    if ! grep -F "unsupported debian version" <<< "$output" > /dev/null; then
+        exit 1
+    fi
+    echo "This Proxmox VE doesn't support Debian 13 yet; using Debian 12 instead." >&2
+    create_container "$(template 12)"
+fi
 pct start "$CTID"
 
 echo "Waiting for the network ..."
