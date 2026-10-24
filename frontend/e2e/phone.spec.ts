@@ -10,6 +10,7 @@ const PAGES = [
   "/games",
   "/train",
   "/repertoires",
+  "/play",
   "/search", // has a board, whose coordinates once stuck out
   "/reference",
   "/labels",

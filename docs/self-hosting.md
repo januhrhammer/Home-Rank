@@ -8,10 +8,12 @@ worker for background jobs, and PostgreSQL.
 - [Docker Engine](https://docs.docker.com/engine/install/) with the Compose plugin:
   `docker compose version` must work.
 - About 2 GB of disk for the images, plus your data, and about 250 MB of memory, plus about
-  300 MB while a game is analysed ([Engine analysis](#engine-analysis)). Reference databases
-  need more: about 1 GB per million games ([Reference databases](#reference-databases)). The
-  image includes Stockfish, the chess engine, with its source code (it is GPL-licensed);
-  `/usr/share/doc/stockfish` in the image holds both.
+  300 MB while a game is analysed ([Engine analysis](#engine-analysis)), and about 55 MB per
+  website worker once someone plays against Maia ([Bots](#bots)). Reference databases need
+  more: about 1 GB per million games ([Reference databases](#reference-databases)). The image
+  includes Stockfish, the chess engine, with its source code (it is GPL-licensed), and Maia, the
+  model behind the human-like bot (AGPL); `/usr/share/doc/stockfish` and `/usr/share/doc/maia`
+  in the image say where they come from.
 
 Tested on x86-64 Linux.
 
@@ -128,6 +130,23 @@ Analysed games are then searched for puzzles: positions where one move clearly w
 compares the best two moves of each candidate at `PUZZLE_DEPTH` (default 20), which takes a few
 seconds per game. The search runs in the same engine slots and hours as automatic analyses, so
 the settings above apply to it as well.
+
+### Bots
+
+Users can play positions out against two bots. **Maia** plays the moves people of a chosen
+rating play, from a model of about 20 MB; a move takes milliseconds. **Stockfish**, held back to
+a chosen strength, is started for each of its moves, which takes about half a second. Both
+answer in the website's own process, so neither needs the worker. Each website process loads
+Maia the first time someone plays against it and keeps it: about 55 MB more memory per
+process (`WEB_WORKERS`, 2 by default). There is nothing to set up.
+
+To see that both bots work, e.g. after an update:
+
+```sh
+docker compose exec web python manage.py check_bots
+```
+
+It lets each bot answer 1. e4 and says how long it took.
 
 ### Reference databases
 

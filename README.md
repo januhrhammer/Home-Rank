@@ -25,10 +25,13 @@ explorer.
 > - opening repertoires for White and Black: built on the board, imported from PGN (a course or a
 >   Lichess study) or started from what you play in your games; a report of where your games
 >   left them; and drills of your moves, card by card or whole lines, with spaced repetition.
+> - playing openings out against a bot, from any position: Maia, which plays like people of a
+>   chosen rating, or Stockfish at a limited strength; with or without a clock, a note where
+>   the game left your repertoire, and the game saved to your games if you like.
 > - every page works on a phone, with the keyboard alone and with screen readers, in a light and
 >   a dark theme.
 >
-> Next: 1.0.
+> Next: annotating your own games, and live engine analysis on the board.
 
 ## Screenshots
 
