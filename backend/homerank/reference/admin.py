@@ -39,12 +39,28 @@ class ReferenceDatabaseAdmin(DatabaseModelAdmin):
         self, request: HttpRequest, obj: ReferenceDatabase | None = None
     ) -> Any:
         # The depth applies to everything imported; it can't change afterwards.
-        return (*self.readonly_fields, "depth") if obj else self.readonly_fields
+        return (*self.readonly_fields, "depth", "import_link") if obj else self.readonly_fields
+
+    def get_fields(self, request: HttpRequest, obj: ReferenceDatabase | None = None) -> Any:
+        # A saved database's page links to its import page, as the list does.
+        fields = super().get_fields(request, obj)
+        return (*fields, "import_link") if obj else fields
 
     @admin.display(description="Import")
     def import_link(self, obj: ReferenceDatabase) -> str:
         url = reverse("admin:reference_referencedatabase_import", args=[obj.pk])
         return format_html('<a href="{}">Import files…</a>', url)
+
+    def response_add(
+        self, request: HttpRequest, obj: ReferenceDatabase, post_url_continue: str | None = None
+    ) -> HttpResponse:
+        # A new database is empty, so "Save" goes on to choosing files to import into it.
+        if "_continue" in request.POST or "_addanother" in request.POST:
+            return super().response_add(request, obj, post_url_continue)
+        messages.success(request, f"{obj} was added. Choose the files to import into it.")
+        return HttpResponseRedirect(
+            reverse("admin:reference_referencedatabase_import", args=[obj.pk])
+        )
 
     def save_model(
         self, request: HttpRequest, obj: ReferenceDatabase, form: Any, change: bool

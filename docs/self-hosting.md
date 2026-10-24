@@ -192,8 +192,10 @@ uploaded through the website; put them into the import folder and import them fr
 1. Put the PGN files into `./import` next to `compose.yaml` (or the folder `HOMERANK_IMPORT_DIR`
    names in `.env`). `.pgn`, `.pgn.gz`, `.pgn.bz2`, `.pgn.zst` and `.7z` work; they are read as
    they are decompressed and never unpacked to disk.
-2. Either in the admin (*Reference databases* → add one → *Import files…*), which runs the import
-   on the worker, or in a shell, which shows an estimate first and runs it right there:
+2. Either in the admin (*Reference databases* → add one; saving it opens *Import files…*, which
+   the database's page and the list also link to), which runs the import on the worker and
+   keeps going when you close the browser, or in a shell, which shows an estimate first and runs
+   it right there:
 
    ```sh
    docker compose exec worker python manage.py import_reference lumbra/otb.7z --name "Lumbra OTB"

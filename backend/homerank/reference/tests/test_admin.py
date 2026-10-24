@@ -36,6 +36,26 @@ def test_creating_a_database_creates_its_partitions(admin_client: Client) -> Non
     assert f"reference_game_{database.pk}" in partitions(database.pk)
 
 
+def test_a_new_database_leads_to_its_import_page(admin_client: Client) -> None:
+    response = admin_client.post(
+        reverse("admin:reference_referencedatabase_add"), {"name": "Masters", "depth": 30}
+    )
+
+    database = ReferenceDatabase.objects.get()
+    assert response["Location"] == reverse(
+        "admin:reference_referencedatabase_import", args=[database.pk]
+    )
+
+
+def test_a_databases_page_links_to_its_import_page(admin_client: Client) -> None:
+    database = ReferenceDatabase.objects.create(name="Masters")
+
+    page = admin_client.get(reverse("admin:reference_referencedatabase_change", args=[database.pk]))
+
+    import_url = reverse("admin:reference_referencedatabase_import", args=[database.pk])
+    assert f'href="{import_url}"' in page.content.decode()
+
+
 def test_deleting_a_database_drops_its_partitions(admin_client: Client) -> None:
     admin_client.post(
         reverse("admin:reference_referencedatabase_add"), {"name": "Masters", "depth": 30}
