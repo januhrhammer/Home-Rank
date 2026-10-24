@@ -1,10 +1,15 @@
 // Runs before every test file (see test.setupFiles in vite.config.ts).
 import "@testing-library/jest-dom/vitest"; // matchers such as toBeInTheDocument()
 
-import { cleanup } from "@testing-library/react";
+import { cleanup, configure } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, vi } from "vitest";
 
 import { server } from "./server";
+
+// findBy… and waitFor give up after 1 s by default. A file's first test, rendering a whole page
+// while the machine is busy (CI, or several test files in parallel), sometimes needs longer: those
+// tests failed now and then without anything being wrong.
+configure({ asyncUtilTimeout: 3000 });
 
 // jsdom lays nothing out, so it lacks scrolling; components may still ask for it.
 Element.prototype.scrollIntoView = () => undefined;
