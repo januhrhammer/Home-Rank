@@ -18,6 +18,7 @@ from django.utils import timezone
 from procrastinate.contrib.django import app
 
 from homerank.accounts.models import User
+from homerank.chesslib.annotations import MainLineChangedError, UnreadablePgnError, annotated_pgn
 from homerank.chesslib.dedup import dedup_hash
 from homerank.chesslib.headers import read_headers
 from homerank.chesslib.pgn import PgnError, PgnGame, read_pgn
@@ -353,3 +354,41 @@ def add_games(group: Group, *, game_ids: list[int]) -> None:
 
 def remove_games(group: Group, *, game_ids: list[int]) -> None:
     group.games.remove(*Game.objects.filter(user=group.user, pk__in=game_ids))
+
+
+# ---------------------------------------------------------------- annotations
+
+# An annotated game's PGN can be this long at most: far more than any annotated game needs.
+MAX_ANNOTATED_BYTES = 1_000_000
+
+
+class AnnotatedGameTooLargeError(DomainError):
+    status = HTTPStatus.REQUEST_ENTITY_TOO_LARGE
+    detail = "An annotated game can be at most 1 MB."
+
+
+class UnreadableAnnotationsError(DomainError):
+    detail = "This isn't a readable game in PGN."
+
+
+class MovesChangedError(DomainError):
+    status = HTTPStatus.CONFLICT
+    detail = (
+        "Annotations can't change the game's moves: its start and main line must stay as they are."
+    )
+
+
+def annotate(game: Game, *, pgn: str) -> Game:
+    """Save the game with the annotations of `pgn` (comments, variations, NAGs), if its start
+    and main line are the game's own (ADR 0019). The game's headers stay as they are, and so do
+    its fingerprint, positions and analysis, which only depend on the main line."""
+    if len(pgn.encode()) > MAX_ANNOTATED_BYTES:
+        raise AnnotatedGameTooLargeError
+    try:
+        game.pgn = annotated_pgn(game.pgn, pgn)
+    except UnreadablePgnError as error:
+        raise UnreadableAnnotationsError from error
+    except MainLineChangedError as error:
+        raise MovesChangedError from error
+    game.save(update_fields=["pgn"])
+    return game

@@ -11,6 +11,7 @@ from homerank.core.pagination import LimitOffset
 from homerank.games import selectors, services
 from homerank.games.models import Collection, Game, ImportRun, Tag
 from homerank.games.schemas import (
+    AnnotationsIn,
     CollectionIn,
     CollectionOut,
     CollectionPatch,
@@ -57,6 +58,15 @@ def export_games(
 @router.get("/{int:game_id}", response=GameOut)
 def get_game(request: AuthenticatedRequest, game_id: int) -> Game:
     """One of your games, with its moves."""
+    return selectors.game(user=request.user, game_id=game_id)
+
+
+@router.put("/{int:game_id}/annotations", response=GameOut)
+def annotate_game(request: AuthenticatedRequest, game_id: int, data: AnnotationsIn) -> Game:
+    """Save the game's comments, variations and move marks: send the whole game in PGN, with
+    the same start and main line (409 otherwise). Its headers stay as they are."""
+    game = selectors.game(user=request.user, game_id=game_id)
+    services.annotate(game, pgn=data.pgn)
     return selectors.game(user=request.user, game_id=game_id)
 
 

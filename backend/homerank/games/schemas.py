@@ -150,3 +150,9 @@ class TagOut(Schema):
 
 class GameIdsIn(Schema):
     game_ids: list[int] = Field(min_length=1, max_length=1000)
+
+
+class AnnotationsIn(Schema):
+    """The game with its annotations, in PGN: the same start and main line as the game's."""
+
+    pgn: str

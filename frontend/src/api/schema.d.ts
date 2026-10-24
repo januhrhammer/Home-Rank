@@ -414,6 +414,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/games/{game_id}/annotations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Annotate Game
+         * @description Save the game's comments, variations and move marks: send the whole game in PGN, with
+         *     the same start and main line (409 otherwise). Its headers stay as they are.
+         */
+        put: operations["homerank_games_api_annotate_game"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/games/{game_id}/pgn": {
         parameters: {
             query?: never;
@@ -1216,6 +1237,14 @@ export interface components {
             depth: number;
             /** Engine */
             engine: string;
+        };
+        /**
+         * AnnotationsIn
+         * @description The game with its annotations, in PGN: the same start and main line as the game's.
+         */
+        AnnotationsIn: {
+            /** Pgn */
+            pgn: string;
         };
         /** BotGameOut */
         BotGameOut: {
@@ -3029,6 +3058,32 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GameOut"];
+                };
+            };
+        };
+    };
+    homerank_games_api_annotate_game: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                game_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnnotationsIn"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {
