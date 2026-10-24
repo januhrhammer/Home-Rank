@@ -201,8 +201,10 @@ uploaded through the website; put them into the import folder and import them fr
    docker compose exec worker python manage.py import_reference lumbra/otb.7z --name "Lumbra OTB"
    ```
 
-   Several files can go into one database. An interrupted import resumes where it stopped when
-   started again with the same files. Games already in the database are skipped.
+   Several files can go into one database. An interrupted or failed import resumes where it
+   stopped: in the admin, select it under *Reference imports* and choose *Resume the selected
+   imports*; in a shell, run the same command again with the same files and the same `--name`.
+   Games already in the database are skipped.
 3. Follow it in the admin under *Reference imports*, or in the shell's output.
 
 How big and how long, measured with 1.5 million Lichess games (January 2015) on a 16-core PC:
@@ -213,8 +215,9 @@ How big and how long, measured with 1.5 million Lichess games (January 2015) on 
 | Import with 15 processes | 6 minutes | about 50 minutes |
 | Import with 3 processes on a 4-core mini PC (estimated) | about 30 minutes | about 4 hours |
 
-The importer needs the space while it runs plus about as much again for a few minutes while it
-builds the indexes. Positions are indexed for the first 30 half-moves of each game, which covers
+The importer needs the space while it runs plus about as much again while it builds the
+indexes at the end; the import page and the shell show both figures. With too little, the import
+fails at that step ("No space left on device"): make room and resume it. Positions are indexed for the first 30 half-moves of each game, which covers
 the openings; a database created in the admin can index more or fewer (`--depth` in the shell),
 and the space for the index grows with it. `REFERENCE_IMPORT_WORKERS` sets the number of
 processes (default: all CPU cores but one). Deleting a database in the admin frees its space at

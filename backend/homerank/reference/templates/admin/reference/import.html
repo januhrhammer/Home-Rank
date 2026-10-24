@@ -21,7 +21,7 @@
   {% csrf_token %}
   {{ form.non_field_errors }}
   <table>
-    <thead><tr><th></th><th>File</th><th>About</th><th>Disk space</th></tr></thead>
+    <thead><tr><th></th><th>File</th><th>About</th><th>Disk space</th><th>Free while indexing</th></tr></thead>
     <tbody>
     {% for name, estimate in estimates.items %}
       <tr>
@@ -29,6 +29,7 @@
         <td><label for="file-{{ forloop.counter }}">{{ name }}</label></td>
         <td>{{ estimate.games }} games</td>
         <td>{% widthratio estimate.disk_bytes 1000000000 1 %} GB</td>
+        <td>{% widthratio estimate.peak_bytes 1000000000 1 %} GB</td>
       </tr>
     {% endfor %}
     </tbody>

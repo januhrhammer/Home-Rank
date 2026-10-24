@@ -20,6 +20,7 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from procrastinate.contrib.django import app
+from procrastinate.contrib.django.models import ProcrastinateJob
 
 from homerank.accounts.models import User
 from homerank.chesslib import bulk
@@ -44,6 +45,14 @@ logger = structlog.get_logger(__name__)
 CHUNK_GAMES = 500
 BATCH_GAMES = 10_000
 MAX_ERRORS_KEPT = 100
+
+
+class ImportStateError(DomainError):
+    status = HTTPStatus.CONFLICT
+
+    def __init__(self, reference_import: ReferenceImport, reason: str) -> None:
+        self.detail = f"The import into {reference_import.database} {reason}"
+        super().__init__(self.detail)
 
 
 class ImportPathError(DomainError):
@@ -101,6 +110,11 @@ class Estimate:
     games: int
     disk_bytes: int
 
+    @property
+    def peak_bytes(self) -> int:
+        """Building the indexes at the end needs about as much space again, for a while."""
+        return 2 * self.disk_bytes
+
 
 # Compressed bytes per game, measured on Lichess's database (zst) and typical PGN files; and the
 # space a game takes once imported (with its search indexes), plus its explorer and position
@@ -123,14 +137,36 @@ def start_import(*, database: ReferenceDatabase, files: list[str]) -> ReferenceI
     paths = [import_file_path(name) for name in files]
     with transaction.atomic():
         reference_import = create_import(database, paths)
-        task = app.configure_task(
-            "homerank.reference.tasks.import_reference",
-            lock=f"reference-{database.pk}",
-            queue="bulk",
-        )
-        reference_import.job_id = task.defer(import_id=reference_import.pk)
-        reference_import.save(update_fields=["job_id"])
+        _queue(reference_import)
     return reference_import
+
+
+def resume_import(reference_import: ReferenceImport) -> ReferenceImport:
+    """Queue an import that failed or was cut off again: it carries on where it stopped, without
+    reading the files' stored games again."""
+    if reference_import.status == ReferenceImport.Status.DONE:
+        raise ImportStateError(reference_import, "has finished.")
+    if ProcrastinateJob.objects.filter(
+        id=reference_import.job_id, status__in=["todo", "doing"]
+    ).exists():
+        raise ImportStateError(reference_import, "is already queued or running.")
+    with transaction.atomic():
+        reference_import.status = ReferenceImport.Status.QUEUED
+        reference_import.error = ""
+        reference_import.finished_at = None
+        reference_import.save(update_fields=["status", "error", "finished_at"])
+        _queue(reference_import)
+    return reference_import
+
+
+def _queue(reference_import: ReferenceImport) -> None:
+    task = app.configure_task(
+        "homerank.reference.tasks.import_reference",
+        lock=f"reference-{reference_import.database_id}",
+        queue="bulk",
+    )
+    reference_import.job_id = task.defer(import_id=reference_import.pk)
+    reference_import.save(update_fields=["job_id"])
 
 
 def create_import(database: ReferenceDatabase, paths: list[Path]) -> ReferenceImport:
