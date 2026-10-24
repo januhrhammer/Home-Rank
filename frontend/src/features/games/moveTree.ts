@@ -18,6 +18,9 @@ import { parseSan } from "chessops/san";
 
 export interface MoveNode {
   id: number;
+  /** Where the move is in the PGN's tree: the index among its siblings at each step from the
+   * start, e.g. [0, 0, 1] for a variation to Black's first move. All zeros: the main line. */
+  path: number[];
   /** Half-moves played up to and including this one: 1 is White's first move. */
   ply: number;
   san: string;
@@ -45,7 +48,7 @@ export interface MoveTree {
 }
 
 /** NAGs, the numbered annotations of PGN ($1), as the symbols chess books print. */
-const SYMBOLS: Record<number, string> = {
+export const SYMBOLS: Record<number, string> = {
   1: "!",
   2: "?",
   3: "!!",
@@ -96,7 +99,7 @@ export function buildMoveTree(pgn: string): MoveTree | null {
   // Each move is played on a copy of the position before it, so variations branch off cleanly.
   function movesAfter(node: Node<PgnNodeData>, position: Position, parent: MoveNode | null) {
     const moves: MoveNode[] = [];
-    for (const child of node.children) {
+    for (const [index, child] of node.children.entries()) {
       const after = position.clone();
       const move = parseSan(after, child.data.san);
       if (move === undefined) {
@@ -105,6 +108,7 @@ export function buildMoveTree(pgn: string): MoveTree | null {
       after.play(move);
       const moveNode: MoveNode = {
         id: nextId++,
+        path: [...(parent?.path ?? []), index],
         ply: (parent?.ply ?? plyOf(position)) + 1,
         san: child.data.san,
         fen: makeFen(after.toSetup()),
@@ -160,4 +164,18 @@ export function endOfLine(tree: MoveTree, node: MoveNode | null): MoveNode | nul
     current = current.children[0];
   }
   return current;
+}
+
+/** The move at `path` (see MoveNode.path), or null for the start or a path that isn't there. */
+export function nodeAtPath(tree: MoveTree, path: number[] | null): MoveNode | null {
+  let candidates = tree.firstMoves;
+  let node: MoveNode | null = null;
+  for (const index of path ?? []) {
+    node = candidates.find((candidate) => candidate.path.at(-1) === index) ?? null;
+    if (node === null) {
+      return null;
+    }
+    candidates = node.children;
+  }
+  return node;
 }

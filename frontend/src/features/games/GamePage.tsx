@@ -20,8 +20,11 @@ import { AnalysisPanel, EvalBar, EvalGraph, useGameAnalysis } from "../analysis"
 import { arrowsOf, EnginePanel, useLiveAnalysis } from "../engine";
 import { ExplorerPanel, type Source } from "../explorer";
 import { StartGameDialog } from "../play";
+import { boardMove, legalDests, turnOf } from "../training";
+import { addMoves, deleteVariation, setComment, toggleMark, variationStart } from "./annotate";
+import { AnnotationTools } from "./AnnotationTools";
 import styles from "./GamePage.module.css";
-import { type Game, gameQuery } from "./games";
+import { type Game, gameQuery, useAnnotate } from "./games";
 import { formatGameDate } from "./GameTable";
 import { LabelPicker } from "./LabelPicker";
 import { MoveList, type WeakMove } from "./MoveList";
@@ -32,6 +35,7 @@ import {
   type MoveNode,
   moveNumber,
   type MoveTree,
+  nodeAtPath,
 } from "./moveTree";
 import { useNotation, withFigurines } from "./notation";
 
@@ -50,7 +54,10 @@ export function GamePage() {
 }
 
 function GameViewer({ game }: { game: Game }) {
-  const tree = useMemo(() => buildMoveTree(game.pgn), [game.pgn]);
+  const annotate = useAnnotate(game.id);
+  // A change being saved is shown at once; if saving fails, the stored game is shown again.
+  const pgn = annotate.isPending ? annotate.variables : game.pgn;
+  const tree = useMemo(() => buildMoveTree(pgn), [pgn]);
   if (tree === null) {
     return (
       <>
@@ -60,12 +67,27 @@ function GameViewer({ game }: { game: Game }) {
       </>
     );
   }
-  return <Viewer game={game} tree={tree} />;
+  return <Viewer game={game} pgn={pgn} tree={tree} annotate={annotate} />;
 }
 
-function Viewer({ game, tree }: { game: Game; tree: MoveTree }) {
-  // The move whose position is shown; null is the starting position.
-  const [current, setCurrent] = useState<MoveNode | null>(null);
+interface ViewerProps {
+  game: Game;
+  /** The game's PGN as shown: the stored one, or a change being saved. */
+  pgn: string;
+  tree: MoveTree;
+  annotate: ReturnType<typeof useAnnotate>;
+}
+
+function Viewer({ game, pgn, tree, annotate }: ViewerProps) {
+  // The move whose position is shown, by its path, so it stays chosen when an annotation
+  // rebuilds the tree; null is the starting position.
+  const [currentPath, setCurrentPath] = useState<number[] | null>(null);
+  const current = nodeAtPath(tree, currentPath);
+  const setCurrent = (node: MoveNode | null) => {
+    setCurrentPath(node?.path ?? null);
+  };
+  // In annotation mode the board takes moves (added as variations) and the tools show.
+  const [annotating, setAnnotating] = useState(false);
   // The user's side is at the bottom unless they flip the board.
   const [flipped, setFlipped] = useState(false);
   const [notation, setNotation] = useNotation();
@@ -81,13 +103,13 @@ function Viewer({ game, tree }: { game: Game; tree: MoveTree }) {
       setCurrent(null);
     },
     back: () => {
-      setCurrent((move) => move?.parent ?? null);
+      setCurrent(current?.parent ?? null);
     },
     forward: () => {
-      setCurrent((move) => (move ? (move.children[0] ?? move) : (tree.firstMoves[0] ?? null)));
+      setCurrent(current ? (current.children[0] ?? current) : (tree.firstMoves[0] ?? null));
     },
     end: () => {
-      setCurrent((move) => endOfLine(tree, move));
+      setCurrent(endOfLine(tree, current));
     },
   };
 
@@ -103,6 +125,14 @@ function Viewer({ game, tree }: { game: Game; tree: MoveTree }) {
 
   const shownFen = current?.fen ?? tree.startFen;
   const live = useLiveAnalysis(shownFen);
+
+  // Each annotation is saved at once; moves played go to the move they lead to.
+  const path = current?.path ?? [];
+  const playMoves = (moves: string[]) => {
+    const added = addMoves(pgn, path, moves);
+    annotate.mutate(added.pgn);
+    setCurrentPath(added.path);
+  };
 
   const label = current
     ? t("viewer.positionAfter", { move: `${moveNumber(current)} ${current.san}` })
@@ -121,6 +151,17 @@ function Viewer({ game, tree }: { game: Game; tree: MoveTree }) {
               lastMove={current?.squares}
               label={label}
               arrows={arrowsOf(live.lines)}
+              movable={
+                annotating && !annotate.isPending
+                  ? {
+                      color: turnOf(shownFen),
+                      dests: legalDests(shownFen),
+                      onMove: (from, to) => {
+                        playMoves([boardMove(shownFen, from, to, "")]);
+                      },
+                    }
+                  : undefined
+              }
             />
           </div>
           <div className={styles.controls}>
@@ -160,7 +201,45 @@ function Viewer({ game, tree }: { game: Game; tree: MoveTree }) {
           <p className={styles.hint}>{t("viewer.keys")}</p>
         </div>
         <div className={styles.sideColumn}>
-          <EnginePanel fen={shownFen} analysis={live} />
+          <EnginePanel
+            fen={shownFen}
+            analysis={live}
+            onAddLine={annotating ? playMoves : undefined}
+          />
+          <section className={styles.annotate} aria-label={t("annotate.title")}>
+            <SwitchField isSelected={annotating} onChange={setAnnotating}>
+              <SwitchButton className={styles.notation}>
+                <span className={styles.track}>
+                  <span className={styles.thumb} />
+                </span>
+                {t("annotate.title")}
+              </SwitchButton>
+            </SwitchField>
+            {annotate.isError && (
+              <p className={styles.error} role="alert">
+                {t("annotate.failed")}
+              </p>
+            )}
+            {annotating && (
+              <AnnotationTools
+                current={current}
+                format={(san) => (notation === "figurines" ? withFigurines(san) : san)}
+                isSaving={annotate.isPending}
+                onComment={(text) => {
+                  annotate.mutate(setComment(pgn, path, text));
+                }}
+                onMark={(nag) => {
+                  annotate.mutate(toggleMark(pgn, path, nag));
+                }}
+                onDelete={() => {
+                  annotate.mutate(deleteVariation(pgn, path));
+                  // Back to the move the variation branched off from.
+                  const start = variationStart(path);
+                  setCurrentPath(start.length > 1 ? start.slice(0, -1) : null);
+                }}
+              />
+            )}
+          </section>
           <AnalysisPanel
             gameId={game.id}
             analysis={analysis.data}

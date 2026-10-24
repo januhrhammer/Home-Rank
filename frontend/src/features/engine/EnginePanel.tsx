@@ -1,4 +1,4 @@
-import { SwitchButton, SwitchField } from "react-aria-components";
+import { Button, SwitchButton, SwitchField } from "react-aria-components";
 
 import { t } from "../../lib/i18n";
 import { sanLine } from "../analysis";
@@ -10,8 +10,15 @@ import type { LiveAnalysis } from "./useLiveAnalysis";
 /** Moves of a line shown at most: enough to see the idea, short enough to read. */
 const SHOWN_MOVES = 8;
 
+interface EnginePanelProps {
+  fen: string;
+  analysis: LiveAnalysis;
+  /** If given, each line gets a button to add its moves (UCI), e.g. as a variation. */
+  onAddLine?: (moves: string[]) => void;
+}
+
 /** The switch for live analysis and, while it runs, the engine's best lines. */
-export function EnginePanel({ fen, analysis }: { fen: string; analysis: LiveAnalysis }) {
+export function EnginePanel({ fen, analysis, onAddLine }: EnginePanelProps) {
   const [notation] = useNotation();
   const format = (line: string) =>
     notation === "figurines" ? line.split(" ").map(withFigurines).join(" ") : line;
@@ -38,6 +45,19 @@ export function EnginePanel({ fen, analysis }: { fen: string; analysis: LiveAnal
         <ol className={styles.lines}>
           {analysis.lines.map((line) => (
             <li key={line.rank} className={styles.line}>
+              {onAddLine && (
+                <>
+                  <Button
+                    className={styles.add}
+                    aria-label={t("engine.addLine")}
+                    onPress={() => {
+                      onAddLine(line.moves.slice(0, SHOWN_MOVES));
+                    }}
+                  >
+                    +
+                  </Button>{" "}
+                </>
+              )}
               <span className={styles.score}>{scoreText(line.score)}</span>{" "}
               <span className={styles.moves}>
                 {format(sanLine(fen, line.moves.slice(0, SHOWN_MOVES)))}

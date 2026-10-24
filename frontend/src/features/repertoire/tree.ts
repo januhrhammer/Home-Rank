@@ -60,9 +60,10 @@ export function buildRepertoireTree(
   for (let item = queue.shift(); item !== undefined; item = queue.shift()) {
     const { position, parent } = item;
     for (const move of byPosition.get(position) ?? []) {
-      const node = moveNode(move, parent);
+      const siblings = parent ? parent.children : tree.firstMoves;
+      const node = moveNode(move, parent, siblings.length);
       tree.byId.set(node.id, node);
-      (parent ? parent.children : tree.firstMoves).push(node);
+      siblings.push(node);
       const shown = shownAt.get(move.to_position);
       if (shown === undefined) {
         shownAt.set(move.to_position, node);
@@ -80,7 +81,7 @@ export function buildRepertoireTree(
   return tree;
 }
 
-function moveNode(move: RepertoireMove, parent: MoveNode | null): MoveNode {
+function moveNode(move: RepertoireMove, parent: MoveNode | null, index: number): MoveNode {
   const position = Chess.fromSetup(parseFen(move.from_fen).unwrap()).unwrap();
   const played = parseUci(move.move_uci);
   if (played === undefined) {
@@ -89,6 +90,7 @@ function moveNode(move: RepertoireMove, parent: MoveNode | null): MoveNode {
   position.play(played);
   return {
     id: move.id,
+    path: [...(parent?.path ?? []), index],
     ply: (parent?.ply ?? 0) + 1,
     san: move.move_san,
     fen: makeFen(position.toSetup()),
