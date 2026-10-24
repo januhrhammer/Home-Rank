@@ -88,6 +88,14 @@
   font-weight: 600;
 }
 
+/* Where the game left the user's repertoire: a quiet note in the accent's colour. */
+.note {
+  margin: 0;
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--color-accent);
+  font-size: 0.9375rem;
+}
+
 .heading {
   margin: 0;
   font-size: 1.125rem;

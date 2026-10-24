@@ -42,6 +42,7 @@ function simulatePlay(game: BotGame, reply?: BotGame) {
     saved: 0,
   };
   server.use(
+    http.get("*/api/v1/repertoires", () => HttpResponse.json([])),
     http.get("*/api/v1/play/opponents", () =>
       HttpResponse.json([
         { opponent: "maia", min_elo: 800, max_elo: 2400 },
@@ -157,4 +158,50 @@ test("someone else's game, or none, isn't found", async () => {
   renderApp("/play/9");
 
   expect(await screen.findByRole("alert")).toHaveTextContent("There is no such game.");
+});
+
+test("a note says where the game left the user's repertoire", async () => {
+  simulateAuth(alice, { loggedIn: true });
+  simulatePlay(
+    aGame({
+      moves: ["e2e4", "e7e5"],
+      fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
+    }),
+  );
+  server.use(
+    http.get("*/api/v1/repertoires", () =>
+      HttpResponse.json([{ id: 4, name: "Open games", color: "white", move_count: 2, due: 0 }]),
+    ),
+    http.get("*/api/v1/repertoires/4/moves", () =>
+      HttpResponse.json([
+        {
+          id: 1,
+          from_position: "1",
+          from_fen: START,
+          move_uci: "e2e4",
+          move_san: "e4",
+          to_position: "2",
+          comment: "",
+          card_id: 9,
+        },
+        {
+          id: 2,
+          from_position: "2",
+          from_fen: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+          move_uci: "c7c5",
+          move_san: "c5",
+          to_position: "3",
+          comment: "",
+          card_id: null,
+        },
+      ]),
+    ),
+  );
+  renderApp("/play/3");
+
+  expect(
+    await screen.findByText(
+      "Maia 1500 left your repertoire “Open games” with 1… e5: you have no reply prepared.",
+    ),
+  ).toBeInTheDocument();
 });

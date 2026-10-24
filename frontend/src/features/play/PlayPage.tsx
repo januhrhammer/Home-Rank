@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Button, Dialog, Heading } from "react-aria-components";
 import { Link, useParams } from "react-router";
@@ -8,10 +8,11 @@ import { Board } from "../../components/Board";
 import { dialogStyles as dialogs, ModalDialog } from "../../components/Dialog";
 import { t } from "../../lib/i18n";
 import { useNotation, withFigurines } from "../games";
-import { MoveForm } from "../repertoire";
+import { MoveForm, movesQuery, repertoiresQuery } from "../repertoire";
 import { boardMove, legalDests, squaresOf } from "../training";
+import { type BookMove, departure } from "./departure";
 import { errorMessage } from "./errors";
-import { clockText, outcomeFor, playedMoves } from "./moves";
+import { clockText, outcomeFor, type PlayedMove, playedMoves } from "./moves";
 import { type BotGame, gameQuery, usePlayMove, useResign, useSaveGame, useTakeBack } from "./play";
 import styles from "./PlayPage.module.css";
 import { StartGameDialog } from "./StartGameDialog";
@@ -118,6 +119,7 @@ function Game({ game, receivedAt, onFlag }: GameProps) {
           <p role="status" className={styles.status}>
             {statusText(game, play.isPending)}
           </p>
+          <RepertoireNote game={game} moves={moves} />
           {(play.error ?? takeBack.error) && (
             <p className={styles.error} role="alert">
               {errorMessage(play.error ?? takeBack.error ?? new Error())}
@@ -309,4 +311,39 @@ function SaveButton({ game }: { game: BotGame }) {
       )}
     </>
   );
+}
+
+/** The user's repertoires for their side, as one list of moves. */
+function useBook(color: "white" | "black"): BookMove[] {
+  const repertoires = useQuery(repertoiresQuery);
+  const mine = (repertoires.data ?? []).filter((repertoire) => repertoire.color === color);
+  const moves = useQueries({ queries: mine.map((repertoire) => movesQuery(repertoire.id)) });
+  return mine.flatMap((repertoire, index) =>
+    (moves[index]?.data ?? []).map((move) => ({
+      repertoire: repertoire.name,
+      fromFen: move.from_fen,
+      moveUci: move.move_uci,
+      moveSan: move.move_san,
+    })),
+  );
+}
+
+/** Where the game left the user's repertoire, if it did. */
+function RepertoireNote({ game, moves }: { game: BotGame; moves: PlayedMove[] }) {
+  const [notation] = useNotation();
+  const book = useBook(game.user_color);
+  const left = departure(game.start_fen, moves, book, game.user_color);
+  if (left === null) {
+    return null;
+  }
+  const format = (san: string) => (notation === "figurines" ? withFigurines(san) : san);
+  const move = `${String(left.move.number)}${left.move.white ? "." : "…"} ${format(left.move.san)}`;
+  const text = left.byUser
+    ? t("play.leftByYou", {
+        repertoire: left.repertoire,
+        move,
+        expected: left.expected.map(format).join(", "),
+      })
+    : t("play.leftByBot", { name: game.opponent_name, repertoire: left.repertoire, move });
+  return <p className={styles.note}>{text}</p>;
 }

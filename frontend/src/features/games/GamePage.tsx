@@ -18,6 +18,7 @@ import { useKeyboard } from "../../lib/useKeyboard";
 import type { PositionEval } from "../analysis";
 import { AnalysisPanel, EvalBar, EvalGraph, useGameAnalysis } from "../analysis";
 import { ExplorerPanel, type Source } from "../explorer";
+import { StartGameDialog } from "../play";
 import styles from "./GamePage.module.css";
 import { type Game, gameQuery } from "./games";
 import { formatGameDate } from "./GameTable";
@@ -215,7 +216,11 @@ function Viewer({ game, tree }: { game: Game; tree: MoveTree }) {
           </SwitchField>
           <LabelPicker kind="tags" gameId={game.id} labels={game.tags} />
           <LabelPicker kind="collections" gameId={game.id} labels={game.collections} />
-          <Actions game={game} fen={current?.fen ?? tree.startFen} />
+          <Actions
+            game={game}
+            fen={current?.fen ?? tree.startFen}
+            after={current ? `${moveNumber(current)} ${current.san}` : null}
+          />
         </div>
       </div>
     </>
@@ -271,8 +276,17 @@ function GameHeader({ game }: { game: Game }) {
   );
 }
 
-function Actions({ game, fen }: { game: Game; fen: string }) {
+interface ActionsProps {
+  game: Game;
+  /** The position shown. */
+  fen: string;
+  /** The move that led there, e.g. "12. Nf3", to name a game played from it. */
+  after: string | null;
+}
+
+function Actions({ game, fen, after }: ActionsProps) {
   const [copied, setCopied] = useState<string | null>(null);
+  const players = `${game.white || t("games.unknownPlayer")} – ${game.black || t("games.unknownPlayer")}`;
 
   const copy = (text: string, what: string) => {
     void navigator.clipboard.writeText(text).then(() => {
@@ -301,6 +315,15 @@ function Actions({ game, fen }: { game: Game; fen: string }) {
       <a className={styles.action} href={`/api/v1/games/${String(game.id)}/pgn`} download>
         {t("viewer.download")}
       </a>
+      <StartGameDialog
+        startFen={fen}
+        startLabel={
+          after === null ? players : t("play.labelAfter", { start: players, line: after })
+        }
+        side={game.user_color || (fen.split(" ")[1] === "b" ? "black" : "white")}
+        triggerLabel={t("play.newFrom")}
+        triggerClassName={styles.action}
+      />
       {/* Announced by screen readers without moving the focus. */}
       <span role="status" className={styles.copied}>
         {copied}
