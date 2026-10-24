@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.11.0](https://github.com/januhrhammer/Home-Rank/compare/v0.10.0...v0.11.0) (2026-10-24)
+
+
+### Features
+
+* **deploy:** install Home-Rank on Proxmox VE with one command ([#99](https://github.com/januhrhammer/Home-Rank/issues/99)) ([d2fd01e](https://github.com/januhrhammer/Home-Rank/commit/d2fd01e997ed2cd92aed54883bd0cb044213b3c1))
+
+
+### Bug Fixes
+
+* **deps:** update virtualenv to 21.14.13 ([#102](https://github.com/januhrhammer/Home-Rank/issues/102)) ([9655a8d](https://github.com/januhrhammer/Home-Rank/commit/9655a8d4736245e3490515086b923ab68b287951))
+
 ## [0.10.0](https://github.com/januhrhammer/Home-Rank/compare/v0.9.0...v0.10.0) (2026-10-24)
 
 
