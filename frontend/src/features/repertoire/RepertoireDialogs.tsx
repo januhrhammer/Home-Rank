@@ -10,6 +10,9 @@ import {
   Input,
   Label,
   NumberField,
+  RadioButton,
+  RadioField,
+  RadioGroup,
   TextField,
 } from "react-aria-components";
 import { useNavigate } from "react-router";
@@ -19,6 +22,7 @@ import { t } from "../../lib/i18n";
 import { errorMessage } from "./errors";
 import {
   type Repertoire,
+  type RepertoireLine,
   useDeleteRepertoire,
   useImportPgn,
   useRenameRepertoire,
@@ -26,10 +30,18 @@ import {
 } from "./repertoire";
 import styles from "./RepertoirePage.module.css";
 
-/** Add the moves of a PGN file, e.g. a course or a study exported from Lichess. */
-export function ImportDialog({ repertoire }: { repertoire: Repertoire }) {
+/** Add the moves of a PGN file, e.g. a course or a study exported from Lichess: into the line
+ * shown, or each game (chapter) as a new line. */
+export function ImportDialog({
+  repertoire,
+  line,
+}: {
+  repertoire: Repertoire;
+  line: RepertoireLine;
+}) {
   const upload = useImportPgn(repertoire.id);
   const [file, setFile] = useState<File | null>(null);
+  const [chapters, setChapters] = useState(false);
   return (
     <ModalDialog trigger={<Button className={styles.action}>{t("repertoire.import")}</Button>}>
       <Dialog className={dialogs.dialog}>
@@ -51,12 +63,40 @@ export function ImportDialog({ repertoire }: { repertoire: Repertoire }) {
               </FileTrigger>{" "}
               <span className={dialogs.note}>{file?.name ?? t("repertoire.noFile")}</span>
             </div>
+            <RadioGroup
+              className={dialogs.field}
+              value={chapters ? "chapters" : "line"}
+              onChange={(value) => {
+                setChapters(value === "chapters");
+                upload.reset();
+              }}
+            >
+              <Label>{t("repertoire.importInto")}</Label>
+              <div className={dialogs.radios}>
+                <RadioField value="line">
+                  <RadioButton className={dialogs.radio}>
+                    {t("repertoire.importLine", { name: line.name })}
+                  </RadioButton>
+                </RadioField>
+                <RadioField value="chapters">
+                  <RadioButton className={dialogs.radio}>
+                    {t("repertoire.importChapters")}
+                  </RadioButton>
+                </RadioField>
+              </div>
+            </RadioGroup>
             {upload.data && (
               <p role="status">
-                {t("repertoire.imported", {
-                  moves: upload.data.moves_added,
-                  games: upload.data.games_read,
-                })}
+                {upload.data.lines_created > 0
+                  ? t("repertoire.importedChapters", {
+                      moves: upload.data.moves_added,
+                      games: upload.data.games_read,
+                      lines: upload.data.lines_created,
+                    })
+                  : t("repertoire.imported", {
+                      moves: upload.data.moves_added,
+                      games: upload.data.games_read,
+                    })}
                 {upload.data.games_skipped > 0 &&
                   ` ${t("repertoire.importSkipped", { count: upload.data.games_skipped })}`}
               </p>
@@ -77,7 +117,7 @@ export function ImportDialog({ repertoire }: { repertoire: Repertoire }) {
                   isPending={upload.isPending}
                   onPress={() => {
                     if (file) {
-                      upload.mutate(file);
+                      upload.mutate({ file, lineId: line.id, chapters });
                     }
                   }}
                 >
@@ -92,15 +132,15 @@ export function ImportDialog({ repertoire }: { repertoire: Repertoire }) {
   );
 }
 
-/** Add what the user plays in their games with the repertoire's colour. */
-export function SeedDialog({ repertoire }: { repertoire: Repertoire }) {
+/** Add to the line shown what the user plays in their games with the repertoire's colour. */
+export function SeedDialog({ repertoire, line }: { repertoire: Repertoire; line: RepertoireLine }) {
   const seed = useSeed(repertoire.id);
   const [depth, setDepth] = useState(12);
   const [minGames, setMinGames] = useState(2);
 
   const handleSubmit: FormProps["onSubmit"] = (event) => {
     event.preventDefault();
-    seed.mutate({ depth, min_games: minGames });
+    seed.mutate({ depth, min_games: minGames, line_id: line.id });
   };
 
   return (
@@ -112,6 +152,7 @@ export function SeedDialog({ repertoire }: { repertoire: Repertoire }) {
               {t("repertoire.seedTitle")}
             </Heading>
             <p className={dialogs.note}>{t(`repertoire.seedText.${repertoire.color}`)}</p>
+            <p className={dialogs.note}>{t("repertoire.seedInto", { name: line.name })}</p>
             <NumberField
               className={dialogs.field}
               value={depth}

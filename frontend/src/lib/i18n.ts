@@ -212,6 +212,12 @@ const messages = {
   "repertoire.noFile": "No file chosen",
   "repertoire.importButton": "Import",
   "repertoire.imported": "Added {moves} moves from {games} games.",
+  "repertoire.importedChapters":
+    "Added {lines} new lines, one per game, with {moves} moves new to the repertoire.",
+  "repertoire.importInto": "Add its moves",
+  "repertoire.importLine": "to the line {name}",
+  "repertoire.importChapters": "as one new line per game (a course's or study's chapters)",
+  "repertoire.seedInto": "The moves go into the line {name}.",
   "repertoire.importSkipped":
     "{count} games were skipped: unreadable, or not from the starting position.",
   "repertoire.seed": "From my games",

@@ -192,31 +192,37 @@ export function useRemoveMove(repertoireId: number) {
   );
 }
 
+/** Import a PGN file into a line, or with `chapters` each game as a new line. */
 export function useImportPgn(repertoireId: number) {
-  return useRepertoireMutation(async (file: File) =>
-    unwrap(
-      await api.POST("/api/v1/repertoires/{repertoire_id}/import", {
-        params: { path: { repertoire_id: repertoireId } },
-        // OpenAPI describes a file as a string, so that is what the types expect here. What is
-        // sent is the FormData that bodySerializer builds, with the file itself.
-        body: { file: file.name },
-        bodySerializer: () => {
-          const form = new FormData();
-          form.append("file", file);
-          return form;
-        },
-      }),
-    ),
+  return useRepertoireMutation(
+    async ({ file, lineId, chapters }: { file: File; lineId: number; chapters: boolean }) =>
+      unwrap(
+        await api.POST("/api/v1/repertoires/{repertoire_id}/import", {
+          params: {
+            path: { repertoire_id: repertoireId },
+            query: chapters ? { chapters: true } : { line_id: lineId },
+          },
+          // OpenAPI describes a file as a string, so that is what the types expect here. What is
+          // sent is the FormData that bodySerializer builds, with the file itself.
+          body: { file: file.name },
+          bodySerializer: () => {
+            const form = new FormData();
+            form.append("file", file);
+            return form;
+          },
+        }),
+      ),
   );
 }
 
 export function useSeed(repertoireId: number) {
-  return useRepertoireMutation(async (body: { depth: number; min_games: number }) =>
-    unwrap(
-      await api.POST("/api/v1/repertoires/{repertoire_id}/seed", {
-        params: { path: { repertoire_id: repertoireId } },
-        body,
-      }),
-    ),
+  return useRepertoireMutation(
+    async (body: { depth: number; min_games: number; line_id: number }) =>
+      unwrap(
+        await api.POST("/api/v1/repertoires/{repertoire_id}/seed", {
+          params: { path: { repertoire_id: repertoireId } },
+          body,
+        }),
+      ),
   );
 }
