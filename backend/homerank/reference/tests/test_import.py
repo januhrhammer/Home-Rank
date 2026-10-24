@@ -6,6 +6,7 @@ import chess
 import chess.polyglot
 import pytest
 import zstandard
+from django.core.management import CommandError, call_command
 from procrastinate.contrib.django.models import ProcrastinateJob
 from pytest_django import Settings
 
@@ -15,9 +16,11 @@ from homerank.reference.models import ReferenceDatabase, ReferenceGame, Referenc
 from homerank.reference.repository import games_at
 from homerank.reference.services import (
     ImportPathError,
+    ImportStateError,
     create_database,
     estimate,
     import_file_path,
+    resume_import,
     run_import,
     start_import,
 )
@@ -135,6 +138,49 @@ def test_a_second_import_keeps_the_first_ones_games_searchable(import_dir: Path)
     )
 
 
+def test_a_failed_import_can_be_queued_again(import_dir: Path) -> None:
+    write_zst(import_dir / "masters.pgn.zst", GAMES)
+    database = create_database(name="Masters")
+    reference_import = start_import(database=database, files=["masters.pgn.zst"])
+    ProcrastinateJob.objects.filter(id=reference_import.job_id).update(status="failed")
+    ReferenceImport.objects.filter(pk=reference_import.pk).update(
+        status=ReferenceImport.Status.FAILED, error="No space left on device"
+    )
+
+    resumed = resume_import(ReferenceImport.objects.get(pk=reference_import.pk))
+
+    assert resumed.pk == reference_import.pk  # the same import, carrying on where it stopped
+    assert (resumed.status, resumed.error) == (ReferenceImport.Status.QUEUED, "")
+    job = ProcrastinateJob.objects.get(id=resumed.job_id)
+    assert (job.status, job.lock) == ("todo", f"reference-{database.pk}")
+    run_import(import_id=resumed.pk, workers=1)
+    database.refresh_from_db()
+    assert database.game_count == 3  # noqa: PLR2004
+
+
+def test_a_finished_or_waiting_import_is_not_queued_again(import_dir: Path) -> None:
+    write_zst(import_dir / "masters.pgn.zst", GAMES[:1])
+    database = create_database(name="Masters")
+    waiting = start_import(database=database, files=["masters.pgn.zst"])
+
+    with pytest.raises(ImportStateError, match="already queued or running"):
+        resume_import(waiting)
+    ProcrastinateJob.objects.filter(id=waiting.job_id).update(status="succeeded")
+    run_import(import_id=waiting.pk, workers=1)
+    waiting.refresh_from_db()
+    with pytest.raises(ImportStateError, match="finished"):
+        resume_import(waiting)
+
+
+def test_the_command_needs_a_database_name(import_dir: Path) -> None:
+    write_zst(import_dir / "masters.pgn.zst", GAMES[:1])
+
+    with pytest.raises(CommandError, match="--name"):
+        call_command("import_reference", "masters.pgn.zst", "--name", " ")
+
+    assert not ReferenceDatabase.objects.exists()
+
+
 def test_an_import_is_queued_on_the_bulk_queue(import_dir: Path) -> None:
     write_zst(import_dir / "masters.pgn.zst", GAMES)
     database = create_database(name="Masters")
@@ -196,6 +242,7 @@ def test_estimates_games_and_disk_space(import_dir: Path) -> None:
 
     assert result.games == 1000  # noqa: PLR2004
     assert result.disk_bytes == 1000 * (410 + 30 * 21)
+    assert result.peak_bytes == 2 * result.disk_bytes  # while the indexes are built
 
 
 def test_deleting_a_database_drops_its_games(import_dir: Path) -> None:

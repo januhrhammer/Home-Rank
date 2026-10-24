@@ -44,6 +44,10 @@ class Command(BaseCommand):
             paths = [services.import_file_path(name) for name in names]
         except DomainError as error:
             raise CommandError(str(error)) from error
+        if not options["name"].strip():
+            # An empty name would create a new database rather than resume an import.
+            message = "--name needs the database's name, as the admin shows it."
+            raise CommandError(message)
         database = ReferenceDatabase.objects.filter(name=options["name"]).first()
         if database is None:
             database = services.create_database(
@@ -54,7 +58,8 @@ class Command(BaseCommand):
         estimate = services.estimate(paths, database.depth)
         self.stdout.write(
             f"About {estimate.games:,} games, needing about "
-            f"{estimate.disk_bytes / 1e9:.1f} GB of disk space (depth {database.depth})."
+            f"{estimate.disk_bytes / 1e9:.1f} GB of disk space (depth {database.depth}), and "
+            f"about {estimate.peak_bytes / 1e9:.1f} GB free while the indexes are built."
         )
         reference_import = self._unfinished(database, paths) or services.create_import(
             database, paths

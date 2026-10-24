@@ -114,3 +114,26 @@ def test_imports_show_their_progress(admin_client: Client) -> None:
 
     assert "42% · 1,234 games" in changelist
     assert "/data/import/a.7z" in detail
+
+
+def test_a_failed_import_can_be_resumed(
+    admin_client: Client, settings: Settings, tmp_path: Path
+) -> None:
+    settings.REFERENCE_IMPORT_DIR = tmp_path
+    (tmp_path / "masters.pgn").write_text('[White "A"]\n\n1. e4 *\n')
+    database = ReferenceDatabase.objects.create(name="Masters")
+    reference_import = ReferenceImport.objects.create(
+        database=database, status=ReferenceImport.Status.FAILED
+    )
+    reference_import.files.create(path=str(tmp_path / "masters.pgn"), size=20)
+
+    response = admin_client.post(
+        reverse("admin:reference_referenceimport_changelist"),
+        {"action": "resume", "_selected_action": [reference_import.pk]},
+        follow=True,
+    )
+
+    reference_import.refresh_from_db()
+    assert reference_import.status == ReferenceImport.Status.QUEUED
+    assert ProcrastinateJob.objects.filter(id=reference_import.job_id, status="todo").exists()
+    assert "carries on where it stopped" in response.content.decode()

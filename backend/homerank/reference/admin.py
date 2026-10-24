@@ -143,6 +143,7 @@ class ReferenceImportAdmin(ImportModelAdmin):
 
     list_display = ("database", "status", "progress", "created_at", "finished_at")
     list_filter = ("status",)
+    actions = ("resume",)
     readonly_fields = ("database", "status", "error", "created_at", "started_at", "finished_at")
     fields = readonly_fields
     inlines = (ReferenceImportFileInline,)
@@ -156,3 +157,17 @@ class ReferenceImportAdmin(ImportModelAdmin):
 
     def has_add_permission(self, request: HttpRequest) -> bool:
         return False
+
+    @admin.action(description="Resume the selected imports")
+    def resume(self, request: HttpRequest, queryset: QuerySet[ReferenceImport]) -> None:
+        for reference_import in queryset:
+            try:
+                services.resume_import(reference_import)
+            except DomainError as error:
+                messages.error(request, str(error))
+            else:
+                messages.success(
+                    request,
+                    f"The import into {reference_import.database} is queued again: "
+                    "it carries on where it stopped.",
+                )
