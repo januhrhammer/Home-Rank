@@ -148,6 +148,19 @@ docker compose exec web python manage.py check_bots
 
 It lets each bot answer 1. e4 and says how long it took.
 
+### Live analysis
+
+Live analysis on the board runs Stockfish in each user's own browser (ADR 0018), so it costs the
+server nothing beyond sending its files once (about 1.2 MB). It uses several of the device's
+cores, but browsers only allow that on secure pages: over HTTPS, or at `localhost`. Over plain
+`http://` on your network it runs on one core, about four times slower, which still works. The
+image holds the engine's licence (GPL) and where its source is, at `/engine/Copying.txt` and
+`/engine/SOURCE.txt` on the website.
+
+For the several cores, Home-Rank sends `Cross-Origin-Opener-Policy` and
+`Cross-Origin-Embedder-Policy` headers. A reverse proxy must pass them on, as the examples below
+do; one that adds headers of its own must not replace these.
+
 ### Reference databases
 
 A reference database is a large collection of games that all users can browse, search by
