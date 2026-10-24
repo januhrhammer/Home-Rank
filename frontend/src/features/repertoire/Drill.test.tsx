@@ -20,6 +20,7 @@ const QUEENS_GAMBIT: Repertoire = {
   id: 4,
   name: "Queen's Gambit",
   color: "white",
+  line_count: 1,
   move_count: 3,
   due: 2,
 };

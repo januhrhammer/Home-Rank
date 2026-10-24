@@ -20,13 +20,45 @@ class RepertoireOut(Schema):
     id: int
     name: str
     color: Side
+    line_count: int
     move_count: int
     due: int  # cards due now
+
+
+class LineIn(Schema):
+    name: str = Field(min_length=1, max_length=100)
+
+
+class LineOut(Schema):
+    id: int
+    name: str
+    position: int  # the lines' order in their repertoire
+    move_count: int
+
+
+class LineOrderIn(Schema):
+    line_ids: list[int] = Field(description="Each of the repertoire's lines once, in the new order")
+
+
+class ConflictChoiceOut(Schema):
+    move_uci: str
+    move_san: str
+    lines: list[str]  # the lines that play it, in their order
+
+
+class ConflictOut(Schema):
+    """A position where lines play different moves of yours."""
+
+    fen: str
+    choices: list[ConflictChoiceOut]
 
 
 class MoveIn(Schema):
     fen: str = Field(max_length=100, description="The position the move is played from")
     move_uci: str = Field(max_length=5, examples=["e2e4"])
+    line_id: int | None = Field(
+        None, description="The line to add it to; default: the first that reaches the position"
+    )
 
 
 class MovePatch(Schema):
@@ -45,6 +77,11 @@ class MoveOut(Schema):
     to_position: str
     comment: str
     card_id: int | None  # your own moves have a card; the opponent's don't
+    line_ids: list[int]  # the lines it belongs to, at least one
+
+    @staticmethod
+    def resolve_line_ids(move: RepertoireMove) -> list[int]:
+        return sorted(line.pk for line in move.lines.all())
 
     @staticmethod
     def resolve_from_position(move: RepertoireMove) -> str:
@@ -61,13 +98,14 @@ class MoveOut(Schema):
 
 
 class RemovedOut(Schema):
-    removed: int  # the move and those only it led to
+    removed: int  # moves taken out: the move and those only it led to, or a line's own moves
 
 
 class PgnImportOut(Schema):
     moves_added: int
     games_read: int
     games_skipped: int  # unreadable, or not from the starting position
+    lines_created: int  # one per game when imported as chapters
 
 
 class SeedIn(Schema):
@@ -75,6 +113,7 @@ class SeedIn(Schema):
     min_games: int = Field(
         SEED_MIN_GAMES, ge=1, le=1000, description="Games an opponent's reply needs"
     )
+    line_id: int | None = Field(None, description="The line to add to; default: the first")
 
 
 class SeedOut(Schema):
