@@ -47,6 +47,21 @@ def test_lists_a_databases_games_with_filters(
     assert rated["items"] == []  # the Duke had no rating
 
 
+def test_without_filters_the_total_is_the_databases_count(
+    alice_client: Client, masters: ReferenceDatabase
+) -> None:
+    # Counting millions of games for every page took seconds; the import stored the number.
+    ReferenceDatabase.objects.filter(pk=masters.pk).update(game_count=14_000_000)
+    url = f"/api/v1/reference/databases/{masters.pk}/games"
+
+    everything = alice_client.get(url).json()
+    morphy = alice_client.get(f"{url}?player=morphy").json()
+
+    assert everything["total"] == 14_000_000  # noqa: PLR2004
+    assert len(everything["items"]) == 2  # noqa: PLR2004
+    assert morphy["total"] == 1  # filtered: counted
+
+
 def test_a_game_comes_with_its_pgn(alice_client: Client, masters: ReferenceDatabase) -> None:
     body = alice_client.get(f"/api/v1/reference/databases/{masters.pk}/games/2").json()
 
