@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react";
+import { cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { expect, test } from "vitest";
@@ -176,6 +176,32 @@ test("the explorer can show a reference database instead", async () => {
     "href",
     "/reference/3/games/1",
   );
+});
+
+test("the chosen database is kept, for the explorer everywhere", async () => {
+  simulateExplorer();
+  open("/search");
+  const user = userEvent.setup();
+  await user.click(await screen.findByRole("button", { name: /Games from/ }));
+  await user.click(screen.getByRole("option", { name: "Masters" }));
+  await screen.findByRole("link", { name: "Morphy, Paul – Duke Karl" });
+
+  // Another page, another time: the viewer's explorer starts with Masters.
+  cleanup();
+  open("/games/7");
+  await user.click(await screen.findByRole("button", { name: "Opening explorer" }));
+
+  expect(await screen.findByRole("button", { name: /Masters.*Games from/ })).toBeInTheDocument();
+  const rows = await screen.findAllByRole("row");
+  expect(rows[1]).toHaveTextContent("d4");
+});
+
+test("a database no longer there means my games again", async () => {
+  localStorage.setItem("home-rank.explorer-source", "99");
+  simulateExplorer();
+  open("/search");
+
+  expect(await screen.findByRole("button", { name: /My games.*Games from/ })).toBeInTheDocument();
 });
 
 test("the search page finds my games reaching the position", async () => {
