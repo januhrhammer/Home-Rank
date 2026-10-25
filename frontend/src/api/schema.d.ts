@@ -455,6 +455,96 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/novelty/rating": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Rating
+         * @description The Lichess rating Maia would play at for an opponent of this rating, to show in the
+         *     form before starting.
+         */
+        get: operations["homerank_novelty_api_rating"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/novelty/searches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Searches
+         * @description Your novelty searches, newest first.
+         */
+        get: operations["homerank_novelty_api_list_searches"];
+        put?: never;
+        /**
+         * Start Search
+         * @description Queue a search for tries from a position (ADR 0022). One runs at a time; it stores what
+         *     it found after each step, until its time limit.
+         */
+        post: operations["homerank_novelty_api_start_search"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/novelty/searches/{search_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Search
+         * @description A search with the tries of its last finished step, the best first.
+         */
+        get: operations["homerank_novelty_api_get_search"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Search
+         * @description Delete a search that has ended; 409 while it waits or runs (cancel it first).
+         */
+        delete: operations["homerank_novelty_api_delete_search"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/novelty/searches/{search_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel Search
+         * @description Stop a search; it keeps the tries found so far. 409 if it has ended.
+         */
+        post: operations["homerank_novelty_api_cancel_search"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/play/games": {
         parameters: {
             query?: never;
@@ -2064,6 +2154,13 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** PagedSearchOut */
+        PagedSearchOut: {
+            /** Items */
+            items: components["schemas"]["SearchOut"][];
+            /** Total */
+            total: number;
+        };
         /** PagedTagOut */
         PagedTagOut: {
             /** Items */
@@ -2199,6 +2296,17 @@ export interface components {
         /** RatingIn */
         RatingIn: {
             rating: components["schemas"]["Rating"];
+        };
+        /**
+         * RatingKind
+         * @description What kind of rating the user knows the opponent by; Maia takes Lichess ratings.
+         * @enum {string}
+         */
+        RatingKind: "lichess" | "fide" | "dwz";
+        /** RatingOut */
+        RatingOut: {
+            /** Elo */
+            elo: number;
         };
         /** ReferenceDatabaseOut */
         ReferenceDatabaseOut: {
@@ -2353,6 +2461,15 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** RefutationStepOut */
+        RefutationStepOut: {
+            /** Found */
+            found: number;
+            /** San */
+            san: string;
+            /** Uci */
+            uci: string;
+        };
         /** RemovedOut */
         RemovedOut: {
             /** Removed */
@@ -2410,6 +2527,127 @@ export interface components {
             /** Game Id */
             game_id: number;
         };
+        /** SearchDetailOut */
+        SearchDetailOut: {
+            /** Budget Cp */
+            budget_cp: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Elo */
+            elo: number;
+            /** Error */
+            error: string;
+            /** Finished At */
+            finished_at: string | null;
+            /** Id */
+            id: number;
+            /** Limit Minutes */
+            limit_minutes: number;
+            /** Own Moves */
+            own_moves: number;
+            /** Rating */
+            rating: number;
+            rating_kind: components["schemas"]["RatingKind"];
+            side: components["schemas"]["Side"];
+            /** Start Fen */
+            start_fen: string;
+            /** Start Label */
+            start_label: string;
+            /** Start Moves */
+            start_moves: string[];
+            /** Started At */
+            started_at: string | null;
+            status: components["schemas"]["SearchStatus"];
+            /** Tries */
+            tries: components["schemas"]["TryOut"][];
+        };
+        /** SearchIn */
+        SearchIn: {
+            /**
+             * Budget Cp
+             * @description How far below 0 your moves may go
+             * @default 150
+             */
+            budget_cp: number;
+            /**
+             * Elo
+             * @description The Lichess rating Maia plays at; default: converted from rating
+             */
+            elo?: number | null;
+            /**
+             * Fen
+             * @description The position to search from
+             */
+            fen: string;
+            /**
+             * Label
+             * @default
+             * @example Smith-Morra, after 9.Rd1 e5
+             */
+            label: string;
+            /**
+             * Limit Minutes
+             * @default 60
+             */
+            limit_minutes: number;
+            /**
+             * Moves
+             * @description The moves (UCI) that led there
+             */
+            moves?: string[];
+            /**
+             * Rating
+             * @description The opponent's rating, as you know it
+             */
+            rating: number;
+            /** @default fide */
+            rating_kind: components["schemas"]["RatingKind"];
+            /** @description The side you prepare for */
+            side: components["schemas"]["Side"];
+        };
+        /** SearchOut */
+        SearchOut: {
+            /** Budget Cp */
+            budget_cp: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Elo */
+            elo: number;
+            /** Error */
+            error: string;
+            /** Finished At */
+            finished_at: string | null;
+            /** Id */
+            id: number;
+            /** Limit Minutes */
+            limit_minutes: number;
+            /** Own Moves */
+            own_moves: number;
+            /** Rating */
+            rating: number;
+            rating_kind: components["schemas"]["RatingKind"];
+            side: components["schemas"]["Side"];
+            /** Start Fen */
+            start_fen: string;
+            /** Start Label */
+            start_label: string;
+            /** Start Moves */
+            start_moves: string[];
+            /** Started At */
+            started_at: string | null;
+            status: components["schemas"]["SearchStatus"];
+        };
+        /**
+         * SearchStatus
+         * @enum {string}
+         */
+        SearchStatus: "queued" | "running" | "done" | "cancelled" | "failed";
         /** SeedIn */
         SeedIn: {
             /**
@@ -2539,6 +2777,31 @@ export interface components {
             reviewed_today: number;
             /** Weeks */
             weeks: components["schemas"]["WeekStatsOut"][];
+        };
+        /** TryOut */
+        TryOut: {
+            /** Best Practical */
+            best_practical: number;
+            /** Best San */
+            best_san: string;
+            /** Cp */
+            cp: number;
+            /** Line */
+            line: string[];
+            /** Practical */
+            practical: number;
+            /** Rank */
+            rank: number;
+            /** Reach */
+            reach: number;
+            /** Reference Games */
+            reference_games: number | null;
+            /** Refutation */
+            refutation: components["schemas"]["RefutationStepOut"][];
+            /** San */
+            san: string;
+            /** Uci */
+            uci: string;
         };
         /**
          * UserOut
@@ -3265,6 +3528,140 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    homerank_novelty_api_rating: {
+        parameters: {
+            query: {
+                rating: number;
+                kind?: "lichess" | "fide" | "dwz";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RatingOut"];
+                };
+            };
+        };
+    };
+    homerank_novelty_api_list_searches: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedSearchOut"];
+                };
+            };
+        };
+    };
+    homerank_novelty_api_start_search: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SearchIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchOut"];
+                };
+            };
+        };
+    };
+    homerank_novelty_api_get_search: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                search_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchDetailOut"];
+                };
+            };
+        };
+    };
+    homerank_novelty_api_delete_search: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                search_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    homerank_novelty_api_cancel_search: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                search_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchOut"];
+                };
             };
         };
     };

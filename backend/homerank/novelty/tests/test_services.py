@@ -63,7 +63,8 @@ def scripted_run(search: NoveltySearch, **kwargs: object) -> NoveltySearch:
         (1500, "fide", 1700),
         (1900, "fide", 2050),  # halfway to 2300: + 150
         (2300, "fide", 2400),  # + 100 from 2300 on
-        (2500, "fide", 2600),
+        (2350, "fide", 2400),  # Maia plays up to 2400
+        (600, "lichess", 800),  # and from 800
         (1500, "dwz", 1750),
         (1900, "dwz", 2075),
     ],
