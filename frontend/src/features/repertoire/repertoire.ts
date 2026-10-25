@@ -7,6 +7,7 @@ import type { components } from "../../api/schema";
 export type Repertoire = components["schemas"]["RepertoireOut"];
 export type RepertoireMove = components["schemas"]["MoveOut"];
 export type PgnImport = components["schemas"]["PgnImportOut"];
+export type RepertoireLine = components["schemas"]["LineOut"];
 export type Color = Repertoire["color"];
 
 /** The start of every repertoire query's key, to refresh them all after a change. */
@@ -56,6 +57,18 @@ export function movesQuery(repertoireId: number) {
   });
 }
 
+export function linesQuery(repertoireId: number) {
+  return queryOptions({
+    queryKey: [...REPERTOIRE_KEY, repertoireId, "lines"],
+    queryFn: async () =>
+      unwrap(
+        await api.GET("/api/v1/repertoires/{repertoire_id}/lines", {
+          params: { path: { repertoire_id: repertoireId } },
+        }),
+      ),
+  });
+}
+
 /** A mutation that refreshes every repertoire query when it succeeds. */
 function useRepertoireMutation<In, Out>(mutationFn: (input: In) => Promise<Out>) {
   const queryClient = useQueryClient();
@@ -98,8 +111,53 @@ export function useDeleteRepertoire(repertoireId: number) {
   });
 }
 
+export function useCreateLine(repertoireId: number) {
+  return useRepertoireMutation(async (name: string) =>
+    unwrap(
+      await api.POST("/api/v1/repertoires/{repertoire_id}/lines", {
+        params: { path: { repertoire_id: repertoireId } },
+        body: { name },
+      }),
+    ),
+  );
+}
+
+export function useRenameLine(repertoireId: number, lineId: number) {
+  return useRepertoireMutation(async (name: string) =>
+    unwrap(
+      await api.PATCH("/api/v1/repertoires/{repertoire_id}/lines/{line_id}", {
+        params: { path: { repertoire_id: repertoireId, line_id: lineId } },
+        body: { name },
+      }),
+    ),
+  );
+}
+
+export function useReorderLines(repertoireId: number) {
+  return useRepertoireMutation(async (lineIds: number[]) =>
+    unwrap(
+      await api.PUT("/api/v1/repertoires/{repertoire_id}/lines/order", {
+        params: { path: { repertoire_id: repertoireId } },
+        body: { line_ids: lineIds },
+      }),
+    ),
+  );
+}
+
+export function useDeleteLine(repertoireId: number, lineId: number) {
+  return useRepertoireMutation(async () =>
+    unwrap(
+      await api.DELETE("/api/v1/repertoires/{repertoire_id}/lines/{line_id}", {
+        params: { path: { repertoire_id: repertoireId, line_id: lineId } },
+      }),
+    ),
+  );
+}
+
+/** Add a move to a line; without one (e.g. from the gap report), to the first line that
+ * reaches the position. */
 export function useAddMove(repertoireId: number) {
-  return useRepertoireMutation(async (body: { fen: string; move_uci: string }) =>
+  return useRepertoireMutation(async (body: { fen: string; move_uci: string; line_id?: number }) =>
     unwrap(
       await api.POST("/api/v1/repertoires/{repertoire_id}/moves", {
         params: { path: { repertoire_id: repertoireId } },
@@ -120,11 +178,15 @@ export function useCommentMove(repertoireId: number) {
   );
 }
 
+/** Take a move out of one line, with the moves that line reached only through it. */
 export function useRemoveMove(repertoireId: number) {
-  return useRepertoireMutation(async (moveId: number) =>
+  return useRepertoireMutation(async ({ moveId, lineId }: { moveId: number; lineId: number }) =>
     unwrap(
       await api.DELETE("/api/v1/repertoires/{repertoire_id}/moves/{move_id}", {
-        params: { path: { repertoire_id: repertoireId, move_id: moveId } },
+        params: {
+          path: { repertoire_id: repertoireId, move_id: moveId },
+          query: { line_id: lineId },
+        },
       }),
     ),
   );

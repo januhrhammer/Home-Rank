@@ -25,6 +25,7 @@ import { errorMessage } from "./errors";
 import { MoveForm } from "./MoveForm";
 import {
   type Repertoire,
+  type RepertoireLine,
   type RepertoireMove,
   useAddMove,
   useCommentMove,
@@ -35,18 +36,27 @@ import { buildRepertoireTree, lineTo, type RepertoireTree, START_FEN } from "./t
 
 interface RepertoireEditorProps {
   repertoire: Repertoire;
+  /** The line shown and edited. */
+  line: RepertoireLine;
+  lines: RepertoireLine[];
+  /** All of the repertoire's moves, of every line. */
   moves: RepertoireMove[];
 }
 
 /**
- * The repertoire on a board: moves played on it (or chosen in the explorer) are added to the
- * repertoire, moves already there are followed. The move list shows the whole tree.
+ * One line of the repertoire on a board: moves played on it (or chosen in the explorer) are
+ * added to the line, moves already there are followed. The move list shows the line's tree;
+ * the other lines' moves in the shown position are listed below it.
  */
-export function RepertoireEditor({ repertoire, moves }: RepertoireEditorProps) {
+export function RepertoireEditor({ repertoire, line, lines, moves }: RepertoireEditorProps) {
   const [notation] = useNotation();
+  const lineMoves = useMemo(
+    () => moves.filter((move) => move.line_ids.includes(line.id)),
+    [moves, line.id],
+  );
   const tree = useMemo(
-    () => buildRepertoireTree(moves, notation === "figurines" ? withFigurines : undefined),
-    [moves, notation],
+    () => buildRepertoireTree(lineMoves, notation === "figurines" ? withFigurines : undefined),
+    [lineMoves, notation],
   );
   // The move whose position is shown, by id, so it survives the tree being rebuilt after a
   // change; null is the starting position.
@@ -65,6 +75,17 @@ export function RepertoireEditor({ repertoire, moves }: RepertoireEditorProps) {
   const shownAt = current ? (tree.transposesTo.get(current.id) ?? current) : null;
   const nextMoves = shownAt ? shownAt.children : tree.firstMoves;
 
+  // The other lines' moves from the shown position, which this line doesn't have.
+  const position = shownAt
+    ? tree.moves.get(shownAt.id)?.to_position
+    : moves.find((move) => move.from_fen === START_FEN)?.from_position;
+  const lineNames = new Map(lines.map((each) => [each.id, each.name]));
+  const linesOf = (move: RepertoireMove) =>
+    move.line_ids.map((id) => lineNames.get(id) ?? "").join(", ");
+  const elsewhere = moves.filter(
+    (move) => move.from_position === position && !move.line_ids.includes(line.id),
+  );
+
   const play = (uci: string) => {
     const known = nextMoves.find((node) => tree.moves.get(node.id)?.move_uci === uci);
     if (known) {
@@ -72,7 +93,7 @@ export function RepertoireEditor({ repertoire, moves }: RepertoireEditorProps) {
       return;
     }
     addMove.mutate(
-      { fen, move_uci: uci },
+      { fen, move_uci: uci, line_id: line.id },
       {
         onSuccess: (move) => {
           setCurrentId(move.id);
@@ -200,10 +221,39 @@ export function RepertoireEditor({ repertoire, moves }: RepertoireEditorProps) {
             />
           )}
         </section>
+        {elsewhere.length > 0 && (
+          <section aria-labelledby="elsewhere-heading">
+            <h2 id="elsewhere-heading" className={styles.heading}>
+              {t("repertoire.otherLines")}
+            </h2>
+            <ul className={styles.elsewhere}>
+              {elsewhere.map((move) => (
+                <li key={move.id}>
+                  <Button
+                    className={styles.linkButton}
+                    isDisabled={addMove.isPending}
+                    // Named in letters even when it shows figurines, which screen readers read badly.
+                    aria-label={t("repertoire.inLines", {
+                      move: move.move_san,
+                      lines: linesOf(move),
+                    })}
+                    onPress={() => {
+                      play(move.move_uci);
+                    }}
+                  >
+                    {t("repertoire.inLines", { move: format(move.move_san), lines: linesOf(move) })}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+            <p className={styles.muted}>{t("repertoire.otherLinesHint")}</p>
+          </section>
+        )}
         {current && (
           <CurrentMove
             key={current.id}
             repertoireId={repertoire.id}
+            line={line}
             node={current}
             move={tree.moves.get(current.id)}
             transposesTo={tree.transposesTo.get(current.id)}
@@ -250,6 +300,7 @@ function endOfLine(tree: RepertoireTree, node: MoveNode | null): MoveNode | null
 
 interface CurrentMoveProps {
   repertoireId: number;
+  line: RepertoireLine;
   node: MoveNode;
   move: RepertoireMove | undefined;
   transposesTo: MoveNode | undefined;
@@ -258,7 +309,15 @@ interface CurrentMoveProps {
 }
 
 /** The shown move: its comment, where it transposes to, and removing it. */
-function CurrentMove({ repertoireId, node, move, transposesTo, format, onGo }: CurrentMoveProps) {
+function CurrentMove({
+  repertoireId,
+  line: repertoireLine,
+  node,
+  move,
+  transposesTo,
+  format,
+  onGo,
+}: CurrentMoveProps) {
   const [comment, setComment] = useState(move?.comment ?? "");
   const save = useCommentMove(repertoireId);
   const line = lineTo(node, format);
@@ -305,6 +364,7 @@ function CurrentMove({ repertoireId, node, move, transposesTo, format, onGo }: C
           </Link>
           <RemoveDialog
             repertoireId={repertoireId}
+            repertoireLine={repertoireLine}
             node={node}
             line={line}
             onRemoved={() => {
@@ -327,6 +387,7 @@ function CurrentMove({ repertoireId, node, move, transposesTo, format, onGo }: C
 
 function RemoveDialog(props: {
   repertoireId: number;
+  repertoireLine: RepertoireLine;
   node: MoveNode;
   line: string;
   onRemoved: () => void;
@@ -338,7 +399,7 @@ function RemoveDialog(props: {
         {({ close }) => (
           <div className={dialogs.form}>
             <Heading slot="title" className={dialogs.title}>
-              {t("repertoire.removeTitle", { line: props.line })}
+              {t("repertoire.removeTitle", { line: props.line, name: props.repertoireLine.name })}
             </Heading>
             <p>{t("repertoire.removeText")}</p>
             {remove.error && (
@@ -354,12 +415,15 @@ function RemoveDialog(props: {
                 className={dialogs.danger}
                 isPending={remove.isPending}
                 onPress={() => {
-                  remove.mutate(props.node.id, {
-                    onSuccess: () => {
-                      close();
-                      props.onRemoved();
+                  remove.mutate(
+                    { moveId: props.node.id, lineId: props.repertoireLine.id },
+                    {
+                      onSuccess: () => {
+                        close();
+                        props.onRemoved();
+                      },
                     },
-                  });
+                  );
                 }}
               >
                 {t("repertoire.remove")}

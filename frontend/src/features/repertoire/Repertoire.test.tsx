@@ -11,7 +11,7 @@ import { renderApp } from "../../test/render";
 import { server, simulateAuth } from "../../test/server";
 import { answerUploads } from "../../test/uploads";
 import type { User } from "../auth";
-import type { Repertoire, RepertoireMove } from "./repertoire";
+import type { Repertoire, RepertoireLine, RepertoireMove } from "./repertoire";
 import { movesOf } from "./testMoves";
 
 const alice: User = { id: 1, username: "alice", email: "", is_staff: false };
@@ -27,18 +27,60 @@ const QUEENS_GAMBIT: Repertoire = {
 
 /**
  * A simulated repertoire API around `moves`, which it changes like the server would (roughly:
- * removing a move removes only that one). The explorer suggests 1. e4 and 1. d4 everywhere.
+ * removing a move removes only that one, from the line named). It starts with one line, "Main
+ * line" (id 1), holding all the moves. The explorer suggests 1. e4 and 1. d4 everywhere.
  * Returns what it received.
  */
 function simulateRepertoire(moves: RepertoireMove[], repertoire = QUEENS_GAMBIT) {
-  const received: { added: unknown[]; comments: unknown[]; removed: number[]; seeds: unknown[] } = {
+  const received: {
+    added: unknown[];
+    comments: unknown[];
+    removed: string[];
+    seeds: unknown[];
+    orders: unknown[];
+  } = {
     added: [],
     comments: [],
     removed: [],
     seeds: [],
+    orders: [],
   };
-  const counted = () => ({ ...repertoire, move_count: moves.length });
+  const lines: RepertoireLine[] = [{ id: 1, name: "Main line", position: 0, move_count: 0 }];
+  const counted = () => ({ ...repertoire, move_count: moves.length, line_count: lines.length });
+  const listed = () =>
+    lines.map((line) => ({
+      ...line,
+      move_count: moves.filter((m) => m.line_ids.includes(line.id)).length,
+    }));
   server.use(
+    http.get("*/api/v1/repertoires/:id/lines", () => HttpResponse.json(listed())),
+    http.post("*/api/v1/repertoires/:id/lines", async ({ request }) => {
+      const { name } = (await request.json()) as { name: string };
+      const line = { id: lines.length + 1, name, position: lines.length, move_count: 0 };
+      lines.push(line);
+      return HttpResponse.json(line, { status: 201 });
+    }),
+    http.put("*/api/v1/repertoires/:id/lines/order", async ({ request }) => {
+      const { line_ids } = (await request.json()) as { line_ids: number[] };
+      received.orders.push(line_ids);
+      lines.sort((a, b) => line_ids.indexOf(a.id) - line_ids.indexOf(b.id));
+      return HttpResponse.json(listed());
+    }),
+    http.patch("*/api/v1/repertoires/:id/lines/:lineId", async ({ request, params }) => {
+      const { name } = (await request.json()) as { name: string };
+      const line = lines.find((l) => l.id === Number(params.lineId));
+      if (line) {
+        line.name = name;
+      }
+      return HttpResponse.json(line);
+    }),
+    http.delete("*/api/v1/repertoires/:id/lines/:lineId", ({ params }) => {
+      lines.splice(
+        lines.findIndex((l) => l.id === Number(params.lineId)),
+        1,
+      );
+      return HttpResponse.json({ removed: 0 });
+    }),
     http.get("*/api/v1/repertoires", () => HttpResponse.json([counted()])),
     http.post("*/api/v1/repertoires", async ({ request }) => {
       const body = (await request.json()) as { name: string; color: "white" | "black" };
@@ -51,9 +93,15 @@ function simulateRepertoire(moves: RepertoireMove[], repertoire = QUEENS_GAMBIT)
     ),
     http.get("*/api/v1/repertoires/:id/moves", () => HttpResponse.json(moves)),
     http.post("*/api/v1/repertoires/:id/moves", async ({ request }) => {
-      const body = (await request.json()) as { fen: string; move_uci: string };
+      const body = (await request.json()) as { fen: string; move_uci: string; line_id?: number };
       received.added.push(body);
-      const move = played(body.fen, body.move_uci, moves.length + 1);
+      const known = moves.find((m) => m.from_fen === body.fen && m.move_uci === body.move_uci);
+      if (known) {
+        known.line_ids = [...known.line_ids, body.line_id ?? 1];
+        return HttpResponse.json(known, { status: 201 });
+      }
+      const move = { ...played(body.fen, body.move_uci, moves.length + 1) };
+      move.line_ids = [body.line_id ?? 1];
       moves.push(move);
       return HttpResponse.json(move, { status: 201 });
     }),
@@ -66,8 +114,9 @@ function simulateRepertoire(moves: RepertoireMove[], repertoire = QUEENS_GAMBIT)
       }
       return HttpResponse.json(move);
     }),
-    http.delete("*/api/v1/repertoires/:id/moves/:moveId", ({ params }) => {
-      received.removed.push(Number(params.moveId));
+    http.delete("*/api/v1/repertoires/:id/moves/:moveId", ({ params, request }) => {
+      const lineId = new URL(request.url).searchParams.get("line_id");
+      received.removed.push(`${String(params.moveId)} from ${String(lineId)}`);
       moves.splice(
         moves.findIndex((m) => m.id === Number(params.moveId)),
         1,
@@ -201,12 +250,16 @@ test("a move chosen in the explorer is added and shown", async () => {
   renderApp("/repertoires/4");
   const user = userEvent.setup();
 
-  expect(await screen.findByText(/No moves yet/)).toBeInTheDocument();
+  expect(await screen.findByText(/No moves in this line yet/)).toBeInTheDocument();
   await user.click(await screen.findByRole("button", { name: "d4" }));
 
   expect(await screen.findByRole("heading", { name: "1. d4" })).toBeInTheDocument();
   expect(received.added).toEqual([
-    { fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", move_uci: "d2d4" },
+    {
+      fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+      move_uci: "d2d4",
+      line_id: 1,
+    },
   ]);
   expect(within(moveList()).getByRole("button", { name: "d4" })).toHaveAttribute(
     "aria-current",
@@ -230,7 +283,11 @@ test("a move typed in is added, for keyboards and screen readers", async () => {
 
   expect(await screen.findByRole("heading", { name: "1. Nf3" })).toBeInTheDocument();
   expect(received.added).toEqual([
-    { fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", move_uci: "g1f3" },
+    {
+      fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+      move_uci: "g1f3",
+      line_id: 1,
+    },
   ]);
   expect(field).toHaveValue("");
 });
@@ -302,13 +359,13 @@ test("removing a move asks first, then shows the move before it", async () => {
       name: "c4",
     }),
   );
-  await user.click(screen.getByRole("button", { name: "Remove move" }));
+  await user.click(screen.getByRole("button", { name: "Remove from this line" }));
   const dialog = screen.getByRole("alertdialog");
-  expect(dialog).toHaveTextContent("Remove 1. d4 d5 2. c4?");
+  expect(dialog).toHaveTextContent("Remove 1. d4 d5 2. c4 from Main line?");
   await user.click(within(dialog).getByRole("button", { name: "Remove" }));
 
   expect(await screen.findByRole("heading", { name: "1. d4 d5" })).toBeInTheDocument();
-  expect(received.removed).toEqual([3]);
+  expect(received.removed).toEqual(["3 from 1"]);
   expect(within(moveList()).queryByRole("button", { name: "c4" })).not.toBeInTheDocument();
 });
 
@@ -354,6 +411,79 @@ test("importing sends the chosen file and says what was added", async () => {
     "Added 120 moves from 14 games. 2 games were skipped",
   );
   expect(sent).toEqual([{ url: "/api/v1/repertoires/4/import", fields: ["file"] }]);
+});
+
+test("a new line starts empty, and moves of other lines can join it", async () => {
+  simulateAuth(alice, { loggedIn: true });
+  const received = simulateRepertoire(movesOf([["d4", "d5", "c4"]]));
+  renderApp("/repertoires/4");
+  const user = userEvent.setup();
+  const lines = await screen.findByRole("region", { name: "Lines" });
+
+  await user.click(within(lines).getByRole("button", { name: "New line" }));
+  await user.type(screen.getByLabelText("Name"), "Slav");
+  await user.click(screen.getByRole("button", { name: "Create" }));
+
+  expect(await within(lines).findByRole("link", { name: "Slav 0", current: "page" })).toBeVisible();
+  expect(await screen.findByText(/No moves in this line yet/)).toBeInTheDocument();
+  const elsewhere = screen.getByRole("region", { name: "Here in other lines" });
+  await user.click(within(elsewhere).getByRole("button", { name: "d4 (Main line)" }));
+
+  await waitFor(() => {
+    expect(received.added).toEqual([
+      {
+        fen: expect.stringContaining("rnbqkbnr/pppppppp") as unknown,
+        move_uci: "d2d4",
+        line_id: 2,
+      },
+    ]);
+  });
+  expect(await within(moveList()).findByRole("button", { name: "d4" })).toBeInTheDocument();
+  // Main line's 1…d5 is offered here next.
+  expect(
+    within(screen.getByRole("region", { name: "Here in other lines" })).getByRole("button", {
+      name: "d5 (Main line)",
+    }),
+  ).toBeInTheDocument();
+});
+
+test("lines are reordered, renamed and deleted, saying how many moves go", async () => {
+  simulateAuth(alice, { loggedIn: true });
+  const received = simulateRepertoire(movesOf([["d4", "d5", "c4"]]));
+  renderApp("/repertoires/4");
+  const user = userEvent.setup();
+  const lines = await screen.findByRole("region", { name: "Lines" });
+  await user.click(within(lines).getByRole("button", { name: "New line" }));
+  await user.type(screen.getByLabelText("Name"), "Slav");
+  await user.click(screen.getByRole("button", { name: "Create" }));
+  await within(lines).findByRole("link", { name: "Slav 0", current: "page" });
+
+  await user.click(within(lines).getByRole("button", { name: "Move line up" }));
+  await waitFor(() => {
+    expect(received.orders).toEqual([[2, 1]]);
+  });
+  await user.click(within(lines).getByRole("button", { name: "Rename line" }));
+  const name = screen.getByLabelText("Name");
+  await user.clear(name);
+  await user.type(name, "Semi-Slav");
+  await user.click(screen.getByRole("button", { name: "Save" }));
+  expect(await within(lines).findByRole("link", { name: "Semi-Slav 0" })).toBeInTheDocument();
+
+  await user.click(within(lines).getByRole("link", { name: "Main line 3" }));
+  await user.click(within(lines).getByRole("button", { name: "Delete line" }));
+  const dialog = screen.getByRole("alertdialog");
+  expect(dialog).toHaveTextContent("Delete the line Main line?");
+  expect(dialog).toHaveTextContent("3 of its moves are in no other line");
+  await user.click(within(dialog).getByRole("button", { name: "Delete" }));
+
+  await waitFor(() => {
+    expect(
+      within(lines)
+        .getAllByRole("link")
+        .map((link) => link.textContent),
+    ).toEqual(["Semi-Slav 0"]);
+  });
+  expect(within(lines).queryByRole("button", { name: "Delete line" })).not.toBeInTheDocument();
 });
 
 test("someone else's repertoire isn't found", async () => {

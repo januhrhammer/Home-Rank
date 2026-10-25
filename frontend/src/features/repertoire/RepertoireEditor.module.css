@@ -125,3 +125,11 @@
 a.button {
   text-decoration: none;
 }
+
+/* The other lines' moves in the shown position, one per row. */
+.elsewhere {
+  margin: 0 0 var(--space-1);
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-serif);
+}
