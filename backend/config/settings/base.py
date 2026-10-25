@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "homerank.explorer",
     "homerank.repertoire",
     "homerank.play",
+    "homerank.novelty",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -165,6 +166,12 @@ PUZZLE_DEPTH = max(1, env.integer("PUZZLE_DEPTH", default=20))
 # When automatic analyses may run, e.g. "23:00-07:00" for nights only (TIME_ZONE); unset: any
 # time. Analyses users start themselves always run at once.
 ANALYSIS_HOURS = env.time_window("ANALYSIS_HOURS")
+
+# Novelty search (docs/adr/0022-novelty-search.md): how many single-thread Stockfish engines a
+# search runs at once (default: all CPU cores but one; fewer keep the server quieter), and the
+# longest time limit a user may give a search, in minutes.
+NOVELTY_ENGINES = max(1, env.integer("NOVELTY_ENGINES", default=max(1, (os.cpu_count() or 2) - 1)))
+NOVELTY_MAX_MINUTES = 12 * 60
 
 # Syncing games from Lichess and Chess.com (docs/adr/0011-online-account-sync.md). A contact,
 # such as an email address or a URL, added to the User-Agent of requests to the two sites, so
