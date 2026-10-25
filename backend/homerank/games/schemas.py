@@ -7,6 +7,7 @@ from pydantic import StringConstraints
 from homerank.chesslib.headers import TimeClass
 from homerank.chesslib.players import Side
 from homerank.games.models import Game, ImportRun
+from homerank.games.openings import shown_opening
 
 GameSort = Literal[
     "date",
@@ -92,7 +93,7 @@ class GameListItem(Schema):
     date_pgn: str  # the date with its precision, e.g. "1960.??.??"
     event: str
     site: str
-    eco: str
+    eco: str  # these two as shown: named by the game's positions, else its headers (ADR 0021)
     opening: str
     time_control: str
     time_class: TimeClass
@@ -101,6 +102,14 @@ class GameListItem(Schema):
     source: Game.Source
     imported_at: datetime
     tags: list[NamedRef]
+
+    @staticmethod
+    def resolve_eco(game: Game) -> str:
+        return shown_opening(game).eco
+
+    @staticmethod
+    def resolve_opening(game: Game) -> str:
+        return shown_opening(game).name
 
 
 class GameOut(GameListItem):

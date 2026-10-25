@@ -43,10 +43,16 @@ class MoveStatsOut(Schema):
     last_played: date | None  # a reference database knows the year (January 1st)
 
 
+class OpeningOut(Schema):
+    eco: str
+    name: str
+
+
 class ExplorerOut(Schema):
     games: int
     moves: list[MoveStatsOut]
     filtered: bool  # false if the filters couldn't apply (a very common position)
+    opening: OpeningOut | None  # the position's name in Lichess's opening list, if it has one
 
 
 class MyFoundGame(GameListItem):

@@ -17,8 +17,9 @@ def database(*, database_id: int) -> ReferenceDatabase:
 
 
 def games(*, database: ReferenceDatabase, filters: ReferenceGameFilters) -> QuerySet[ReferenceGame]:
-    """The database's games, filtered, newest first; without their moves."""
-    queryset = ReferenceGame.objects.filter(database=database).defer("moves", "dedup_hash")
+    """The database's games, filtered, newest first; with their moves, which name their
+    opening (a few dozen bytes each)."""
+    queryset = ReferenceGame.objects.filter(database=database).defer("dedup_hash")
     if filters.player:
         queryset = queryset.filter(
             Q(white__icontains=filters.player) | Q(black__icontains=filters.player)

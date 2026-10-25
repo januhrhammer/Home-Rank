@@ -26,6 +26,7 @@ function explorer(moves: [string, string, number][]): ExplorerData {
   return {
     games: moves.reduce((sum, [, , n]) => sum + n, 0),
     filtered: true,
+    opening: null,
     moves: moves.map(([uci, san, games]) => ({
       uci,
       san,

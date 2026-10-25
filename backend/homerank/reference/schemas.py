@@ -2,7 +2,8 @@ from datetime import date, datetime
 
 from ninja import Field, Schema
 
-from homerank.reference.models import ReferenceDatabase
+from homerank.reference.models import ReferenceDatabase, ReferenceGame
+from homerank.reference.openings import shown_opening
 
 
 class ReferenceDatabaseOut(Schema):
@@ -34,9 +35,17 @@ class ReferenceGameItem(Schema):
     date_pgn: str
     event: str
     site: str
-    eco: str
+    eco: str  # these two as shown: named by the game's positions, else its headers (ADR 0021)
     opening: str
     ply_count: int
+
+    @staticmethod
+    def resolve_eco(game: ReferenceGame) -> str:
+        return shown_opening(game).eco
+
+    @staticmethod
+    def resolve_opening(game: ReferenceGame) -> str:
+        return shown_opening(game).name
 
 
 class ReferenceGameOut(ReferenceGameItem):

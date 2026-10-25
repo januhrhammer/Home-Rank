@@ -43,6 +43,11 @@ def test_lists_a_databases_games_with_filters(
     rated = alice_client.get(f"{url}?min_rating=2000").json()
 
     assert [g["white"] for g in everything["items"]] == ["Anna", "Morphy, Paul"]  # newest first
+    # Named by the positions their moves reach (ADR 0021); Anna's game had no ECO at all.
+    assert [(g["eco"], g["opening"]) for g in everything["items"]] == [
+        ("A00", "Barnes Opening: Fool's Mate"),
+        ("C41", "Philidor Defense"),
+    ]
     assert [g["white"] for g in morphy["items"]] == ["Morphy, Paul"]
     assert rated["items"] == []  # the Duke had no rating
 
@@ -66,6 +71,7 @@ def test_a_game_comes_with_its_pgn(alice_client: Client, masters: ReferenceDatab
     body = alice_client.get(f"/api/v1/reference/databases/{masters.pk}/games/2").json()
 
     assert body["white"] == "Anna"
+    assert (body["eco"], body["opening"]) == ("A00", "Barnes Opening: Fool's Mate")
     assert '[Result "0-1"]' in body["pgn"]
     assert "1. f3 e5 2. g4 Qh4# 0-1" in body["pgn"]
 

@@ -3,13 +3,16 @@ import itertools
 from http import HTTPStatus
 from typing import Any
 
+import chess
+import chess.polyglot
 import pytest
 from django.db import connection
 from django.test import Client
 from django.test.utils import CaptureQueriesContext
 
 from homerank.accounts.models import User
-from homerank.games.models import Collection, Game, ImportRun, Tag
+from homerank.chesslib.positions import as_bigint
+from homerank.games.models import Collection, Game, GamePosition, ImportRun, Tag
 
 GAMES = "/api/v1/games"
 _hashes = itertools.count()
@@ -45,6 +48,22 @@ def make_game(user: User, **fields: Any) -> Game:
     return Game.objects.create(user=user, **values)
 
 
+def with_positions(game: Game, sans: str) -> Game:
+    """Store the positions of the game's moves, as an import does."""
+    board = chess.Board()
+    rows = [
+        GamePosition(
+            game=game, user=game.user, ply=0, zobrist=as_bigint(chess.polyglot.zobrist_hash(board))
+        )
+    ]
+    for ply, san in enumerate(sans.split(), start=1):
+        board.push_san(san)
+        zobrist = as_bigint(chess.polyglot.zobrist_hash(board))
+        rows.append(GamePosition(game=game, user=game.user, ply=ply, zobrist=zobrist))
+    GamePosition.objects.bulk_create(rows)
+    return game
+
+
 def listed(client: Client, **params: Any) -> list[int]:
     """The ids of the games the list returns, in its order."""
     response = client.get(GAMES, params)
@@ -72,6 +91,23 @@ def test_items_have_the_headers_but_not_the_moves(alice_client: Client, alice: U
         "blitz",
     )
     assert "pgn" not in item
+
+
+def test_items_are_named_after_the_opening_their_moves_reach(
+    alice_client: Client, alice: User
+) -> None:
+    # A Chess.com game: ECO only. A game whose positions the list doesn't name (here: none
+    # stored) keeps the name its file gave it (ADR 0021).
+    ruy = with_positions(make_game(alice, eco="C60", opening=""), "e4 e5 Nf3 Nc6 Bb5 a6 Ba4")
+    unnamed = make_game(alice, eco="A00", opening="Odd start")
+
+    items = {g["id"]: g for g in alice_client.get(GAMES).json()["items"]}
+
+    assert (items[ruy.pk]["eco"], items[ruy.pk]["opening"]) == (
+        "C70",
+        "Ruy Lopez: Morphy Defense",
+    )
+    assert (items[unnamed.pk]["eco"], items[unnamed.pk]["opening"]) == ("A00", "Odd start")
 
 
 def test_pages_have_a_total(alice_client: Client, alice: User) -> None:
@@ -219,12 +255,12 @@ def test_filters_by_tag_collection_and_import(alice_client: Client, alice: User)
 def test_the_number_of_queries_doesnt_grow_with_the_games(
     alice_client: Client, alice: User
 ) -> None:
-    make_game(alice)
+    with_positions(make_game(alice), "e4 e5")
     with CaptureQueriesContext(connection) as one_game:
         alice_client.get(GAMES)
 
     for _ in range(25):
-        make_game(alice)
+        with_positions(make_game(alice), "d4 d5")
     with CaptureQueriesContext(connection) as many_games:
         alice_client.get(GAMES)
 

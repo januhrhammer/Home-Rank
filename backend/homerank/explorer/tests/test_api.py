@@ -52,6 +52,18 @@ def test_my_explorer(alice_client: Client) -> None:
     assert [(m["san"], m["white"]) for m in body["moves"]] == [("e4", 1)]
 
 
+def test_the_explorer_names_the_position(alice_client: Client, masters: ReferenceDatabase) -> None:
+    board = chess.Board()
+    for san in ("e4", "e5", "Nf3", "Nc6", "Bb5"):
+        board.push_san(san)
+
+    ruy = get(alice_client, "my", fen=board.fen()).json()
+    start = get(alice_client, f"reference/{masters.pk}", fen=chess.STARTING_FEN).json()
+
+    assert ruy["opening"] == {"eco": "C60", "name": "Ruy Lopez"}
+    assert start["opening"] is None
+
+
 def test_reference_explorer_with_and_without_filters(
     alice_client: Client, masters: ReferenceDatabase
 ) -> None:
@@ -89,7 +101,7 @@ def test_others_games_dont_show_in_my_explorer(client: Client, alice: User) -> N
 
     body = get(client, "my", fen=chess.STARTING_FEN).json()
 
-    assert body == {"games": 0, "moves": [], "filtered": True}
+    assert body == {"games": 0, "moves": [], "filtered": True, "opening": None}
 
 
 def test_requires_login(client: Client) -> None:
