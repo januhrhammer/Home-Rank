@@ -39,7 +39,7 @@ real search, which can't run everything side by side).
 
 - **Starting a search**: from any board position in the app (the analysis board, the repertoire
   editor, the game viewer), "Find tries from here", with the side to prepare for, the
-  opponent's rating (the rating Maia plays at, see Open question), the risk budget (default 1.5
+  opponent's rating (converted to the Lichess rating Maia plays at, see below), the risk budget (default 1.5
   pawns) and a time limit: "between rounds" (1 hour) or "overnight" (8 hours), or a custom one.
 - **The search** runs as a background job in the worker, on its own queue, one at a time per
   server (it uses the whole processor). It deepens step by step: first two of the user's moves,
@@ -62,12 +62,14 @@ real search, which can't run everything side by side).
 - The search code (expectimax, the opponent model, scoring) lives in `engine`, without Django;
   the app stores and shows.
 
-## Open question
-
-Maia's ratings are Lichess ratings; the maintainer's opponents have national or FIDE ratings,
-which are lower than Lichess ratings at club level. Proposed: the form asks for the opponent's
-rating as the maintainer knows it plus its kind (Lichess, FIDE, national) and converts with a
-rough published table, showing the Lichess rating it uses, which can be changed.
+- **The opponent's rating**: Maia's ratings are Lichess ratings; the maintainer's opponents have
+  DWZ or FIDE ratings, lower at club level. The form takes the rating as known and its kind
+  (Lichess, FIDE, DWZ) and converts it with a rough rule: FIDE + 200 and DWZ + 250, each falling
+  linearly to + 100 at 2300 and above. It shows the Lichess rating it will use, which can be
+  changed. Published comparisons only cover FIDE 1660 and up (ChessGoals, July 2026: about + 125
+  to + 200 in Lichess rapid between 1700 and 2000, narrowing above 2300; reported gaps grow at
+  lower ratings; FIDE is often about 100 above DWZ at club level); the rule follows them roughly
+  and can be adjusted once games against Maia show how it fits.
 
 ## Consequences
 
