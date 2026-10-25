@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.14.0](https://github.com/januhrhammer/Home-Rank/compare/v0.13.0...v0.14.0) (2026-10-25)
+
+
+### Features
+
+* **ui:** remember where the explorer takes its games from ([#130](https://github.com/januhrhammer/Home-Rank/issues/130)) ([02d81d2](https://github.com/januhrhammer/Home-Rank/commit/02d81d257cb7268146597f64b8ade1689a6273f6))
+
+
+### Bug Fixes
+
+* **ui:** moves on the search board pass the move to the other side ([#132](https://github.com/januhrhammer/Home-Rank/issues/132)) ([8fb7e22](https://github.com/januhrhammer/Home-Rank/commit/8fb7e221c07cd03bfb072eb37f439fe710d24bad))
+
 ## [0.13.0](https://github.com/januhrhammer/Home-Rank/compare/v0.12.0...v0.13.0) (2026-10-25)
 
 
