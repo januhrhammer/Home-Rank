@@ -61,7 +61,6 @@ real search, which can't run everything side by side).
   repertoire (as a new line, ADR 0020), or play it out against Maia at that rating.
 - The search code (expectimax, the opponent model, scoring) lives in `engine`, without Django;
   the app stores and shows.
-
 - **The opponent's rating**: Maia's ratings are Lichess ratings; the maintainer's opponents have
   DWZ or FIDE ratings, lower at club level. The form takes the rating as known and its kind
   (Lichess, FIDE, DWZ) and converts it with a rough rule: FIDE + 200 and DWZ + 250, each falling
