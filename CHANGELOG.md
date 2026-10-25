@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.12.0](https://github.com/januhrhammer/Home-Rank/compare/v0.11.0...v0.12.0) (2026-10-25)
+
+
+### Features
+
+* **api:** games show the opening their moves reach ([#119](https://github.com/januhrhammer/Home-Rank/issues/119)) ([6642868](https://github.com/januhrhammer/Home-Rank/commit/66428686d1931381a7ed794bf450dc082a66f582))
+* **chesslib:** opening names by position, from Lichess's opening list ([#118](https://github.com/januhrhammer/Home-Rank/issues/118)) ([a55ce77](https://github.com/januhrhammer/Home-Rank/commit/a55ce77cafa2711611a08a3b513cde246f2e3981))
+* **ui:** live analysis on reference games ([#115](https://github.com/januhrhammer/Home-Rank/issues/115)) ([239e1c7](https://github.com/januhrhammer/Home-Rank/commit/239e1c74feeb85f07bbfaa69e47e0e542a290d51))
+* **ui:** opening names in the reference list and the explorer ([#120](https://github.com/januhrhammer/Home-Rank/issues/120)) ([aa61bb6](https://github.com/januhrhammer/Home-Rank/commit/aa61bb6f4f294e8f294b51976ebf25584957d271))
+
+
+### Bug Fixes
+
+* **reference:** page through a database's games without sorting them all ([#114](https://github.com/januhrhammer/Home-Rank/issues/114)) ([1a08e08](https://github.com/januhrhammer/Home-Rank/commit/1a08e083527f57bd8341c05792cd5b6c1d0b7fd2))
+
 ## [0.11.0](https://github.com/januhrhammer/Home-Rank/compare/v0.10.0...v0.11.0) (2026-10-25)
 
 
