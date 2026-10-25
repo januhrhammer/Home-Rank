@@ -92,6 +92,12 @@ stockfish:
 maia:
     docker/get-maia.sh .tools/maia
 
+# Replace the opening names with another version of Lichess's list (ADR 0021), e.g. a commit
+openings commit:
+    for f in a b c d e; do curl -fsSL -o backend/homerank/chesslib/data/openings/$f.tsv \
+        https://raw.githubusercontent.com/lichess-org/chess-openings/{{commit}}/$f.tsv; done
+    @echo "Now put {{commit}} into backend/homerank/chesslib/data/openings/README.md and run just test."
+
 # Format the backend code
 [working-directory('backend')]
 fmt-backend:
