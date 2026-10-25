@@ -21,7 +21,16 @@ import { FindTriesDialog } from "../novelty";
 import { StartGameDialog } from "../play";
 import { mySearchQuery, referenceSearchQuery, type Source } from "./explorer";
 import { ExplorerPanel } from "./ExplorerPanel";
-import { EMPTY_BOARD, fullFen, isLegalPosition, putPiece, readFen, START_BOARD } from "./position";
+import {
+  asMove,
+  EMPTY_BOARD,
+  fullFen,
+  isLegalPosition,
+  playMove,
+  putPiece,
+  readFen,
+  START_BOARD,
+} from "./position";
 import styles from "./SearchPage.module.css";
 import { useExplorerSource } from "./source";
 
@@ -58,8 +67,10 @@ export function SearchPage() {
             label={t("search.board")}
             arrows={legal ? arrowsOf(live.lines) : undefined}
             editable={{
+              // A legal move dragged passes the move to the other side, as when playing; a
+              // piece put anywhere else just changes the set-up.
               onChange: (next) => {
-                update(next, turn);
+                update(next, (legal ? asMove(fen, next)?.turn : undefined) ?? turn);
               },
               onSquare: (square) => {
                 if (tool !== null) {
@@ -134,6 +145,12 @@ export function SearchPage() {
                 fen={fen}
                 source={source}
                 onSourceChange={setSource}
+                onMove={(move) => {
+                  const after = playMove(fen, move.uci);
+                  if (after) {
+                    update(after.board, after.turn);
+                  }
+                }}
                 formatMove={(san) => (notation === "figurines" ? withFigurines(san) : san)}
               />
               <Results key={`${fen} ${JSON.stringify(source)}`} fen={fen} source={source} />

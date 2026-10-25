@@ -1,4 +1,4 @@
-import { cleanup, screen, within } from "@testing-library/react";
+import { cleanup, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { expect, test } from "vitest";
@@ -202,6 +202,20 @@ test("a database no longer there means my games again", async () => {
   open("/search");
 
   expect(await screen.findByRole("button", { name: /My games.*Games from/ })).toBeInTheDocument();
+});
+
+test("a move chosen in the search page's explorer is played, and the other side is to move", async () => {
+  const requests = simulateExplorer();
+  open("/search");
+  const user = userEvent.setup();
+
+  const table = await screen.findByRole("table");
+  await user.click(within(table).getByRole("button", { name: "e4" }));
+
+  expect(await screen.findByRole("radio", { name: "Black" })).toBeChecked();
+  await waitFor(() => {
+    expect(requests.at(-1)).toBe("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1");
+  });
 });
 
 test("the search page finds my games reaching the position", async () => {
