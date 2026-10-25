@@ -182,9 +182,10 @@ On a small server whose fan gets loud under load, or that does other work too, g
 NOVELTY_ENGINES=3
 ```
 
-As a guide, on a 6-core mini PC (i5-9500T) a search looks three of the user's moves deep in
-about 10 minutes and four in about an hour; on a fast desktop it gets there four to five times
-sooner. Maia, the model of the opponent, needs no setup.
+As a guide: on a 16-thread desktop (Ryzen 7 9700X) a search looks three of the user's moves
+deep in about 2 minutes and four in under 10; a 6-core mini PC (i5-9500T), with a third of the
+engines, each about three times slower, needs about 20 minutes for three and an hour for four.
+Maia, the model of the opponent, needs no setup.
 
 ### Live analysis
 
