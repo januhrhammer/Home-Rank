@@ -325,6 +325,11 @@ const messages = {
   "play.new": "New game",
   "play.newFrom": "Play from here",
   "play.labelAfter": "{start}, after {line}",
+  "play.current": "Current position",
+  "play.viewing": "You are looking at an earlier position.",
+  "play.backToGame": "Back to the game",
+  "play.ahead": "More pieces: {pieces}",
+  "play.aheadPoints": "More pieces: {pieces}; {points} points ahead",
   "play.leftByYou": "You left your repertoire “{repertoire}” with {move}; it has {expected}.",
   "play.leftByBot":
     "{name} left your repertoire “{repertoire}” with {move}: you have no reply prepared.",

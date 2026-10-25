@@ -57,3 +57,39 @@ export function outcomeFor(result: string, userColor: "white" | "black"): Outcom
   }
   return null;
 }
+
+/** The pieces one side has more of than the other, and by how many points it is ahead. */
+export interface Ahead {
+  /** Piece letters, the most valuable first: ["N", "P", "P"]. */
+  pieces: string[];
+  /** Points ahead (pawn 1, knight and bishop 3, rook 5, queen 9); 0 if not ahead. */
+  advantage: number;
+}
+
+const VALUES: [string, number][] = [
+  ["Q", 9],
+  ["R", 5],
+  ["B", 3],
+  ["N", 3],
+  ["P", 1],
+];
+
+/** What each side is up in material in the position, as next to the players on Lichess. */
+export function material(fen: string): { white: Ahead; black: Ahead } {
+  const board = fen.split(" ")[0] ?? "";
+  const count = (letter: string) => board.split(letter).length - 1;
+  const white: Ahead = { pieces: [], advantage: 0 };
+  const black: Ahead = { pieces: [], advantage: 0 };
+  let score = 0;
+  for (const [letter, value] of VALUES) {
+    const difference = count(letter) - count(letter.toLowerCase());
+    const ahead = difference > 0 ? white : black;
+    for (let i = 0; i < Math.abs(difference); i++) {
+      ahead.pieces.push(letter);
+    }
+    score += difference * value;
+  }
+  white.advantage = Math.max(0, score);
+  black.advantage = Math.max(0, -score);
+  return { white, black };
+}

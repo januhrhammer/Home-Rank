@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { clockText, outcomeFor, playedMoves } from "./moves";
+import { clockText, material, outcomeFor, playedMoves } from "./moves";
 
 const START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -34,4 +34,23 @@ test("the result from the user's side", () => {
   expect(outcomeFor("0-1", "black")).toBe("won");
   expect(outcomeFor("1/2-1/2", "white")).toBe("drawn");
   expect(outcomeFor("", "white")).toBeNull();
+});
+
+test("material: the pieces each side is up, and by how much", () => {
+  expect(material(START)).toEqual({
+    white: { pieces: [], advantage: 0 },
+    black: { pieces: [], advantage: 0 },
+  });
+  // Black has no knights and five pawns, White one bishop: White is up N P P P (6), Black up
+  // B (3), so White is 3 ahead.
+  const fen = "r1bqkb1r/pp3ppp/8/8/8/8/PPPPPPPP/R1BQK1NR w KQkq - 0 10";
+  expect(material(fen)).toEqual({
+    white: { pieces: ["N", "P", "P", "P"], advantage: 3 },
+    black: { pieces: ["B"], advantage: 0 },
+  });
+  // A promoted queen counts as a queen.
+  expect(material("4k3/8/8/8/8/8/8/Q3K3 w - - 0 60").white).toEqual({
+    pieces: ["Q"],
+    advantage: 9,
+  });
 });

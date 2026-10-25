@@ -205,3 +205,37 @@ test("a note says where the game left the user's repertoire", async () => {
     ),
   ).toBeInTheDocument();
 });
+
+test("the game's moves can be stepped through while it runs; moves wait for the current position", async () => {
+  simulateAuth(alice, { loggedIn: true });
+  simulatePlay(aGame({ moves: ["e2e4", "c7c5"], fen: AFTER_E4_C5 }));
+  renderApp("/play/3");
+  const user = userEvent.setup();
+  const moves = await screen.findByRole("list", { name: "Moves" });
+  expect(screen.getByRole("textbox", { name: "Type your move" })).toBeInTheDocument();
+
+  await user.keyboard("{ArrowLeft}");
+
+  expect(screen.getByText("You are looking at an earlier position.")).toBeInTheDocument();
+  expect(within(moves).getAllByRole("listitem")[0]).toHaveAttribute("aria-current", "step");
+  expect(screen.queryByRole("textbox", { name: "Type your move" })).not.toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "Back to the game" }));
+  expect(screen.getByRole("textbox", { name: "Type your move" })).toBeInTheDocument();
+
+  await user.click(within(moves).getByRole("button", { name: "e4" }));
+  expect(screen.getByText("You are looking at an earlier position.")).toBeInTheDocument();
+  await user.keyboard("{End}");
+  expect(screen.queryByText("You are looking at an earlier position.")).not.toBeInTheDocument();
+});
+
+test("the pieces a player is up are shown next to them, with the points", async () => {
+  simulateAuth(alice, { loggedIn: true });
+  // Black is missing its b8 knight.
+  const fen = "r1bqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+  simulatePlay(aGame({ start_fen: fen, fen }));
+  renderApp("/play/3");
+
+  const ahead = await screen.findByRole("img", { name: "More pieces: knight; 3 points ahead" });
+
+  expect(ahead).toHaveTextContent("♘ +3");
+});
