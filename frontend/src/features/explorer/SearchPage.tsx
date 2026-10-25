@@ -23,6 +23,7 @@ import { mySearchQuery, referenceSearchQuery, type Source } from "./explorer";
 import { ExplorerPanel } from "./ExplorerPanel";
 import { EMPTY_BOARD, fullFen, isLegalPosition, putPiece, readFen, START_BOARD } from "./position";
 import styles from "./SearchPage.module.css";
+import { useExplorerSource } from "./source";
 
 const ROLES = ["king", "queen", "rook", "bishop", "knight", "pawn"] as const;
 const COLORS = ["white", "black"] as const;
@@ -35,7 +36,7 @@ export function SearchPage() {
   const [board, setBoard] = useState(start.board);
   const [turn, setTurn] = useState<"white" | "black">(start.turn);
   const [tool, setTool] = useState<Tool>(null);
-  const [source, setSource] = useState<Source>({ kind: "mine" });
+  const [source, setSource] = useExplorerSource();
   const [notation] = useNotation();
   const fen = fullFen(board, turn);
   const legal = isLegalPosition(fen);

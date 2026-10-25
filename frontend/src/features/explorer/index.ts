@@ -4,3 +4,4 @@ export { ExplorerPanel } from "./ExplorerPanel";
 export { ReferenceGamePage } from "./ReferenceGamePage";
 export { ReferencePage } from "./ReferencePage";
 export { SearchPage } from "./SearchPage";
+export { useExplorerSource } from "./source";

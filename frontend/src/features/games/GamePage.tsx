@@ -18,7 +18,7 @@ import { useKeyboard } from "../../lib/useKeyboard";
 import type { PositionEval } from "../analysis";
 import { AnalysisPanel, EvalBar, EvalGraph, useGameAnalysis } from "../analysis";
 import { arrowsOf, EnginePanel, useLiveAnalysis } from "../engine";
-import { ExplorerPanel, type Source } from "../explorer";
+import { ExplorerPanel, useExplorerSource } from "../explorer";
 import { FindTriesDialog, ucisOf } from "../novelty";
 import { StartGameDialog } from "../play";
 import { boardMove, legalDests, turnOf } from "../training";
@@ -92,7 +92,7 @@ function Viewer({ game, pgn, tree, annotate }: ViewerProps) {
   // The user's side is at the bottom unless they flip the board.
   const [flipped, setFlipped] = useState(false);
   const [notation, setNotation] = useNotation();
-  const [explorerSource, setExplorerSource] = useState<Source>({ kind: "mine" });
+  const [explorerSource, setExplorerSource] = useExplorerSource();
   const orientation = (game.user_color === "black") !== flipped ? "black" : "white";
   const analysis = useGameAnalysis(game.id);
   const engine = useEngineView(tree, analysis.data?.positions ?? [], current);

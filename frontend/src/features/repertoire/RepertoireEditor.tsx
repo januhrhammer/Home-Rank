@@ -17,7 +17,7 @@ import { BackIcon, EndIcon, FlipIcon, ForwardIcon, StartIcon } from "../../compo
 import { t } from "../../lib/i18n";
 import { useKeyboard } from "../../lib/useKeyboard";
 import { arrowsOf, EnginePanel, useLiveAnalysis } from "../engine";
-import { ExplorerPanel, type Source } from "../explorer";
+import { ExplorerPanel, useExplorerSource } from "../explorer";
 import { MoveList, type MoveNode, useNotation, withFigurines } from "../games";
 import { FindTriesDialog } from "../novelty";
 import { StartGameDialog } from "../play";
@@ -64,7 +64,7 @@ export function RepertoireEditor({ repertoire, line, lines, moves }: RepertoireE
   const [currentId, setCurrentId] = useState<number | null>(null);
   const current = currentId === null ? null : (tree.byId.get(currentId) ?? null);
   const [flipped, setFlipped] = useState(false);
-  const [explorerSource, setExplorerSource] = useState<Source>({ kind: "mine" });
+  const [explorerSource, setExplorerSource] = useExplorerSource();
   const addMove = useAddMove(repertoire.id);
 
   const fen = current?.fen ?? START_FEN;
