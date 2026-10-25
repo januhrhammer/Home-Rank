@@ -1,10 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
+import { INITIAL_FEN } from "chessops/fen";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "react-aria-components";
 import { useNavigate, useParams } from "react-router";
 
 import { Board } from "../../components/Board";
 import { t } from "../../lib/i18n";
+import { arrowsOf, EnginePanel, useLiveAnalysis } from "../engine";
 import {
   buildMoveTree,
   endOfLine,
@@ -16,7 +18,7 @@ import {
 import { referenceGameQuery, useCopyGame } from "./explorer";
 import styles from "./ReferencePage.module.css";
 
-/** A reference game to replay, and copy into your own games. */
+/** A reference game to replay, with live analysis if wanted, and to copy into your own games. */
 export function ReferenceGamePage() {
   const params = useParams();
   const databaseId = Number(params.databaseId);
@@ -27,6 +29,8 @@ export function ReferenceGamePage() {
   const [notation] = useNotation();
   const copy = useCopyGame(databaseId, gameId);
   const navigate = useNavigate();
+  const shownFen = current?.fen ?? tree?.startFen ?? INITIAL_FEN;
+  const live = useLiveAnalysis(shownFen);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -73,10 +77,11 @@ export function ReferenceGamePage() {
       </p>
       <div className={styles.viewer}>
         <div className={styles.board}>
-          <Board fen={current?.fen ?? tree.startFen} lastMove={current?.squares} />
+          <Board fen={shownFen} lastMove={current?.squares} arrows={arrowsOf(live.lines)} />
           <p className={styles.note}>{t("viewer.keys")}</p>
         </div>
         <div className={styles.side}>
+          <EnginePanel fen={shownFen} analysis={live} />
           <MoveList tree={tree} current={current} onSelect={setCurrent} notation={notation} />
           <Button
             className={styles.button}

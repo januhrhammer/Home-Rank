@@ -202,6 +202,8 @@ test("browses a reference database and copies a game", async () => {
   expect(await screen.findByText(/Over the board, 1850-2026/)).toBeInTheDocument();
   await user.click(await screen.findByRole("link", { name: "Morphy, Paul" }));
   expect(await screen.findByRole("heading", { name: "Morphy, Paul – Duke Karl" })).toBeVisible();
+  // Live analysis without copying the game first; it starts switched off.
+  expect(screen.getByRole("switch", { name: "Live analysis" })).not.toBeChecked();
   await user.click(screen.getByRole("button", { name: "Copy to my games" }));
 
   expect(await screen.findByRole("heading", { name: /Anna – Ben/ })).toBeVisible();
