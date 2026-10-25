@@ -78,3 +78,16 @@
 .black {
   background: var(--eval-black);
 }
+
+/* The position's name in Lichess's opening list (ADR 0021), in the book's type. */
+.opening {
+  margin: 0;
+  font-family: var(--font-serif);
+}
+
+.eco {
+  margin-right: var(--space-1);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}

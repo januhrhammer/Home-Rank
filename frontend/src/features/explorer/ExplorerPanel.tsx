@@ -44,6 +44,12 @@ export function ExplorerPanel({
           );
         }}
       />
+      {explorer.data?.opening && (
+        <p className={styles.opening}>
+          <span className={styles.eco}>{explorer.data.opening.eco}</span>{" "}
+          {explorer.data.opening.name}
+        </p>
+      )}
       {explorer.isError && <p role="alert">{t("explorer.loadFailed")}</p>}
       {explorer.data && explorer.data.moves.length === 0 && (
         <p className={styles.empty}>{t("explorer.none")}</p>

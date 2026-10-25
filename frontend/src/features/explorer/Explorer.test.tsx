@@ -91,8 +91,13 @@ function simulateExplorer() {
   server.use(
     http.get("*/api/v1/reference/databases", () => HttpResponse.json([MASTERS])),
     http.get("*/api/v1/explorer/my", ({ request }) => {
-      requests.push(new URL(request.url).searchParams.get("fen") ?? "");
-      return HttpResponse.json(explorer([["e2e4", "e4", 5]]));
+      const fen = new URL(request.url).searchParams.get("fen") ?? "";
+      requests.push(fen);
+      // After 1. e4 the position has a name in Lichess's list.
+      const opening = fen.startsWith("rnbqkbnr/pppppppp/8/8/4P3")
+        ? { eco: "B00", name: "King's Pawn Game" }
+        : null;
+      return HttpResponse.json({ ...explorer([["e2e4", "e4", 5]]), opening });
     }),
     http.get("*/api/v1/explorer/reference/:id", () =>
       HttpResponse.json(
@@ -150,6 +155,7 @@ test("the viewer's explorer shows my moves and steps into the game", async () =>
   await user.click(within(table).getByRole("button", { name: "e4" }));
 
   expect(await screen.findByRole("img", { name: "Position after 1. e4" })).toBeInTheDocument();
+  expect(await screen.findByText("King's Pawn Game")).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Find games with this position" })).toHaveAttribute(
     "href",
     `/search?${new URLSearchParams({ fen: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1" }).toString()}`,
@@ -201,6 +207,9 @@ test("browses a reference database and copies a game", async () => {
   const user = userEvent.setup();
 
   expect(await screen.findByText(/Over the board, 1850-2026/)).toBeInTheDocument();
+  expect(await screen.findByRole("row", { name: /Morphy, Paul/ })).toHaveTextContent(
+    "C41 Philidor Defense",
+  );
   await user.click(await screen.findByRole("link", { name: "Morphy, Paul" }));
   expect(await screen.findByRole("heading", { name: "Morphy, Paul – Duke Karl" })).toBeVisible();
   // Live analysis without copying the game first; it starts switched off.

@@ -83,7 +83,7 @@ function Games({ databaseId }: { databaseId: number }) {
                     {t("games.column.event")}
                   </th>
                   <th scope="col" className={styles.wideOnly}>
-                    ECO
+                    {t("games.column.opening")}
                   </th>
                 </tr>
               </thead>
@@ -103,7 +103,9 @@ function Games({ databaseId }: { databaseId: number }) {
                     <td>{game.result === "1/2-1/2" ? "½-½" : game.result}</td>
                     <td>{formatGameDate(game.date_pgn)}</td>
                     <td className={styles.wideOnly}>{game.event}</td>
-                    <td className={styles.wideOnly}>{game.eco}</td>
+                    <td className={styles.wideOnly}>
+                      {game.eco && <span className={styles.eco}>{game.eco}</span>} {game.opening}
+                    </td>
                   </tr>
                 ))}
               </tbody>
