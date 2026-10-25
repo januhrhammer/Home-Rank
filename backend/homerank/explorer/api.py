@@ -46,7 +46,8 @@ def _reference_filters(query: ReferenceQuery) -> ReferenceFilters:
 def my_explorer(request: AuthenticatedRequest, query: Query[MyGamesQuery]) -> Explorer:
     """The moves you played from the position, with their results."""
     try:
-        return selectors.my_explorer(user=request.user, fen=query.fen, filters=_my_filters(query))
+        found = selectors.my_explorer(user=request.user, fen=query.fen, filters=_my_filters(query))
+        return selectors.named(found, query.fen)
     except InvalidFenError as error:
         raise BadPositionError from error
 
@@ -58,9 +59,10 @@ def reference_explorer(
     """The moves played from the position in a reference database, with their results."""
     database = reference_selectors.database(database_id=database_id)
     try:
-        return selectors.reference_explorer(
+        found = selectors.reference_explorer(
             database=database, fen=query.fen, filters=_reference_filters(query)
         )
+        return selectors.named(found, query.fen)
     except InvalidFenError as error:
         raise BadPositionError from error
 

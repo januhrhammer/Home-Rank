@@ -1505,6 +1505,7 @@ export interface components {
             games: number;
             /** Moves */
             moves: components["schemas"]["MoveStatsOut"][];
+            opening: components["schemas"]["OpeningOut"] | null;
         };
         /**
          * GameAnalysisOut
@@ -1992,6 +1993,13 @@ export interface components {
             /** Due */
             due: number;
             puzzle: components["schemas"]["PuzzleOut"] | null;
+        };
+        /** OpeningOut */
+        OpeningOut: {
+            /** Eco */
+            eco: string;
+            /** Name */
+            name: string;
         };
         /**
          * Opponent

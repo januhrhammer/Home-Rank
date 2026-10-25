@@ -61,10 +61,11 @@ def list_games(
 
 
 @router.get("/databases/{int:database_id}/games/{int:game_id}", response=ReferenceGameOut)
-def get_game(request: AuthenticatedRequest, database_id: int, game_id: int) -> dict[str, object]:
+def get_game(request: AuthenticatedRequest, database_id: int, game_id: int) -> ReferenceGame:
     """One game, with its PGN."""
     game = selectors.game(database=selectors.database(database_id=database_id), game_id=game_id)
-    return {**ReferenceGameItem.from_orm(game).dict(), "pgn": selectors.pgn_of(game)}
+    game.pgn = selectors.pgn_of(game)  # type: ignore[attr-defined]  # rebuilt, not stored
+    return game
 
 
 @router.post(

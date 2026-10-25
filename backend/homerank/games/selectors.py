@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 
 from homerank.accounts.models import User
 from homerank.games.models import Collection, Game, Group, ImportRun, Tag
+from homerank.games.openings import opening_positions
 from homerank.games.schemas import GameFilters
 
 # Filters that compare one field with the given value: the filter's name, and the lookup.
@@ -35,7 +36,7 @@ _OUTCOMES = {
 
 def games(*, user: User, filters: GameFilters) -> QuerySet[Game]:
     """The user's games that match the filters, sorted as they ask, without the PGN text."""
-    queryset = Game.objects.filter(user=user).defer("pgn")
+    queryset = Game.objects.filter(user=user).defer("pgn").prefetch_related(opening_positions())
     for name, lookup in _FIELD_FILTERS.items():
         value = getattr(filters, name)
         if value is not None:
@@ -61,7 +62,7 @@ def game_list(*, user: User, filters: GameFilters) -> QuerySet[Game]:
 def game(*, user: User, game_id: int) -> Game:
     """One of the user's games, with its tags and collections; 404 for anyone else's game."""
     queryset = Game.objects.filter(user=user).prefetch_related(
-        _by_name("tags", Tag), _by_name("collections", Collection)
+        _by_name("tags", Tag), _by_name("collections", Collection), opening_positions()
     )
     return get_object_or_404(queryset, pk=game_id)
 

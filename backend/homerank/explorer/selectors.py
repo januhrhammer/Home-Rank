@@ -16,6 +16,7 @@ import chess.polyglot
 from django.db.models import Avg, Case, Count, F, Max, Min, Q, QuerySet, Subquery, When
 
 from homerank.accounts.models import User
+from homerank.chesslib.openings import Opening, opening_at
 from homerank.chesslib.packed import decode_move, unpack_moves
 from homerank.chesslib.positions import as_bigint
 from homerank.games.models import Game, GamePosition
@@ -66,6 +67,13 @@ class Explorer:
     games: int
     moves: list[MoveStats] = field(default_factory=list)
     filtered: bool = True  # False if the filters couldn't be applied (a very common position)
+    opening: Opening | None = None  # the position's name in Lichess's list (ADR 0021)
+
+
+def named(explorer: Explorer, fen: str) -> Explorer:
+    """The explorer's answer with the position's name, if Lichess's list has one."""
+    explorer.opening = opening_at(hash_of(board_of(fen)))
+    return explorer
 
 
 @dataclass

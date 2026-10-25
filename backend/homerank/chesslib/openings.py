@@ -61,3 +61,9 @@ def opening_of(positions: Iterable[int]) -> Opening | None:
             break
         found = table.get(zobrist, found)
     return found
+
+
+def shown(found: Opening | None, *, eco: str, opening: str) -> Opening:
+    """What a game shows as its opening: the name its positions get from the list, else its
+    PGN's ECO and Opening headers as they are (ADR 0021)."""
+    return found if found is not None else Opening(eco, opening)
