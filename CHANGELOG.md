@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.13.0](https://github.com/januhrhammer/Home-Rank/compare/v0.12.0...v0.13.0) (2026-10-25)
+
+
+### Features
+
+* **api:** novelty searches ([#126](https://github.com/januhrhammer/Home-Rank/issues/126)) ([037d2c8](https://github.com/januhrhammer/Home-Rank/commit/037d2c8ebff98e7e54f0d81b40ac179005e4f1b0))
+* **engine:** the novelty search ([#124](https://github.com/januhrhammer/Home-Rank/issues/124)) ([6d8fb13](https://github.com/januhrhammer/Home-Rank/commit/6d8fb13540b0c2beddb0e295bc625511d99be926))
+* **novelty:** searches as background jobs, with their tries stored ([#125](https://github.com/januhrhammer/Home-Rank/issues/125)) ([77d2887](https://github.com/januhrhammer/Home-Rank/commit/77d288755e115264da17bbfded10d009f063b1da))
+* **ui:** novelty searches: start one from a board, follow it, read its tries ([#127](https://github.com/januhrhammer/Home-Rank/issues/127)) ([d0aa00c](https://github.com/januhrhammer/Home-Rank/commit/d0aa00c2c78c40f4213e3c4849c9679658298cb9))
+* **ui:** play a try against Maia, or add it to a repertoire ([#128](https://github.com/januhrhammer/Home-Rank/issues/128)) ([26f1028](https://github.com/januhrhammer/Home-Rank/commit/26f1028cc6a34fb675a56a025e3a40d256cfbdac))
+* **ui:** step through a running game, and show material ([#121](https://github.com/januhrhammer/Home-Rank/issues/121)) ([d6185a4](https://github.com/januhrhammer/Home-Rank/commit/d6185a4082107ecf802929da2fb9992851efed57))
+
 ## [0.12.0](https://github.com/januhrhammer/Home-Rank/compare/v0.11.0...v0.12.0) (2026-10-25)
 
 
