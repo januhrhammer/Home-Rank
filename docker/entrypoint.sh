@@ -17,9 +17,9 @@ case "${1:-web}" in
         exec gunicorn config.wsgi --bind 0.0.0.0:8000 --workers "${WEB_WORKERS:-2}"
         ;;
     worker)
-        # Jobs run side by side: the analyses (at most ANALYSIS_CONCURRENCY at once) and two
-        # more, so imports and syncs needn't wait for an analysis to finish.
-        exec python manage.py procrastinate worker --concurrency "$((${ANALYSIS_CONCURRENCY:-1} + 2))"
+        # Jobs run side by side: the analyses (at most ANALYSIS_CONCURRENCY at once), a novelty
+        # search (one at a time, for hours), and two more, so imports and syncs needn't wait.
+        exec python manage.py procrastinate worker --concurrency "$((${ANALYSIS_CONCURRENCY:-1} + 3))"
         ;;
     *)
         exec "$@"
