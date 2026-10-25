@@ -23,6 +23,7 @@ import {
 } from "./novelty";
 import { details } from "./NoveltyListPage";
 import styles from "./NoveltyPage.module.css";
+import { TryActions } from "./TryActions";
 
 /** A refutation move found less often than this is marked as hard to find. */
 const HARD = 0.5;
@@ -86,6 +87,7 @@ function SearchView({ search }: { search: SearchDetail }) {
               ))}
             </ol>
             {shown && <Refutation search={search} found={shown} />}
+            {shown && <TryActions search={search} found={shown} />}
           </div>
         </div>
       )}

@@ -3,6 +3,7 @@ import { keepPreviousData, queryOptions, useMutation, useQueryClient } from "@ta
 import { api } from "../../api/client";
 import { ApiError, problemDetail } from "../../api/errors";
 import type { components } from "../../api/schema";
+import { REPERTOIRE_KEY } from "../repertoire";
 
 export type Search = components["schemas"]["SearchOut"];
 export type SearchDetail = components["schemas"]["SearchDetailOut"];
@@ -107,5 +108,48 @@ export function useDeleteSearch(searchId: number) {
     },
     // Only the list: the deleted search's own query would answer 404 now.
     onSuccess: () => queryClient.invalidateQueries({ queryKey: searchesQuery.queryKey }),
+  });
+}
+
+/** A move to add to a repertoire line: the position it is played from, and the move. */
+export interface LineMove {
+  fen: string;
+  uci: string;
+}
+
+/**
+ * Add a try to a repertoire as a new line: the line, then each move from the starting
+ * position on, one after the other (each must be reached by the moves before it).
+ */
+export function useAddToRepertoire() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      repertoireId,
+      name,
+      moves,
+    }: {
+      repertoireId: number;
+      name: string;
+      moves: LineMove[];
+    }) => {
+      const line = unwrap(
+        await api.POST("/api/v1/repertoires/{repertoire_id}/lines", {
+          params: { path: { repertoire_id: repertoireId } },
+          body: { name },
+        }),
+      );
+      for (const move of moves) {
+        unwrap(
+          await api.POST("/api/v1/repertoires/{repertoire_id}/moves", {
+            params: { path: { repertoire_id: repertoireId } },
+            body: { fen: move.fen, move_uci: move.uci, line_id: line.id },
+          }),
+        );
+      }
+      return line;
+    },
+    // The repertoire pages show the new line.
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: REPERTOIRE_KEY }),
   });
 }
