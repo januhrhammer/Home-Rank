@@ -17,6 +17,7 @@ import { t } from "../../lib/i18n";
 import { useUrlParams } from "../../lib/useUrlParams";
 import { arrowsOf, EnginePanel, useLiveAnalysis } from "../engine";
 import { formatGameDate, useNotation, withFigurines } from "../games";
+import { FindTriesDialog } from "../novelty";
 import { StartGameDialog } from "../play";
 import { mySearchQuery, referenceSearchQuery, type Source } from "./explorer";
 import { ExplorerPanel } from "./ExplorerPanel";
@@ -104,6 +105,15 @@ export function SearchPage() {
                 startFen={fen}
                 side={turn}
                 triggerLabel={t("play.newFrom")}
+                triggerClassName={styles.button}
+              />
+            )}
+            {legal && (
+              <FindTriesDialog
+                fen={fen}
+                moves={[]}
+                label={t("novelty.fromSearchBoard")}
+                side={turn}
                 triggerClassName={styles.button}
               />
             )}

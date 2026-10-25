@@ -66,6 +66,9 @@ export function Layout() {
                 <NavLink to="/play" className={styles.navLink}>
                   {t("nav.play")}
                 </NavLink>
+                <NavLink to="/novelty" className={styles.navLink}>
+                  {t("nav.novelty")}
+                </NavLink>
                 <NavLink to="/search" className={styles.navLink}>
                   {t("nav.search")}
                 </NavLink>

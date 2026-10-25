@@ -48,7 +48,9 @@ class SearchOut(Schema):
 class RefutationStepOut(Schema):
     san: str
     uci: str
-    found: float  # how likely the opponent finds this move or one nearly as good, 0 to 1
+    # The opponent's moves: how likely they find this one or one nearly as good, 0 to 1. Your
+    # moves in between: null.
+    found: float | None
 
 
 class TryOut(Schema):

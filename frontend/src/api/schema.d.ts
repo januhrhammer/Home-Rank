@@ -2464,7 +2464,7 @@ export interface components {
         /** RefutationStepOut */
         RefutationStepOut: {
             /** Found */
-            found: number;
+            found: number | null;
             /** San */
             san: string;
             /** Uci */

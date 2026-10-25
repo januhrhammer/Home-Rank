@@ -72,8 +72,8 @@ class NoveltyTry(models.Model):
     best_san = models.CharField(max_length=10)  # the engine's move there instead
     best_practical = models.FloatField()
     reach = models.FloatField()  # how often the opponent's likely moves lead there
-    # [{"san", "uci", "found"}]: the opponent's moves along the refutation, and how likely each
-    # (or one nearly as good) is found.
+    # [{"san", "uci", "found"}]: the refutation's moves; for the opponent's, how likely each (or
+    # one nearly as good) is found, for the user's null.
     refutation = models.JSONField()
     # Games in the first reference database reaching the position after the try; null without
     # a reference database.

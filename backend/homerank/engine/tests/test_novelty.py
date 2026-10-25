@@ -61,6 +61,8 @@ def test_the_refutation_says_how_likely_each_of_its_moves_is_found() -> None:
     first = g4.refutation[0]
     assert (first.san, first.uci) == ("d5", "d7d5")
     assert first.found == pytest.approx(0.2)
+    # The line goes on with our answers, which have no probability, between the opponent's.
+    assert [step.found is None for step in g4.refutation[:4]] == [False, True, False, True]
     assert g4.refuted == pytest.approx(0.2)
 
 

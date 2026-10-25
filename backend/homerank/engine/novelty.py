@@ -72,11 +72,14 @@ class Settings:
 
 @dataclass(frozen=True)
 class RefutationStep:
-    """One of the opponent's moves along the refutation, and how likely they find a good one."""
+    """A move of the refutation: the opponent's with how likely they find a good one, ours
+    (the engine's answers in between) without."""
 
     san: str
     uci: str
-    found: float  # probability that the model plays this move or one nearly as good
+    # For the opponent's moves: the probability that the model plays this move or one nearly
+    # as good. None for ours.
+    found: float | None
 
 
 @dataclass(frozen=True)
@@ -98,7 +101,7 @@ class Try:
     @property
     def refuted(self) -> float:
         """How likely the opponent finds every move of the refutation."""
-        return math.prod(step.found for step in self.refutation)
+        return math.prod(step.found for step in self.refutation if step.found is not None)
 
 
 @dataclass(frozen=True)
@@ -328,7 +331,7 @@ class Search:
         return tries
 
     def _refutation(self, board: chess.Board, plies: int = 8) -> list[RefutationStep]:
-        """Along the engine's line after the try: at each of the opponent's moves, how likely
+        """The engine's line after the try, with, at each of the opponent's moves, how likely
         the model plays one about as good as the engine's (within good_enough in winning
         chance)."""
         board = board.copy()
@@ -340,6 +343,7 @@ class Search:
             lines = self._evaluate(board, 5 if theirs else 1)
             if not lines:
                 break
+            found = None
             if theirs:
                 best = winning_chance(lines[0].cp)
                 good = [
@@ -349,7 +353,7 @@ class Search:
                 ]
                 probabilities = self._probabilities(board)
                 found = sum(probabilities.get(move, 0.0) for move in good)
-                steps.append(RefutationStep(board.san(lines[0].move), lines[0].move.uci(), found))
+            steps.append(RefutationStep(board.san(lines[0].move), lines[0].move.uci(), found))
             board.push(lines[0].move)
         return steps
 
