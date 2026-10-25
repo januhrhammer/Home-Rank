@@ -32,6 +32,8 @@ interface StartGameDialogProps {
   startLabel?: string;
   /** The side the user is likely to want, e.g. a repertoire's colour. */
   side?: "white" | "black";
+  /** Maia's rating at first, e.g. a novelty search's opponent's. */
+  rating?: number;
   /** The button that opens the dialog: "New game" or "Play from here". */
   triggerLabel?: string;
   triggerClassName?: string;
@@ -57,12 +59,13 @@ function StartForm({
   startFen = START,
   startLabel = "",
   side = "white",
+  rating: initialRating = 1500,
   onCancel,
 }: StartGameDialogProps & { onCancel: () => void }) {
   const opponents = useQuery(opponentsQuery);
   const [color, setColor] = useState(side);
   const [opponent, setOpponent] = useState<Opponent>("maia");
-  const [rating, setRating] = useState(1500);
+  const [rating, setRating] = useState(initialRating);
   const [clock, setClock] = useState("");
   const start = useStartGame();
   const navigate = useNavigate();

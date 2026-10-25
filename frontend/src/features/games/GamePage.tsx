@@ -19,7 +19,7 @@ import type { PositionEval } from "../analysis";
 import { AnalysisPanel, EvalBar, EvalGraph, useGameAnalysis } from "../analysis";
 import { arrowsOf, EnginePanel, useLiveAnalysis } from "../engine";
 import { ExplorerPanel, type Source } from "../explorer";
-import { FindTriesDialog } from "../novelty";
+import { FindTriesDialog, ucisOf } from "../novelty";
 import { StartGameDialog } from "../play";
 import { boardMove, legalDests, turnOf } from "../training";
 import { addMoves, deleteVariation, setComment, toggleMark, variationStart } from "./annotate";
@@ -306,6 +306,7 @@ function Viewer({ game, pgn, tree, annotate }: ViewerProps) {
             game={game}
             fen={current?.fen ?? tree.startFen}
             after={current ? `${moveNumber(current)} ${current.san}` : null}
+            moves={ucisOf(tree.startFen, sansTo(current))}
           />
         </div>
       </div>
@@ -362,15 +363,26 @@ function GameHeader({ game }: { game: Game }) {
   );
 }
 
+/** The moves (SAN) from the start to a node of the move tree, variations included. */
+function sansTo(node: MoveNode | null): string[] {
+  const sans: string[] = [];
+  for (let at = node; at !== null; at = at.parent) {
+    sans.unshift(at.san);
+  }
+  return sans;
+}
+
 interface ActionsProps {
   game: Game;
   /** The position shown. */
   fen: string;
+  /** The moves (UCI) from the game's start to it. */
+  moves: string[];
   /** The move that led there, e.g. "12. Nf3", to name a game played from it. */
   after: string | null;
 }
 
-function Actions({ game, fen, after }: ActionsProps) {
+function Actions({ game, fen, moves, after }: ActionsProps) {
   const [copied, setCopied] = useState<string | null>(null);
   const players = `${game.white || t("games.unknownPlayer")} – ${game.black || t("games.unknownPlayer")}`;
 
@@ -412,7 +424,7 @@ function Actions({ game, fen, after }: ActionsProps) {
       />
       <FindTriesDialog
         fen={fen}
-        moves={[]}
+        moves={moves}
         label={after === null ? players : t("play.labelAfter", { start: players, line: after })}
         side={game.user_color || (fen.split(" ")[1] === "b" ? "black" : "white")}
         triggerClassName={styles.action}

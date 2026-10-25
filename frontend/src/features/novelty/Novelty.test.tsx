@@ -6,6 +6,7 @@ import { expect, test } from "vitest";
 import { renderApp } from "../../test/render";
 import { server, simulateAuth } from "../../test/server";
 import type { User } from "../auth";
+import { ucisOf } from "./lines";
 import type { NewSearch, NoveltyTry, SearchDetail } from "./novelty";
 
 const alice: User = { id: 1, username: "alice", email: "", is_staff: false };
@@ -193,4 +194,76 @@ test("the searches are listed with their opponent and how far they got", async (
 
   expect(item).toHaveTextContent("For White · against FIDE 1800 (Maia 1962)");
   expect(item).toHaveTextContent("Searching: 2 of your moves deep so far.");
+});
+
+const START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+const MORRA_MOVES = ucisOf(
+  START,
+  "e4 c5 d4 cxd4 c3 dxc3 Nxc3 Nc6 Nf3 d6 Bc4 e6 O-O Nf6 Qe2 Be7 Rd1 e5".split(" "),
+);
+
+test("a try is added to a repertoire as a new line, with its refutation", async () => {
+  simulateAuth(alice, { loggedIn: true });
+  simulateNovelty(aSearch({ start_moves: MORRA_MOVES }));
+  const added: { fen: string; move_uci: string; line_id: number }[] = [];
+  const lines: { name: string }[] = [];
+  server.use(
+    http.get("*/api/v1/repertoires", () =>
+      HttpResponse.json([
+        { id: 4, name: "Morra", color: "white", line_count: 1, move_count: 40, due: 0 },
+        { id: 5, name: "Sicilian", color: "black", line_count: 1, move_count: 9, due: 0 },
+      ]),
+    ),
+    http.post("*/api/v1/repertoires/4/lines", async ({ request }) => {
+      lines.push((await request.json()) as { name: string });
+      return HttpResponse.json({ id: 31, name: "x", position: 1, move_count: 0 }, { status: 201 });
+    }),
+    http.post("*/api/v1/repertoires/4/moves", async ({ request }) => {
+      added.push((await request.json()) as { fen: string; move_uci: string; line_id: number });
+      return HttpResponse.json({}, { status: 201 });
+    }),
+  );
+  renderApp("/novelty/7");
+  const user = userEvent.setup();
+
+  await user.click(await screen.findByRole("button", { name: "Add to a repertoire" }));
+  const dialog = screen.getByRole("dialog");
+  expect(await within(dialog).findByRole("button", { name: /Morra/ })).toBeInTheDocument();
+  await user.click(within(dialog).getByRole("button", { name: "Add" }));
+
+  expect(await within(dialog).findByRole("link", { name: "Open the line" })).toHaveAttribute(
+    "href",
+    "/repertoires/4?line=31",
+  );
+  expect(lines).toEqual([{ name: "10.b4" }]);
+  // The 18 moves to the start, the try, and its 3 refutation moves, in order, into line 31.
+  expect(added.map((move) => move.move_uci)).toEqual([
+    ...MORRA_MOVES,
+    "b2b4",
+    "c8g4",
+    "b4b5",
+    "c6a5",
+  ]);
+  expect(added[18]).toEqual({ fen: MORRA, move_uci: "b2b4", line_id: 31 });
+});
+
+test("a try can be played out against Maia at the search's rating", async () => {
+  simulateAuth(alice, { loggedIn: true });
+  simulateNovelty(aSearch());
+  server.use(
+    http.get("*/api/v1/play/opponents", () =>
+      HttpResponse.json([{ opponent: "maia", min_elo: 800, max_elo: 2400 }]),
+    ),
+  );
+  renderApp("/novelty/7");
+  const user = userEvent.setup();
+
+  await user.click(await screen.findByRole("button", { name: "Play it against Maia" }));
+
+  const dialog = screen.getByRole("dialog");
+  expect(within(dialog).getByText("Smith-Morra, after 9.Rd1 e5: 10.b4")).toBeInTheDocument();
+  // The game's rating field goes in steps of 50: Maia 1962 becomes 1950.
+  expect(within(dialog).getByLabelText("Rating")).toHaveValue("1950");
+  // From a search on a position typed in, the moves to it aren't known: no repertoire.
+  expect(screen.getByText(/start the search from the repertoire editor or a game/)).toBeVisible();
 });

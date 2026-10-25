@@ -2,6 +2,6 @@
 export { DrillPage } from "./DrillPage";
 export { GapsPage } from "./GapsPage";
 export { MoveForm } from "./MoveForm";
-export { movesQuery, repertoiresQuery } from "./repertoire";
+export { movesQuery, REPERTOIRE_KEY, repertoiresQuery } from "./repertoire";
 export { RepertoireListPage } from "./RepertoireListPage";
 export { RepertoirePage } from "./RepertoirePage";
