@@ -175,6 +175,17 @@ def remove_duplicates(database_id: int) -> int:
     return before - _scalar(count)
 
 
+# The game partitions' indexes besides the primary key, by name suffix.
+BROWSE_INDEXES = (
+    ("white", "lower(white)"),
+    ("black", "lower(black)"),
+    ("eco", "eco"),
+    ("date", "date"),
+    ("newest", "date DESC NULLS LAST, id DESC"),
+    ("dedup", "dedup_hash"),
+)
+
+
 def build_index(database_id: int) -> None:
     """Build the explorer's aggregates and the packed position index from the staged positions,
     replacing what was there, and the games' search indexes; then drop the staging table."""
@@ -225,18 +236,13 @@ def build_index(database_id: int) -> None:
             max_listed=sql.Literal(MAX_LISTED_GAMES),
         ),
         sql.SQL("DROP TABLE {}").format(counts),
-        # For browsing and searching the games: by players, opening, date and duplicates.
+        # For browsing and searching the games: by players, opening, date and duplicates, and
+        # in the game list's order, newest first (the plain date index runs the other way).
         *(
             sql.SQL("CREATE INDEX IF NOT EXISTS {} ON {} ({})").format(
                 sql.Identifier(f"reference_game_{database_id}_{name}"), game, sql.SQL(expression)
             )
-            for name, expression in (
-                ("white", "lower(white)"),
-                ("black", "lower(black)"),
-                ("eco", "eco"),
-                ("date", "date"),
-                ("dedup", "dedup_hash"),
-            )
+            for name, expression in BROWSE_INDEXES
         ),
         sql.SQL("ANALYZE {}").format(game),
         sql.SQL("ANALYZE {}").format(explorer),

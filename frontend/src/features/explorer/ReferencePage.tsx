@@ -71,7 +71,8 @@ function Games({ databaseId }: { databaseId: number }) {
       {games.data && (
         <>
           <div className={styles.scroll}>
-            <table className={styles.table}>
+            {/* Dimmed while the next page loads (the current one stays until then). */}
+            <table className={styles.table} aria-busy={games.isPlaceholderData}>
               <thead>
                 <tr>
                   <th scope="col">{t("games.column.white")}</th>

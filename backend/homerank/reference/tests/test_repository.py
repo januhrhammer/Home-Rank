@@ -146,3 +146,15 @@ def test_entries_are_found_by_binary_search() -> None:
     assert find_entries(entries, -5) == [Entry(1, 0)]
     assert find_entries(entries, 4) == []
     assert find_entries(b"", 3) == []
+
+
+def test_an_imported_databases_games_are_indexed_newest_first(masters: ReferenceDatabase) -> None:
+    # The game list's order: without this index, every page sorted all of the database's games.
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "SELECT indexdef FROM pg_indexes WHERE indexname = %s",
+            [f"reference_game_{masters.pk}_newest"],
+        )
+        (definition,) = cursor.fetchone() or ("",)
+
+    assert "(date DESC NULLS LAST, id DESC)" in definition

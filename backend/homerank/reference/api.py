@@ -1,6 +1,8 @@
 from http import HTTPStatus
+from typing import Any
 
 from django.db.models import QuerySet
+from django.http import HttpRequest
 from ninja import Query, Router, Status
 from ninja.pagination import paginate
 
@@ -28,8 +30,28 @@ def list_databases(request: AuthenticatedRequest) -> QuerySet[ReferenceDatabase]
     return selectors.databases()
 
 
+class GamesPage(LimitOffset):
+    """Pages of a database's games. Without filters, the total is the number of games the import
+    stored: counting millions of them again for every page took seconds."""
+
+    def paginate_queryset(
+        self,
+        queryset: QuerySet[Any],
+        pagination: LimitOffset.Input,
+        request: HttpRequest,
+        **params: Any,
+    ) -> dict[str, Any]:
+        filters: ReferenceGameFilters | None = params.get("filters")
+        unfiltered = filters is not None and not any(filters.dict().values())
+        database = selectors.database(database_id=params["database_id"])
+        if not unfiltered or database.status != ReferenceDatabase.Status.READY:
+            return super().paginate_queryset(queryset, pagination, request, **params)
+        start = pagination.offset
+        return {"items": queryset[start : start + pagination.limit], "total": database.game_count}
+
+
 @router.get("/databases/{int:database_id}/games", response=list[ReferenceGameItem])
-@paginate(LimitOffset)
+@paginate(GamesPage)
 def list_games(
     request: AuthenticatedRequest, database_id: int, filters: Query[ReferenceGameFilters]
 ) -> QuerySet[ReferenceGame]:

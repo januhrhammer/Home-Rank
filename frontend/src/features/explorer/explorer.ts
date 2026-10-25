@@ -1,4 +1,4 @@
-import { queryOptions, useMutation } from "@tanstack/react-query";
+import { keepPreviousData, queryOptions, useMutation } from "@tanstack/react-query";
 
 import { api } from "../../api/client";
 import { ApiError } from "../../api/errors";
@@ -75,6 +75,8 @@ export function referenceGamesQuery(
           params: { path: { database_id: databaseId }, query: { ...filters, limit: 50, offset } },
         }),
       ),
+    // Keep showing the current page while the next one loads, instead of an empty table.
+    placeholderData: keepPreviousData,
   });
 }
 
