@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.11.0](https://github.com/januhrhammer/Home-Rank/compare/v0.10.0...v0.11.0) (2026-10-25)
+
+
+### Features
+
+* **deploy:** install Home-Rank on Proxmox VE with one command ([#99](https://github.com/januhrhammer/Home-Rank/issues/99)) ([d2fd01e](https://github.com/januhrhammer/Home-Rank/commit/d2fd01e997ed2cd92aed54883bd0cb044213b3c1))
+* **repertoire:** lines in the API ([#109](https://github.com/januhrhammer/Home-Rank/issues/109)) ([7cb5d4b](https://github.com/januhrhammer/Home-Rank/commit/7cb5d4b0e2bdac890d60d53c56a38e6b54e5e4a1))
+* **repertoire:** lines, named sets of a repertoire's moves ([#108](https://github.com/januhrhammer/Home-Rank/issues/108)) ([526d121](https://github.com/januhrhammer/Home-Rank/commit/526d121e357b6513bf5fe7bbad0c137b6b648884))
+* **ui:** drill chosen lines, and show where lines disagree ([#112](https://github.com/januhrhammer/Home-Rank/issues/112)) ([7749d36](https://github.com/januhrhammer/Home-Rank/commit/7749d3685491e2331c61a85a684635082b24009b))
+* **ui:** import and seed into a line, or a course as one line per chapter ([#111](https://github.com/januhrhammer/Home-Rank/issues/111)) ([cfb0005](https://github.com/januhrhammer/Home-Rank/commit/cfb000539320234a721263ee040ff771076f1707))
+* **ui:** repertoire lines on the repertoire page ([#110](https://github.com/januhrhammer/Home-Rank/issues/110)) ([7337fd0](https://github.com/januhrhammer/Home-Rank/commit/7337fd09eadac4b7aa8b9fe113b3c5df662d88ee))
+
+
+### Bug Fixes
+
+* **deps:** update virtualenv to 21.14.13 ([#102](https://github.com/januhrhammer/Home-Rank/issues/102)) ([9655a8d](https://github.com/januhrhammer/Home-Rank/commit/9655a8d4736245e3490515086b923ab68b287951))
+* **reference:** lead from a new database to its import page ([#103](https://github.com/januhrhammer/Home-Rank/issues/103)) ([378c406](https://github.com/januhrhammer/Home-Rank/commit/378c406faff1865e419a5ef862a352ac4a7382f8))
+* **reference:** resume failed imports from the admin, refuse an empty name ([#104](https://github.com/januhrhammer/Home-Rank/issues/104)) ([36a7ecb](https://github.com/januhrhammer/Home-Rank/commit/36a7ecbe36b42701fd7f89ba0792b53ca58d4deb))
+* **ui:** show the picked-up piece and where it can go ([#105](https://github.com/januhrhammer/Home-Rank/issues/105)) ([0f35fd5](https://github.com/januhrhammer/Home-Rank/commit/0f35fd50b0fc33dafb8f546e98a51600e3f427b8))
+
 ## [0.10.0](https://github.com/januhrhammer/Home-Rank/compare/v0.9.0...v0.10.0) (2026-10-24)
 
 
