@@ -28,6 +28,8 @@ from homerank.engine.novelty import (
 from homerank.engine.uci import open_engine
 from homerank.explorer.selectors import ReferenceFilters, reference_explorer
 from homerank.novelty.models import NoveltySearch, NoveltyTry, RatingKind, SearchStatus
+from homerank.play.models import Opponent
+from homerank.play.services import ELO_RANGES
 from homerank.reference.models import ReferenceDatabase
 
 # How often a running search looks whether it was cancelled, in seconds.
@@ -44,6 +46,11 @@ class SearchFinishedError(DomainError):
     detail = "This search has finished already."
 
 
+class SearchActiveError(DomainError):
+    status = HTTPStatus.CONFLICT
+    detail = "This search is still waiting or running: cancel it first."
+
+
 # ---------------------------------------------------------------- the opponent's rating
 
 # Lichess ratings run above FIDE and DWZ ratings at club level (ADR 0022): by these many points
@@ -53,17 +60,22 @@ OFFSETS = {RatingKind.LICHESS: 0, RatingKind.FIDE: 200, RatingKind.DWZ: 250}
 LOW, TOP, TOP_OFFSET = 1500, 2300, 100
 
 
+# Maia plays these ratings (as in games against it, ADR 0017).
+MAIA_LOW, MAIA_HIGH = ELO_RANGES[Opponent.MAIA]
+
+
 def lichess_rating(rating: int, kind: str) -> int:
-    """The Lichess rating Maia should play at for an opponent of this rating."""
+    """The Lichess rating Maia should play at for an opponent of this rating, within the
+    ratings Maia plays."""
     offset = OFFSETS[RatingKind(kind)]
-    if offset == 0:
-        return rating
-    if rating <= LOW:
-        return rating + offset
-    if rating >= TOP:
-        return rating + TOP_OFFSET
-    share = (rating - LOW) / (TOP - LOW)
-    return rating + round(offset + share * (TOP_OFFSET - offset))
+    if offset == 0 or rating <= LOW:
+        converted = rating + offset
+    elif rating >= TOP:
+        converted = rating + TOP_OFFSET
+    else:
+        share = (rating - LOW) / (TOP - LOW)
+        converted = rating + round(offset + share * (TOP_OFFSET - offset))
+    return max(MAIA_LOW, min(MAIA_HIGH, converted))
 
 
 # ---------------------------------------------------------------- starting and stopping
@@ -124,6 +136,13 @@ def cancel_search(search: NoveltySearch) -> NoveltySearch:
         search.cancel_requested = True
         search.save(update_fields=["status", "finished_at", "cancel_requested"])
     return search
+
+
+def delete_search(search: NoveltySearch) -> None:
+    """Delete a search that has ended, with its tries."""
+    if search.status in (SearchStatus.QUEUED, SearchStatus.RUNNING):
+        raise SearchActiveError
+    search.delete()
 
 
 # ---------------------------------------------------------------- running
