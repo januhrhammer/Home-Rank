@@ -2,14 +2,14 @@
    Components style themselves with CSS Modules (Component.module.css) and use these tokens,
    so colours and spacing stay consistent. See docs/adr/0005-styling.md. */
 
-/* The five chess figures for moves written with figurines (♘f3), cut from Noto Sans Symbols 2
-   (src/assets/fonts/README.md). Only these characters use it; it's 5 kB, so the browser waits
-   for it rather than briefly showing another font's figures, or emoji. */
+/* The six chess figures for moves written with figurines (♘f3) and captured pieces, cut from
+   Noto Sans Symbols 2 (src/assets/fonts/README.md). Only these characters use it; it's 5 kB, so
+   the browser waits for it rather than briefly showing another font's figures, or emoji. */
 @font-face {
   font-family: Figurines;
   font-display: block;
   src: url("../assets/fonts/figurines.woff2") format("woff2");
-  unicode-range: U+2654-2658;
+  unicode-range: U+2654-2659;
 }
 
 :root {

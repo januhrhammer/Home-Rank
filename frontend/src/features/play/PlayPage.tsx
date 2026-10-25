@@ -6,13 +6,15 @@ import { Link, useParams } from "react-router";
 import { ApiError } from "../../api/errors";
 import { Board } from "../../components/Board";
 import { dialogStyles as dialogs, ModalDialog } from "../../components/Dialog";
+import { BackIcon, EndIcon, ForwardIcon, StartIcon } from "../../components/Icons";
 import { t } from "../../lib/i18n";
+import { useKeyboard } from "../../lib/useKeyboard";
 import { useNotation, withFigurines } from "../games";
 import { MoveForm, movesQuery, repertoiresQuery } from "../repertoire";
 import { boardMove, legalDests, squaresOf } from "../training";
 import { type BookMove, departure } from "./departure";
 import { errorMessage } from "./errors";
-import { clockText, outcomeFor, type PlayedMove, playedMoves } from "./moves";
+import { type Ahead, clockText, material, outcomeFor, type PlayedMove, playedMoves } from "./moves";
 import { type BotGame, gameQuery, usePlayMove, useResign, useSaveGame, useTakeBack } from "./play";
 import styles from "./PlayPage.module.css";
 import { StartGameDialog } from "./StartGameDialog";
@@ -48,12 +50,36 @@ function Game({ game, receivedAt, onFlag }: GameProps) {
   const takeBack = useTakeBack(game.id);
   // The user's move, shown at once while the server answers with the bot's.
   const [pending, setPending] = useState<{ fen: string; uci: string } | null>(null);
+  // An earlier position looked at, as the number of half-moves played to it; null: the game's
+  // current position, where moves are made.
+  const [viewPly, setViewPly] = useState<number | null>(null);
 
   const moves = playedMoves(game.start_fen, game.moves);
   const playing = game.status === "playing";
   const usersTurn = playing && (game.fen.split(" ")[1] === "w") === (game.user_color === "white");
-  const canMove = usersTurn && !play.isPending && !takeBack.isPending;
-  const shown = pending ?? { fen: game.fen, uci: game.moves.at(-1) ?? "" };
+  const viewing = viewPly !== null && viewPly < moves.length;
+  const canMove = usersTurn && !play.isPending && !takeBack.isPending && !viewing;
+  const earlier = viewing ? moves[viewPly - 1] : undefined;
+  const shown = viewing
+    ? { fen: earlier?.fen ?? game.start_fen, uci: earlier?.uci ?? "" }
+    : (pending ?? { fen: game.fen, uci: game.moves.at(-1) ?? "" });
+  const ahead = material(shown.fen);
+
+  const go = {
+    start: () => {
+      setViewPly(0);
+    },
+    back: () => {
+      setViewPly((ply) => Math.max(0, (ply ?? moves.length) - 1));
+    },
+    forward: () => {
+      setViewPly((ply) => (ply === null || ply + 1 >= moves.length ? null : ply + 1));
+    },
+    live: () => {
+      setViewPly(null);
+    },
+  };
+  useKeyboard({ ArrowLeft: go.back, ArrowRight: go.forward, Home: go.start, End: go.live });
 
   const move = (uci: string) => {
     const after = playedMoves(game.fen, [uci])[0];
@@ -88,6 +114,7 @@ function Game({ game, receivedAt, onFlag }: GameProps) {
             game={game}
             color={botColor}
             name={game.opponent_name}
+            ahead={ahead[botColor]}
             receivedAt={receivedAt}
           />
           <Board
@@ -111,14 +138,41 @@ function Game({ game, receivedAt, onFlag }: GameProps) {
             game={game}
             color={game.user_color}
             name={t("play.you")}
+            ahead={ahead[game.user_color]}
             receivedAt={receivedAt}
             onFlag={onFlag}
           />
+          <div className={styles.controls}>
+            <Button className={styles.control} aria-label={t("viewer.start")} onPress={go.start}>
+              <StartIcon />
+            </Button>
+            <Button className={styles.control} aria-label={t("viewer.back")} onPress={go.back}>
+              <BackIcon />
+            </Button>
+            <Button
+              className={styles.control}
+              aria-label={t("viewer.forward")}
+              onPress={go.forward}
+            >
+              <ForwardIcon />
+            </Button>
+            <Button className={styles.control} aria-label={t("play.current")} onPress={go.live}>
+              <EndIcon />
+            </Button>
+          </div>
         </div>
         <div className={styles.panel}>
           <p role="status" className={styles.status}>
             {statusText(game, play.isPending)}
           </p>
+          {viewing && (
+            <p className={styles.viewing}>
+              {t("play.viewing")}{" "}
+              <Button className={styles.secondary} onPress={go.live}>
+                {t("play.backToGame")}
+              </Button>
+            </p>
+          )}
           <RepertoireNote game={game} moves={moves} />
           {(play.error ?? takeBack.error) && (
             <p className={styles.error} role="alert">
@@ -135,7 +189,7 @@ function Game({ game, receivedAt, onFlag }: GameProps) {
                 <li
                   key={`${String(played.number)}${played.white ? "w" : "b"}`} // one per ply
                   className={styles.move}
-                  aria-current={index === moves.length - 1 ? "step" : undefined}
+                  aria-current={index + 1 === (viewPly ?? moves.length) ? "step" : undefined}
                 >
                   {(played.white || index === 0) && (
                     <span className={styles.number}>
@@ -143,7 +197,15 @@ function Game({ game, receivedAt, onFlag }: GameProps) {
                       {played.white ? "." : "…"}
                     </span>
                   )}
-                  <span aria-label={played.san}>{format(played.san)}</span>
+                  <Button
+                    className={styles.moveButton}
+                    aria-label={played.san}
+                    onPress={() => {
+                      setViewPly(index + 1 === moves.length ? null : index + 1);
+                    }}
+                  >
+                    {format(played.san)}
+                  </Button>
                 </li>
               ))}
             </ol>
@@ -198,12 +260,14 @@ interface ClockLineProps {
   game: BotGame;
   color: "white" | "black";
   name: string;
+  /** The pieces this player is up in the position shown. */
+  ahead: Ahead;
   receivedAt: number;
   onFlag?: () => void;
 }
 
 /** A player's name and, in a timed game, their clock, running while they are to move. */
-function ClockLine({ game, color, name, receivedAt, onFlag }: ClockLineProps) {
+function ClockLine({ game, color, name, ahead, receivedAt, onFlag }: ClockLineProps) {
   const toMove = game.status === "playing" && game.fen.split(" ")[1] === color[0];
   const left =
     game.clock === null ? null : color === "white" ? game.clock.white_ms : game.clock.black_ms;
@@ -231,7 +295,9 @@ function ClockLine({ game, color, name, receivedAt, onFlag }: ClockLineProps) {
 
   return (
     <div className={styles.clockLine} data-to-move={toMove || undefined}>
-      <span className={styles.player}>{name}</span>
+      <span className={styles.player}>
+        {name} <Material ahead={ahead} />
+      </span>
       {shownMs !== null && (
         <span
           className={styles.clock}
@@ -243,6 +309,35 @@ function ClockLine({ game, color, name, receivedAt, onFlag }: ClockLineProps) {
         </span>
       )}
     </div>
+  );
+}
+
+const FIGURES: Record<string, string> = { Q: "♕", R: "♖", B: "♗", N: "♘", P: "♙" };
+const PIECE_NAMES: Record<string, string> = {
+  Q: "queen",
+  R: "rook",
+  B: "bishop",
+  N: "knight",
+  P: "pawn",
+};
+
+/** The pieces a player is up, as figures, and the points ahead: ♘♙ +4. */
+function Material({ ahead }: { ahead: Ahead }) {
+  if (ahead.pieces.length === 0) {
+    return null;
+  }
+  return (
+    <span
+      className={styles.material}
+      role="img"
+      aria-label={t(ahead.advantage > 0 ? "play.aheadPoints" : "play.ahead", {
+        pieces: ahead.pieces.map((piece) => PIECE_NAMES[piece] ?? piece).join(", "),
+        points: ahead.advantage,
+      })}
+    >
+      {ahead.pieces.map((piece) => FIGURES[piece] ?? piece).join("")}
+      {ahead.advantage > 0 && ` +${String(ahead.advantage)}`}
+    </span>
   );
 }
 

@@ -118,6 +118,52 @@
   font-weight: 700;
 }
 
+/* A move of the list: click it to look at the position after it. */
+.moveButton {
+  padding: 0;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  background: none;
+  cursor: pointer;
+}
+
+.moveButton[data-hovered],
+.moveButton[data-focus-visible] {
+  text-decoration: underline;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.control {
+  display: inline-grid;
+  place-items: center;
+  min-width: 2.75rem; /* a comfortable target for fingers */
+  min-height: 2.25rem;
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  background: var(--color-bg);
+  cursor: pointer;
+}
+
+.viewing {
+  margin: 0 0 var(--space-3);
+  color: var(--color-text-muted);
+}
+
+/* The pieces a player is up: figures, then the points. */
+.material {
+  margin-left: var(--space-1);
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
 .number {
   margin-right: 0.25em;
   color: var(--color-text-muted);
