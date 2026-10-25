@@ -22,9 +22,12 @@ explorer.
 >   winning move, repeated with spaced repetition (FSRS) until they stick.
 > - reference databases such as Lumbra's GigaBase (millions of games, imported from compressed
 >   PGN), position search across your games and them, and an opening explorer comparing both.
-> - opening repertoires for White and Black: built on the board, imported from PGN (a course or a
->   Lichess study) or started from what you play in your games; a report of where your games
->   left them; and drills of your moves, card by card or whole lines, with spaced repetition.
+> - opening repertoires for White and Black, each made of named lines ("Ruy Lopez" with "Open",
+>   "Berlin", …) that share their common moves: built on the board, imported from PGN (a course
+>   or a Lichess study, one line per chapter) or started from what you play in your games; a
+>   report of where your games left them, and of where your lines disagree; and drills of your
+>   moves, card by card or whole lines, of a repertoire or the lines you choose, with spaced
+>   repetition.
 > - playing openings out against a bot, from any position: Maia, which plays like people of a
 >   chosen rating, or Stockfish at a limited strength; with or without a clock, a note where
 >   the game left your repertoire, and the game saved to your games if you like.
