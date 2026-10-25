@@ -110,7 +110,7 @@ and are deleted afterwards.
 PGN files imported into a repertoire (an opening course, a Lichess study) can be up to 20 MB,
 which is fixed. They are read while the upload's request waits: a heavily annotated 20 MB course
 takes a few seconds on a desktop processor, and a few times that on a Raspberry Pi. A repertoire
-holds at most 20,000 moves, and each user at most 50 repertoires.
+holds at most 20,000 moves in at most 100 lines, and each user at most 50 repertoires.
 
 Linked Lichess and Chess.com accounts are synced every 6 hours; change that with
 `SYNC_INTERVAL_HOURS`, or set it to 0 to sync only when users press "Sync now". The server needs
