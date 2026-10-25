@@ -1,6 +1,9 @@
 import { useState } from "react";
 import {
   Button,
+  CheckboxButton,
+  CheckboxField,
+  CheckboxGroup,
   Dialog,
   FieldError,
   Form,
@@ -10,7 +13,7 @@ import {
   Label,
   TextField,
 } from "react-aria-components";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 import { dialogStyles as dialogs, ModalDialog } from "../../components/Dialog";
 import { t } from "../../lib/i18n";
@@ -68,6 +71,13 @@ export function LinesPanel({ repertoire, lines, moves, current, onSelect }: Line
         ))}
       </ul>
       <div className={styles.actions}>
+        <Link
+          className={styles.action}
+          to={`/repertoires/${String(repertoire.id)}/drill?line=${String(current.id)}`}
+        >
+          {t("repertoire.drillLine")}
+        </Link>
+        {lines.length > 1 && <DrillLinesDialog repertoireId={repertoire.id} lines={lines} />}
         <NewLineDialog repertoire={repertoire} onCreated={onSelect} />
         <RenameLineDialog repertoireId={repertoire.id} line={current} />
         <Button
@@ -106,6 +116,61 @@ export function LinesPanel({ repertoire, lines, moves, current, onSelect }: Line
       )}
       <p className={styles.hint}>{t("repertoire.linesHint")}</p>
     </section>
+  );
+}
+
+/** Choose several lines to drill together. */
+function DrillLinesDialog(props: { repertoireId: number; lines: RepertoireLine[] }) {
+  const [chosen, setChosen] = useState<string[]>([]);
+  const navigate = useNavigate();
+  return (
+    <ModalDialog trigger={<Button className={styles.action}>{t("repertoire.drillLines")}</Button>}>
+      <Dialog className={dialogs.dialog}>
+        {({ close }) => (
+          <div className={dialogs.form}>
+            <Heading slot="title" className={dialogs.title}>
+              {t("repertoire.drillLinesTitle")}
+            </Heading>
+            <CheckboxGroup
+              className={styles.choices}
+              value={chosen}
+              onChange={setChosen}
+              aria-label={t("repertoire.lines")}
+            >
+              {props.lines.map((line) => (
+                <CheckboxField key={line.id} value={String(line.id)}>
+                  <CheckboxButton className={styles.choice}>
+                    {({ isSelected }) => (
+                      <>
+                        <span className={styles.box} aria-hidden="true">
+                          {isSelected ? "✓" : ""}
+                        </span>
+                        {line.name}
+                      </>
+                    )}
+                  </CheckboxButton>
+                </CheckboxField>
+              ))}
+            </CheckboxGroup>
+            <div className={dialogs.buttons}>
+              <Button className={dialogs.secondary} onPress={close}>
+                {t("repertoire.cancel")}
+              </Button>
+              <Button
+                className={dialogs.primary}
+                isDisabled={chosen.length === 0}
+                onPress={() => {
+                  const search = chosen.map((id) => `line=${id}`).join("&");
+                  void navigate(`/repertoires/${String(props.repertoireId)}/drill?${search}`);
+                }}
+              >
+                {t("repertoire.drillChosen", { count: chosen.length })}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Dialog>
+    </ModalDialog>
   );
 }
 

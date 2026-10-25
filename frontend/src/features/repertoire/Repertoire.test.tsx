@@ -11,7 +11,7 @@ import { renderApp } from "../../test/render";
 import { server, simulateAuth } from "../../test/server";
 import { answerUploads } from "../../test/uploads";
 import type { User } from "../auth";
-import type { Repertoire, RepertoireLine, RepertoireMove } from "./repertoire";
+import type { Conflict, Repertoire, RepertoireLine, RepertoireMove } from "./repertoire";
 import { movesOf } from "./testMoves";
 
 const alice: User = { id: 1, username: "alice", email: "", is_staff: false };
@@ -31,7 +31,11 @@ const QUEENS_GAMBIT: Repertoire = {
  * line" (id 1), holding all the moves. The explorer suggests 1. e4 and 1. d4 everywhere.
  * Returns what it received.
  */
-function simulateRepertoire(moves: RepertoireMove[], repertoire = QUEENS_GAMBIT) {
+function simulateRepertoire(
+  moves: RepertoireMove[],
+  repertoire = QUEENS_GAMBIT,
+  conflicts: Conflict[] = [],
+) {
   const received: {
     added: unknown[];
     comments: unknown[];
@@ -53,6 +57,7 @@ function simulateRepertoire(moves: RepertoireMove[], repertoire = QUEENS_GAMBIT)
       move_count: moves.filter((m) => m.line_ids.includes(line.id)).length,
     }));
   server.use(
+    http.get("*/api/v1/repertoires/:id/conflicts", () => HttpResponse.json(conflicts)),
     http.get("*/api/v1/repertoires/:id/lines", () => HttpResponse.json(listed())),
     http.post("*/api/v1/repertoires/:id/lines", async ({ request }) => {
       const { name } = (await request.json()) as { name: string };
@@ -504,12 +509,63 @@ test("lines are reordered, renamed and deleted, saying how many moves go", async
 
   await waitFor(() => {
     expect(
-      within(lines)
+      within(within(lines).getByRole("list"))
         .getAllByRole("link")
         .map((link) => link.textContent),
     ).toEqual(["Semi-Slav 0"]);
   });
   expect(within(lines).queryByRole("button", { name: "Delete line" })).not.toBeInTheDocument();
+});
+
+test("a line is drilled alone, or several chosen lines together", async () => {
+  simulateAuth(alice, { loggedIn: true });
+  simulateRepertoire(movesOf([["d4", "d5", "c4"]]));
+  renderApp("/repertoires/4");
+  const user = userEvent.setup();
+  const lines = await screen.findByRole("region", { name: "Lines" });
+  expect(within(lines).getByRole("link", { name: "Drill this line" })).toHaveAttribute(
+    "href",
+    "/repertoires/4/drill?line=1",
+  );
+  expect(within(lines).queryByRole("button", { name: "Drill several lines…" })).toBeNull();
+
+  await user.click(within(lines).getByRole("button", { name: "New line" }));
+  await user.type(screen.getByLabelText("Name"), "Slav");
+  await user.click(screen.getByRole("button", { name: "Create" }));
+  await user.click(await within(lines).findByRole("button", { name: "Drill several lines…" }));
+  const dialog = screen.getByRole("dialog");
+  expect(within(dialog).getByRole("button", { name: "Drill 0 lines" })).toBeDisabled();
+  await user.click(within(dialog).getByText("Main line"));
+  await user.click(within(dialog).getByText("Slav"));
+  await user.click(within(dialog).getByRole("button", { name: "Drill 2 lines" }));
+
+  expect(await screen.findByRole("heading", { name: "Drill: Queen's Gambit" })).toBeVisible();
+  expect(await screen.findByText(/Only the lines Main line, Slav/)).toBeInTheDocument();
+});
+
+test("positions where lines disagree are listed, with links to the lines", async () => {
+  simulateAuth(alice, { loggedIn: true });
+  simulateRepertoire(movesOf([["d4", "d5", "c4"]]), QUEENS_GAMBIT, [
+    {
+      fen: "rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2",
+      choices: [
+        { move_uci: "c2c4", move_san: "c4", lines: ["Main line"] },
+        { move_uci: "c1f4", move_san: "Bf4", lines: ["London"] },
+      ],
+    },
+  ]);
+  renderApp("/repertoires/4");
+
+  const conflicts = await screen.findByRole("region", { name: "Where your lines disagree" });
+
+  expect(within(conflicts).getByRole("listitem")).toHaveTextContent(
+    // The figurine is shown, and Bf4 written out for screen readers.
+    "2.c4 Main line · 2.♗f4Bf4 London",
+  );
+  expect(within(conflicts).getByRole("link", { name: "Main line" })).toHaveAttribute(
+    "href",
+    "/repertoires/4?line=1",
+  );
 });
 
 test("someone else's repertoire isn't found", async () => {

@@ -32,26 +32,34 @@ function unwrap<T>({
 // "stale"), not when the window gets the focus back: that would swap the card, or restart the
 // line, in the middle of an answer.
 
-export function nextDueQuery(repertoireId: number) {
+/** The card due longest, of the repertoire or only of the given lines. */
+export function nextDueQuery(repertoireId: number, lineIds: number[] = []) {
   return queryOptions({
-    queryKey: [...REPERTOIRE_KEY, repertoireId, "drill", "next"],
+    queryKey: [...REPERTOIRE_KEY, repertoireId, "drill", "next", lineIds],
     queryFn: async () =>
       unwrap(
         await api.GET("/api/v1/repertoires/{repertoire_id}/drill/next", {
-          params: { path: { repertoire_id: repertoireId } },
+          params: {
+            path: { repertoire_id: repertoireId },
+            query: { line: lineIds.length > 0 ? lineIds : null },
+          },
         }),
       ),
     staleTime: Infinity,
   });
 }
 
-export function lineQuery(repertoireId: number, through: number | null) {
+/** A line to play through, of the repertoire or only of the given lines. */
+export function lineQuery(repertoireId: number, through: number | null, lineIds: number[] = []) {
   return queryOptions({
-    queryKey: [...REPERTOIRE_KEY, repertoireId, "drill", "line", through],
+    queryKey: [...REPERTOIRE_KEY, repertoireId, "drill", "line", through, lineIds],
     queryFn: async () =>
       unwrap(
         await api.GET("/api/v1/repertoires/{repertoire_id}/drill/line", {
-          params: { path: { repertoire_id: repertoireId }, query: { through } },
+          params: {
+            path: { repertoire_id: repertoireId },
+            query: { through, line: lineIds.length > 0 ? lineIds : null },
+          },
         }),
       ),
     staleTime: Infinity,

@@ -12,7 +12,7 @@ import { Ratings, type Review, squaresOf, useChangeRating } from "../training";
 import { type DrillStep, fenAfter, lineQuery, nextDueQuery, useDrillReview } from "./drill";
 import styles from "./DrillPage.module.css";
 import { DrillQuestion, MoveText } from "./DrillQuestion";
-import { type Repertoire, REPERTOIRE_KEY, repertoireQuery } from "./repertoire";
+import { linesQuery, type Repertoire, REPERTOIRE_KEY, repertoireQuery } from "./repertoire";
 import { START_FEN } from "./tree";
 
 /** How long the opponent "thinks" before their move is played, in milliseconds. */
@@ -23,13 +23,22 @@ const ANSWER_DELAY = 900;
 /**
  * Drilling a repertoire: the cards due one by one ("due"), or whole lines from the start
  * ("line"), with the opponent's moves played automatically. The mode is in the address
- * (?mode=line, and ?through=<move id> for a line through that move).
+ * (?mode=line, and ?through=<move id> for a line through that move), and so are the lines
+ * drilled (?line=<id>, once per line; none: the whole repertoire).
  */
 export function DrillPage() {
   const repertoireId = Number(useParams().repertoireId);
   const repertoire = useQuery(repertoireQuery(repertoireId));
+  const lines = useQuery(linesQuery(repertoireId));
   const { params } = useUrlParams();
   const mode = params.get("mode") === "line" ? "line" : "due";
+  const lineIds = params
+    .getAll("line")
+    .map(Number)
+    .filter((id) => id > 0);
+  // The lines chosen, kept when the mode changes.
+  const lineSearch = lineIds.map((id) => `line=${String(id)}`).join("&");
+  const chosen = (lines.data ?? []).filter((line) => lineIds.includes(line.id));
 
   if (repertoire.isError) {
     const notFound = repertoire.error instanceof ApiError && repertoire.error.status === 404;
@@ -46,17 +55,25 @@ export function DrillPage() {
           <Link to={base}>{t("drill.backTo", { name: repertoire.data.name })}</Link>
         </p>
         <h1 className={styles.title}>{t("drill.title", { name: repertoire.data.name })}</h1>
+        {chosen.length > 0 && (
+          <p className={styles.muted}>
+            {t("drill.onlyLines", { names: chosen.map((line) => line.name).join(", ") })}{" "}
+            <Link to={`${base}/drill${mode === "line" ? "?mode=line" : ""}`}>
+              {t("drill.allLines")}
+            </Link>
+          </p>
+        )}
         <nav className={styles.modes} aria-label={t("drill.modes")}>
           <Link
             className={styles.mode}
-            to={`${base}/drill`}
+            to={`${base}/drill${lineSearch ? `?${lineSearch}` : ""}`}
             aria-current={mode === "due" ? "page" : undefined}
           >
             {t("drill.due")}
           </Link>
           <Link
             className={styles.mode}
-            to={`${base}/drill?mode=line`}
+            to={`${base}/drill?mode=line${lineSearch ? `&${lineSearch}` : ""}`}
             aria-current={mode === "line" ? "page" : undefined}
           >
             {t("drill.lines")}
@@ -64,17 +81,29 @@ export function DrillPage() {
         </nav>
       </header>
       {mode === "due" ? (
-        <DueDrill repertoire={repertoire.data} />
+        <DueDrill repertoire={repertoire.data} lineIds={lineIds} lineSearch={lineSearch} />
       ) : (
-        <LineDrill repertoire={repertoire.data} through={Number(params.get("through")) || null} />
+        <LineDrill
+          repertoire={repertoire.data}
+          through={Number(params.get("through")) || null}
+          lineIds={lineIds}
+        />
       )}
     </>
   );
 }
 
-/** The repertoire's cards that are due, the one due longest first. */
-function DueDrill({ repertoire }: { repertoire: Repertoire }) {
-  const next = useQuery(nextDueQuery(repertoire.id));
+/** The repertoire's (or the lines') cards that are due, the one due longest first. */
+function DueDrill({
+  repertoire,
+  lineIds,
+  lineSearch,
+}: {
+  repertoire: Repertoire;
+  lineIds: number[];
+  lineSearch: string;
+}) {
+  const next = useQuery(nextDueQuery(repertoire.id, lineIds));
   const review = useDrillReview();
   const changeRating = useChangeRating();
   const queryClient = useQueryClient();
@@ -94,7 +123,9 @@ function DueDrill({ repertoire }: { repertoire: Repertoire }) {
     return (
       <p className={styles.empty}>
         {t("drill.nothingDue")}{" "}
-        <Link to={`/repertoires/${String(repertoire.id)}/drill?mode=line`}>
+        <Link
+          to={`/repertoires/${String(repertoire.id)}/drill?mode=line${lineSearch ? `&${lineSearch}` : ""}`}
+        >
           {t("drill.tryLines")}
         </Link>
       </p>
@@ -146,9 +177,17 @@ function DueDrill({ repertoire }: { repertoire: Repertoire }) {
   );
 }
 
-/** One line after another, from the start to the end of the repertoire. */
-function LineDrill({ repertoire, through }: { repertoire: Repertoire; through: number | null }) {
-  const lineOptions = lineQuery(repertoire.id, through);
+/** One line after another, from the start to the end of the repertoire (or of the lines). */
+function LineDrill({
+  repertoire,
+  through,
+  lineIds,
+}: {
+  repertoire: Repertoire;
+  through: number | null;
+  lineIds: number[];
+}) {
+  const lineOptions = lineQuery(repertoire.id, through, lineIds);
   const line = useQuery(lineOptions);
   const { setParam } = useUrlParams();
   const queryClient = useQueryClient();
@@ -177,7 +216,9 @@ function LineDrill({ repertoire, through }: { repertoire: Repertoire; through: n
           void queryClient.refetchQueries({ queryKey: lineOptions.queryKey });
         } else {
           // Forget any earlier line without a chosen move, so a new one is fetched.
-          queryClient.removeQueries({ queryKey: lineQuery(repertoire.id, null).queryKey });
+          queryClient.removeQueries({
+            queryKey: lineQuery(repertoire.id, null, lineIds).queryKey,
+          });
           setParam("through", null);
         }
       }}
