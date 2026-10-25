@@ -19,6 +19,7 @@ import { useKeyboard } from "../../lib/useKeyboard";
 import { arrowsOf, EnginePanel, useLiveAnalysis } from "../engine";
 import { ExplorerPanel, type Source } from "../explorer";
 import { MoveList, type MoveNode, useNotation, withFigurines } from "../games";
+import { FindTriesDialog } from "../novelty";
 import { StartGameDialog } from "../play";
 import { boardMove, legalDests, turnOf } from "../training";
 import { errorMessage } from "./errors";
@@ -196,6 +197,17 @@ export function RepertoireEditor({ repertoire, line, lines, moves }: RepertoireE
           triggerLabel={t("play.newFrom")}
           triggerClassName={styles.control}
         />
+        <FindTriesDialog
+          fen={fen}
+          moves={movesTo(tree, current)}
+          label={
+            current
+              ? t("play.labelAfter", { start: repertoire.name, line: lineTo(current) })
+              : repertoire.name
+          }
+          side={repertoire.color}
+          triggerClassName={styles.control}
+        />
         {addMove.error && (
           <p className={styles.error} role="alert">
             {errorMessage(addMove.error)}
@@ -281,6 +293,19 @@ export function RepertoireEditor({ repertoire, line, lines, moves }: RepertoireE
       </div>
     </div>
   );
+}
+
+/** The moves (UCI) from the start to a node, for searches that start there. */
+function movesTo(tree: RepertoireTree, node: MoveNode | null): string[] {
+  const moves: string[] = [];
+  for (let at = node; at !== null; at = at.parent) {
+    const move = tree.moves.get(at.id);
+    if (move === undefined) {
+      return [];
+    }
+    moves.unshift(move.move_uci);
+  }
+  return moves;
 }
 
 /** The last move of the line on from a node, following the first move at each position. */

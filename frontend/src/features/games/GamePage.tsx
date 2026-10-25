@@ -19,6 +19,7 @@ import type { PositionEval } from "../analysis";
 import { AnalysisPanel, EvalBar, EvalGraph, useGameAnalysis } from "../analysis";
 import { arrowsOf, EnginePanel, useLiveAnalysis } from "../engine";
 import { ExplorerPanel, type Source } from "../explorer";
+import { FindTriesDialog } from "../novelty";
 import { StartGameDialog } from "../play";
 import { boardMove, legalDests, turnOf } from "../training";
 import { addMoves, deleteVariation, setComment, toggleMark, variationStart } from "./annotate";
@@ -407,6 +408,13 @@ function Actions({ game, fen, after }: ActionsProps) {
         }
         side={game.user_color || (fen.split(" ")[1] === "b" ? "black" : "white")}
         triggerLabel={t("play.newFrom")}
+        triggerClassName={styles.action}
+      />
+      <FindTriesDialog
+        fen={fen}
+        moves={[]}
+        label={after === null ? players : t("play.labelAfter", { start: players, line: after })}
+        side={game.user_color || (fen.split(" ")[1] === "b" ? "black" : "white")}
         triggerClassName={styles.action}
       />
       {/* Announced by screen readers without moving the focus. */}
