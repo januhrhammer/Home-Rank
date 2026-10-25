@@ -2,7 +2,7 @@ import { vi } from "vitest";
 
 /**
  * Answers uploads (POST requests with multipart form data) with `answer`, and records what was
- * sent: the address and the names of the form's fields.
+ * sent: the address (path and query) and the names of the form's fields.
  *
  * MSW can't be used for uploads here. In the test environment the browser parts are jsdom's
  * while requests are sent by Node, and Vitest's conversion between the two loses the files'
@@ -21,7 +21,8 @@ export function answerUploads(answer: () => Response) {
     const body = await request.text();
     // Each field's part starts with: Content-Disposition: form-data; name="file"; filename=…
     const fields = [...body.matchAll(/; name="([^"]+)"/g)].map((match) => match[1] ?? "");
-    sent.push({ url: new URL(request.url).pathname, fields });
+    const url = new URL(request.url);
+    sent.push({ url: url.pathname + url.search, fields });
     return answer();
   });
   return sent;

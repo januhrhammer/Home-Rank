@@ -383,14 +383,15 @@ test("seeding from my games sends the depth and minimum, and says what was added
   await user.click(within(dialog).getByRole("button", { name: "Add moves" }));
 
   expect(await within(dialog).findByText("Added 37 moves.")).toBeInTheDocument();
-  expect(received.seeds).toEqual([{ depth: 8, min_games: 2 }]);
+  expect(within(dialog).getByText("The moves go into the line Main line.")).toBeInTheDocument();
+  expect(received.seeds).toEqual([{ depth: 8, min_games: 2, line_id: 1 }]);
 });
 
 test("importing sends the chosen file and says what was added", async () => {
   simulateAuth(alice, { loggedIn: true });
   simulateRepertoire([]);
   const sent = answerUploads(() =>
-    HttpResponse.json({ moves_added: 120, games_read: 14, games_skipped: 2 }),
+    HttpResponse.json({ moves_added: 120, games_read: 14, games_skipped: 2, lines_created: 0 }),
   );
   renderApp("/repertoires/4");
   const user = userEvent.setup();
@@ -410,7 +411,32 @@ test("importing sends the chosen file and says what was added", async () => {
   expect(await within(dialog).findByRole("status")).toHaveTextContent(
     "Added 120 moves from 14 games. 2 games were skipped",
   );
-  expect(sent).toEqual([{ url: "/api/v1/repertoires/4/import", fields: ["file"] }]);
+  expect(sent).toEqual([{ url: "/api/v1/repertoires/4/import?line_id=1", fields: ["file"] }]);
+});
+
+test("a course imports as one new line per chapter", async () => {
+  simulateAuth(alice, { loggedIn: true });
+  simulateRepertoire([]);
+  const sent = answerUploads(() =>
+    HttpResponse.json({ moves_added: 300, games_read: 12, games_skipped: 0, lines_created: 12 }),
+  );
+  renderApp("/repertoires/4");
+  const user = userEvent.setup();
+
+  await user.click(await screen.findByRole("button", { name: "Import PGN" }));
+  const dialog = screen.getByRole("dialog");
+  const input = dialog.querySelector<HTMLInputElement>('input[type="file"]');
+  if (input === null) {
+    throw new Error("no file input");
+  }
+  await user.upload(input, new File(["1. d4 *"], "course.pgn"));
+  await user.click(within(dialog).getByText(/as one new line per game/));
+  await user.click(within(dialog).getByRole("button", { name: "Import" }));
+
+  expect(await within(dialog).findByRole("status")).toHaveTextContent(
+    "Added 12 new lines, one per game, with 300 moves new to the repertoire.",
+  );
+  expect(sent).toEqual([{ url: "/api/v1/repertoires/4/import?chapters=true", fields: ["file"] }]);
 });
 
 test("a new line starts empty, and moves of other lines can join it", async () => {

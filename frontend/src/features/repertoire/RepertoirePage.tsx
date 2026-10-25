@@ -48,8 +48,8 @@ export function RepertoirePage() {
           <Link className={styles.action} to={`/repertoires/${String(repertoireId)}/gaps`}>
             {t("repertoire.gaps")}
           </Link>
-          <ImportDialog repertoire={repertoire.data} />
-          <SeedDialog repertoire={repertoire.data} />
+          <ImportDialog repertoire={repertoire.data} line={line} />
+          <SeedDialog repertoire={repertoire.data} line={line} />
           <RenameDialog repertoire={repertoire.data} />
           <DeleteDialog repertoire={repertoire.data} />
         </div>
