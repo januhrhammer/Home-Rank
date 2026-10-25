@@ -116,3 +116,9 @@
 .table[aria-busy="true"] {
   opacity: 0.6;
 }
+
+.eco {
+  margin-right: var(--space-1);
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
