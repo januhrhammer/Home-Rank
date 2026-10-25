@@ -168,6 +168,25 @@ docker compose exec web python manage.py check_bots
 
 It lets each bot answer 1. e4 and says how long it took.
 
+### Novelty search
+
+A novelty search looks for moves that give up a little on the engine's scale but are hard for
+an opponent of a given rating to refute. It runs in the worker for as long as the user asks: ten
+minutes, an hour, or a night. One search runs at a time; others wait their turn. Meanwhile it
+uses the processor fully: one Stockfish per core, `NOVELTY_ENGINES` of them (default: all cores
+but one). Games are still analysed and imported alongside, only more slowly.
+
+On a small server whose fan gets loud under load, or that does other work too, give it fewer:
+
+```sh
+NOVELTY_ENGINES=3
+```
+
+As a guide: on a 16-thread desktop (Ryzen 7 9700X) a search looks three of the user's moves
+deep in about 2 minutes and four in under 10; a 6-core mini PC (i5-9500T), with a third of the
+engines, each about three times slower, needs about 20 minutes for three and an hour for four.
+Maia, the model of the opponent, needs no setup.
+
 ### Live analysis
 
 Live analysis on the board runs Stockfish in each user's own browser (ADR 0018), so it costs the

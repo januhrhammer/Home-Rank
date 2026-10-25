@@ -31,8 +31,14 @@ explorer.
 > - playing openings out against a bot, from any position: Maia, which plays like people of a
 >   chosen rating, or Stockfish at a limited strength; with or without a clock, a note where
 >   the game left your repertoire, and the game saved to your games if you like.
+> - novelty search: from any position, your moves that give up a little on the engine's scale
+>   but are hard for an opponent of a given rating to refute, found by Stockfish against Maia
+>   as the opponent; each with its refutation and how rarely they find it, to add to a
+>   repertoire or play out against Maia. It runs on the server, between rounds or overnight.
+> - opening names for every game and position, from Lichess's opening list, also where a file
+>   has only the ECO code.
 > - live engine analysis on the board: Stockfish in your browser, with the best three lines
->   and arrows, in the viewer, the repertoire editor and the position search.
+>   and arrows, in the viewer, the repertoire editor, the position search and reference games.
 > - annotating your games: comments, move and position marks, and variations played on the
 >   board or taken from the engine; the game's own moves stay as they are.
 > - every page works on a phone, with the keyboard alone and with screen readers, in a light and
