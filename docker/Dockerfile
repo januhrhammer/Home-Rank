@@ -19,7 +19,7 @@ COPY frontend/ ./
 RUN pnpm build
 
 # ---------------------------------------------------------------- 2: backend dependencies
-FROM python:3.12-slim AS backend
+FROM python:3.15-slim AS backend
 COPY --from=ghcr.io/astral-sh/uv:0.9.22 /uv /usr/local/bin/uv
 WORKDIR /app/backend
 # Compile Python files ahead of time (the running container needn't write anything), copy
@@ -32,7 +32,7 @@ COPY backend/ ./
 # ---------------------------------------------------------------- 3: Stockfish
 # The official release for this machine's architecture, checked against its checksum; see
 # docker/get-stockfish.sh. (`uname -m`, not TARGETARCH: the classic builder doesn't set it.)
-FROM python:3.12-slim AS stockfish
+FROM python:3.15-slim AS stockfish
 # hadolint ignore=DL3008
 RUN apt-get update \
  && apt-get install --yes --no-install-recommends ca-certificates curl \
@@ -43,7 +43,7 @@ RUN get-stockfish.sh /stockfish
 # ---------------------------------------------------------------- 4: Maia
 # The human-like bot's model, the same for every architecture, checked against its checksum;
 # see docker/get-maia.sh and docs/adr/0017-maia-bot.md.
-FROM python:3.12-slim AS maia
+FROM python:3.15-slim AS maia
 # hadolint ignore=DL3008
 RUN apt-get update \
  && apt-get install --yes --no-install-recommends ca-certificates curl \
@@ -52,7 +52,7 @@ COPY docker/get-maia.sh /usr/local/bin/get-maia.sh
 RUN get-maia.sh /maia
 
 # ---------------------------------------------------------------- 5: the image that runs
-FROM python:3.12-slim
+FROM python:3.15-slim
 LABEL org.opencontainers.image.title="Home-Rank" \
       org.opencontainers.image.source="https://github.com/januhrhammer/Home-Rank" \
       org.opencontainers.image.licenses="AGPL-3.0-or-later"
